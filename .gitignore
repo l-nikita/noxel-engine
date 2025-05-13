@@ -48,3 +48,5 @@ out/
 *.dir
 x64/
 *.pdb
+*.ini
+*.exp
