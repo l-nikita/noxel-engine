@@ -48,14 +48,14 @@ void ConsolePanel::DrawLogWindow()
             ImVec4 color;
             switch (log->m_Type) 
             {
-                case CMDLogType::INFO:    color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); break;
-                case CMDLogType::WARNING: color = ImVec4(1.0f, 1.0f, 0.6f, 1.0f); break;
-                case CMDLogType::ERROR:   color = ImVec4(1.0f, 0.4f, 0.4f, 1.0f); break;
+                case CMDLogType::INFO:    color = ImVec4(0.4f, 1.0f, 1.0f, 1.0f); break;
+                case CMDLogType::WARNING: color = ImVec4(0.9f, 0.7f, 0.0f, 1.0f); break;
+                case CMDLogType::ERROR:   color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); break;
                 default:                  color = ImVec4(0.8f, 0.8f, 0.8f, 1.0f); break;
             }
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4());
-            ImGui::TextUnformatted(log->m_Text.c_str());
+            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            ImGui::Text(log->m_Text.c_str());
             ImGui::PopStyleColor();
 
             if (m_timeStamp)
@@ -118,6 +118,8 @@ void ConsolePanel::ExecuteCommand(char* input)
 
     if (m_autoScroll)
         m_scrollToBottom = true;
+
+    CMD::GetInstance().Execute(str);
 
     memset(input, 0, INPUT_SIZE);
 }

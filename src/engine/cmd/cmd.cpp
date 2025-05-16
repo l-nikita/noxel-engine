@@ -40,14 +40,20 @@ void CMD::Execute(const std::string& name)
 	}
 
 	auto iterator = m_commands.find(name);
-	if (iterator != m_commands.end()) 
+	if (iterator != m_commands.end())
+	{
+		Log("] " + name, CMDLogType::DEFAULT);
 		iterator->second.m_Func();
+	}
 }
 
 void CMD::Log(const std::string& msg, CMDLogType type)
 {
 	m_logs.emplace_back(std::make_unique<CMDLog>(msg, time(nullptr), type));
-	std::cout << msg << std::endl;
+	if(type == CMDLogType::ERROR)
+		std::cerr << msg << std::endl;
+	else
+		std::cout << msg << std::endl;
 }
 
 void CMD::ClearLogs()

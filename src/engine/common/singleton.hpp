@@ -1,7 +1,9 @@
 #pragma once
 
+#include "common.hpp"
+
 template <typename T>
-class Singleton 
+class Singleton
 {
 public:
     static T& GetInstance()

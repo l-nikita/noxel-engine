@@ -1,21 +1,20 @@
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 
 #include <iostream>
 #include <chrono>
 
+#include "panel.hpp"
 #include "engine.hpp"
+#include "renderer.hpp"
+#include "input.hpp"
 #include "profiler.hpp"
+#include "cmd.hpp"
 
 //-----------------------------------------------------------------------------
 // Constructor
 //-----------------------------------------------------------------------------
 Engine::Engine()
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -24,32 +23,13 @@ Engine::Engine()
 void Engine::Update()
 {
     glfwPollEvents();
+    if(Renderer::GetInstance().m_Camera)
+        Renderer::GetInstance().m_Camera->Update();
 }
 
 void Engine::Render()
 {
-    glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    if (!m_FirstFrame)
-    {
-        m_FirstFrame = true;
-        auto& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    }
-
-    ImGui::NewFrame();
-
-    if (m_DebugMenu)
-        m_DebugMenu->Draw();
-
-    ImGui::ShowDemoWindow();
-
-    ImGui::Render();
-
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    Renderer::GetInstance().Draw();
 }
 
 //-----------------------------------------------------------------------------
@@ -57,18 +37,17 @@ void Engine::Render()
 //-----------------------------------------------------------------------------
 void Engine::Run()
 {
-    //using namespace std::chrono;
-    //auto lastTime = high_resolution_clock::now();
+    using namespace std::chrono;
+    auto lastTime = high_resolution_clock::now();
 
     Profiler updateProfiler("Update");
     Profiler renderProfiler("Render");
 
     while (!glfwWindowShouldClose(m_Window))
     {
-        //auto currentTime = high_resolution_clock::now();
-        //auto deltaTime = duration_cast<duration<float, std::milli>>(currentTime - lastTime);
-        //std::cout << "Delta Time: " << deltaTime.count() << " ms" << std::endl;
-        //lastTime = currentTime;
+        auto currentTime = high_resolution_clock::now();
+        m_deltaTime = duration<float, std::milli>(currentTime - lastTime);
+        lastTime = currentTime;
 
         updateProfiler.Start();
         Update();
@@ -101,15 +80,8 @@ void Engine::Stop()
 //-----------------------------------------------------------------------------
 bool Engine::InitGUI()
 {
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-
-    m_DebugMenu = std::make_unique<DebugMenu>();
+    m_debugMenu = std::make_unique<DebugMenu>();
+    m_panels.push_back(dynamic_cast<Panel*>(m_debugMenu.get()));
 
     return true;
 }
@@ -119,11 +91,11 @@ bool Engine::InitGUI()
 //-----------------------------------------------------------------------------
 bool Engine::Init()
 {
-    std::cout << "Hello! I am engine!" << std::endl;
+    CMD_LOG("Hello! I am engine!", CMDLogType::INFO);
 
     if (!glfwInit()) 
     {
-        std::cerr << "GLFW init failed\n";
+        CMD_LOG("GLFW init failed", CMDLogType::ERROR);
         return false;
     }
 
@@ -131,27 +103,36 @@ bool Engine::Init()
     if (!m_Window)
     {
         glfwTerminate();
-        std::cerr << "Window creation failed\n";
+        CMD_LOG("Window creation failed", CMDLogType::ERROR);
         return false;
     }
 
     glfwMakeContextCurrent(m_Window);
     glfwSwapInterval(1);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) 
+    if (!Renderer::GetInstance().LoadGLLoader())
     {
         glfwTerminate();
-        std::cerr << "Failed to initialize glad\n";
+        CMD_LOG("Failed to initialize glad", CMDLogType::ERROR);
         return false;
     }
 
     glfwSetFramebufferSizeCallback(m_Window, Callback_OnFrameBufferSize);
 
+    Input::GetInstance().Init(m_Window);
+    Renderer::GetInstance().Init(m_Window);
     InitGUI();
 
-    const char* version = (const char*)glGetString(GL_VERSION);
-    std::cout << "OpenGL Version: " << version << std::endl;
-    std::cout << "Engine initialized successfully." << std::endl;
+    CMD::GetInstance().Setup();
+    CMD_LOG("Engine initialized successfully.", CMDLogType::INFO);
 
     return true;
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+void Engine::Callback_OnFrameBufferSize(GLFWwindow* window, int width, int height)
+{
+    Renderer::GetInstance().OnWindowResize(width, height);
 }

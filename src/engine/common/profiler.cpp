@@ -1,3 +1,6 @@
+#include <vector>
+#include <string>
+
 #include "profiler.hpp"
 
 std::vector<Profiler*> Profiler::All;

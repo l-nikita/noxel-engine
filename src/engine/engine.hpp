@@ -1,15 +1,12 @@
 #pragma once
 
 #include "GLFW/glfw3.h"
-#include "imgui.h"
-#include "debug_menu.hpp"
-#include "singleton.hpp"
 
-#ifdef ENGINE_EXPORTS
-#define ENGINE_API __declspec(dllexport)
-#else
-#define ENGINE_API __declspec(dllimport)
-#endif
+#include "common.hpp"
+#include "debug_menu.hpp"
+#include "console_panel.hpp"
+#include "singleton.hpp"
+#include "panel.hpp"
 
 class ENGINE_API Engine : public Singleton<Engine>
 {
@@ -24,14 +21,18 @@ public:
     void Update();
     void Render();
 
+    std::chrono::duration<float, std::milli> DeltaDuration() const { return m_deltaTime; }
+    float DeltaTime() const { return m_deltaTime.count(); }
+
     GLFWwindow* m_Window = nullptr;
 
-private:
-    std::unique_ptr<DebugMenu> m_DebugMenu;
-    bool m_FirstFrame = false;
-};
+    std::vector<Panel*> GetPanels() { return m_panels; }
 
-static void Callback_OnFrameBufferSize(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
+private:
+    std::chrono::duration<float, std::milli> m_deltaTime;
+
+    std::unique_ptr<DebugMenu> m_debugMenu;
+    std::vector<Panel*> m_panels;
+
+    static void Callback_OnFrameBufferSize(GLFWwindow* window, int width, int height);
+};

@@ -28,3 +28,5 @@ public:
 
 	void LogHelp();
 };
+
+static void CMD_LOG(const std::string& msg, CMDLogType type) { CMD::GetInstance().Log(msg, type); }

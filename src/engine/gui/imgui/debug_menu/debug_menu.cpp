@@ -4,6 +4,7 @@
 DebugMenu::DebugMenu()
 {
 	m_BudgetPanel = std::make_unique<BudgetPanel>();
+	m_ConsolePanel = std::make_unique<ConsolePanel>();
 }
 
 void DebugMenu::Draw()
@@ -22,7 +23,7 @@ void DebugMenu::Draw()
 
 		if (ImGui::BeginMenu("View"))
 		{
-			//ImGui::Checkbox("Console", ref _consoleEnabled);
+			ImGui::Checkbox("Console", &m_ConsoleEnabled);
 			ImGui::Checkbox("Budget", &m_BudgetEnabled);
 
 			ImGui::EndMenu();
@@ -31,6 +32,9 @@ void DebugMenu::Draw()
 		ImGui::EndMainMenuBar();
 	}
 
-	if (m_BudgetEnabled && m_BudgetPanel)
-		m_BudgetPanel->Draw();
+	if (m_BudgetEnabled)
+		m_BudgetPanel->Draw();	
+	
+	if (m_ConsoleEnabled)
+		m_ConsolePanel->Draw();
 }

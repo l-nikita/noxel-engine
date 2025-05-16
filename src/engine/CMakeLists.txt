@@ -35,14 +35,21 @@ target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/renderer
     ${CMAKE_CURRENT_SOURCE_DIR}/gui
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/imgui/debug_menu
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/cmd
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
 )
 
 target_compile_definitions(engine PRIVATE ENGINE_EXPORTS)
+
+add_custom_command(TARGET engine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    $<TARGET_FILE:engine>
+    $<TARGET_FILE_DIR:launcher>
+)
 
 # --- libs ---- #
 
@@ -59,7 +66,7 @@ add_library(imgui STATIC ${IMGUI_SOURCES})
 
 target_include_directories(imgui PUBLIC
     ../libs/imgui
-    ../../libs/imgui/backends
+    ../libs/imgui/backends
 	../libs/glfw/include
 )
 

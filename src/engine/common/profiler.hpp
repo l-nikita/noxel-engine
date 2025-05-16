@@ -3,8 +3,11 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <string>
 
-class Profiler
+#include "common.hpp"
+
+class ENGINE_API Profiler
 {
 public:
     static std::vector<Profiler*> All;
