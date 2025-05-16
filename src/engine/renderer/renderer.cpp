@@ -139,11 +139,10 @@ void Renderer::DrawGUI()
     auto panels = Engine::GetInstance().GetPanels();
     for (auto panel : panels)
     {
-        if (panel)
+        if (panel && panel->m_IsVisible)
             panel->Draw();
     }
 
-    ImGui::ShowDemoWindow();
     ImGui::Render();
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

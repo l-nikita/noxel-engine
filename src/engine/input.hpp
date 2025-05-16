@@ -9,10 +9,13 @@ class Input : public Singleton<Input>
 {
 public:
 	bool Init(GLFWwindow* window);
-	bool IsKeyPressed(const int key);
-	bool IsKeyReleased(const int key);
-	bool IsButtonPressed(const int button);
-	bool IsButtonReleased(const int button);
+	bool IsKeyPressed(int key);
+	bool IsKeyReleased(int key);
+	bool IsButtonPressed(int button);
+	bool IsButtonReleased(int button);
+
+	void SetCursorMode(int mode);
+	int GetCursorMode();
 
 	glm::vec2 GetMousePos();
 	glm::vec2 GetMouseDelta();

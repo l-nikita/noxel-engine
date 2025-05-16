@@ -20,12 +20,12 @@ bool Input::Init(GLFWwindow* window)
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Input::IsKeyPressed(const int key)
+bool Input::IsKeyPressed(int key)
 {
     return glfwGetKey(m_window, key) == GLFW_PRESS;
 }
 
-bool Input::IsKeyReleased(const int key)
+bool Input::IsKeyReleased(int key)
 {
     return glfwGetKey(m_window, key) == GLFW_RELEASE;
 }
@@ -33,14 +33,24 @@ bool Input::IsKeyReleased(const int key)
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Input::IsButtonPressed(const int button)
+bool Input::IsButtonPressed(int button)
 {
     return glfwGetMouseButton(m_window, button) == GLFW_PRESS;
 }
 
-bool Input::IsButtonReleased(const int button)
+bool Input::IsButtonReleased(int button)
 {
     return glfwGetMouseButton(m_window, button) == GLFW_RELEASE;
+}
+
+void Input::SetCursorMode(int mode)
+{
+    glfwSetInputMode(m_window, GLFW_CURSOR, mode);
+}
+
+int Input::GetCursorMode() 
+{
+    return glfwGetInputMode(m_window, GLFW_CURSOR);
 }
 
 glm::vec2 Input::GetMousePos()
@@ -68,6 +78,15 @@ glm::vec2 Input::GetMouseScroll() const
 //-----------------------------------------------------------------------------
 void Input::Callback_Key(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_PRESS)
+        Engine::GetInstance().m_DebugMenu->m_IsVisible = !Engine::GetInstance().m_DebugMenu->m_IsVisible;
+    else if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
+    {
+        if (Input::GetInstance().GetCursorMode() == GLFW_CURSOR_NORMAL)
+            Input::GetInstance().SetCursorMode(GLFW_CURSOR_DISABLED);
+        else
+            Input::GetInstance().SetCursorMode(GLFW_CURSOR_NORMAL);
+    }
 }
 
 void Input::Callback_CharMods(GLFWwindow* window, unsigned int codepoint, int mods)

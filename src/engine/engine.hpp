@@ -27,11 +27,11 @@ public:
     GLFWwindow* m_Window = nullptr;
 
     std::vector<Panel*> GetPanels() { return m_panels; }
+    std::unique_ptr<DebugMenu> m_DebugMenu;
 
 private:
     std::chrono::duration<float, std::milli> m_deltaTime;
 
-    std::unique_ptr<DebugMenu> m_debugMenu;
     std::vector<Panel*> m_panels;
 
     static void Callback_OnFrameBufferSize(GLFWwindow* window, int width, int height);

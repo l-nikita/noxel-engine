@@ -28,6 +28,9 @@ void RenderCamera::Update()
 {
 	auto delta = Input::GetInstance().GetMouseDelta();
 
+	if (Input::GetInstance().GetCursorMode() == GLFW_CURSOR_NORMAL)
+		return;
+
 	m_Transform.Rotation.Pitch -= delta.y * SENSITIVITY;
 	m_Transform.Rotation.Pitch = std::clamp(m_Transform.Rotation.Pitch, -85.0f, 85.0f);
 	m_Transform.Rotation.Yaw -= delta.x * SENSITIVITY;

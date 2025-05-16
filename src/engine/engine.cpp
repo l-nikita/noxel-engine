@@ -42,6 +42,7 @@ void Engine::Run()
 
     Profiler updateProfiler("Update");
     Profiler renderProfiler("Render");
+    Profiler swapBuffers("SwapBuffers");
 
     while (!glfwWindowShouldClose(m_Window))
     {
@@ -57,7 +58,9 @@ void Engine::Run()
         Render();
         renderProfiler.End();
 
+        swapBuffers.Start();
         glfwSwapBuffers(m_Window);
+        swapBuffers.End();
     }
 
     glfwDestroyWindow(m_Window);
@@ -80,8 +83,8 @@ void Engine::Stop()
 //-----------------------------------------------------------------------------
 bool Engine::InitGUI()
 {
-    m_debugMenu = std::make_unique<DebugMenu>();
-    m_panels.push_back(dynamic_cast<Panel*>(m_debugMenu.get()));
+    m_DebugMenu = std::make_unique<DebugMenu>();
+    m_panels.push_back(dynamic_cast<Panel*>(m_DebugMenu.get()));
 
     return true;
 }
