@@ -1,4 +1,4 @@
 {
-	"Shader" : "Default",
-	"BaseTexture" : "atlas.png"
+	"shader" : "default",
+	"basetexture" : "atlas.png"
 }

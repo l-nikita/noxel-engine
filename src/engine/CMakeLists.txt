@@ -103,6 +103,7 @@ target_link_libraries(engine PRIVATE
 	glfw
 	glm
 	imgui
-	lodepng
 	glad
+	lodepng
+	nlohmann_json::nlohmann_json
 )

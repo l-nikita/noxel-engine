@@ -30,3 +30,4 @@ public:
 };
 
 static void CMD_LOG(const std::string& msg, CMDLogType type) { CMD::GetInstance().Log(msg, type); }
+static void CMD_LOG_INFO(const std::string& msg) { CMD::GetInstance().Log(msg, CMDLogType::INFO); }

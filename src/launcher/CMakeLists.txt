@@ -24,3 +24,7 @@ add_custom_command(TARGET launcher POST_BUILD
     $<TARGET_FILE:engine>
     $<TARGET_FILE_DIR:launcher>
 )
+
+set_target_properties(launcher PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+)

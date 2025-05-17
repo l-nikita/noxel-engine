@@ -1,4 +1,4 @@
 {
-	"Shader" : "Default",
-	"BaseTexture" : "engine/error.png"
+	"shader" : "default",
+	"basetexture" : "engine/error.png"
 }

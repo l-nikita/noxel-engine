@@ -24,7 +24,7 @@ static GLuint CompileShader(GLenum type, const char* src)
 
         char* infoLog = new char[logLength];
         glGetShaderInfoLog(shader, logLength, &logLength, infoLog);
-        CMD_LOG("Shader Compilation Failed:" + std::string(infoLog), CMDLogType::ERROR);
+        CMD_LOG("Shader Compilation Failed:" + std::string(infoLog), ERROR);
 
         delete[] infoLog;
 
@@ -44,7 +44,7 @@ static bool CheckShaderLink(const GLuint& id)
         glGetProgramiv(id, GL_INFO_LOG_LENGTH, &logLength);
         std::vector<char> infoLog(logLength);
         glGetProgramInfoLog(id, logLength, nullptr, infoLog.data());
-        CMD_LOG("Shader Program Linking Failed:\n" + std::string(infoLog.data()), CMDLogType::ERROR);
+        CMD_LOG("Shader Program Linking Failed:\n" + std::string(infoLog.data()), ERROR);
 
         glDeleteProgram(id);
         return false;
@@ -56,12 +56,18 @@ static bool CheckShaderLink(const GLuint& id)
 class ShaderProgram
 {
 public:
-	ShaderProgram(const ShaderAsset& asset)
+	ShaderProgram(const ShaderAsset* asset)
 	{
+        if (asset == nullptr)
+        {
+            CMD_LOG("ShaderAsset is nullptr!", ERROR);
+            return;
+        }
+
 		m_id = glCreateProgram();
 
-        auto vertShader = CompileShader(GL_VERTEX_SHADER, asset.GetShaderSource(GL_VERTEX_SHADER).c_str());
-        auto fragShader = CompileShader(GL_FRAGMENT_SHADER, asset.GetShaderSource(GL_FRAGMENT_SHADER).c_str());
+        auto vertShader = CompileShader(GL_VERTEX_SHADER, asset->GetShaderSource(GL_VERTEX_SHADER).c_str());
+        auto fragShader = CompileShader(GL_FRAGMENT_SHADER, asset->GetShaderSource(GL_FRAGMENT_SHADER).c_str());
         glAttachShader(m_id, vertShader);
         glAttachShader(m_id, fragShader);
 
@@ -89,7 +95,7 @@ public:
 
         GLint location = glGetUniformLocation(m_id, name.c_str());
         if (location == -1)
-            CMD_LOG("Uniform [" + name + "] not found on shader.", CMDLogType::ERROR);
+            CMD_LOG("Uniform [" + name + "] not found on shader.", ERROR);
 
         m_uniformLocations.try_emplace(name, location);
         return location;

@@ -7,7 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <lodepng.h>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include "base_asset.hpp"
 #include "assets_system.hpp"
@@ -82,17 +82,17 @@ public:
 #pragma region CreateNew/Get
     static std::shared_ptr<ShaderAsset> CreateNew(const std::string& name, const std::string& assetPath)
     {
-        auto shader = std::make_shared<ShaderAsset>(name, assetPath);
-        AssetsSystem::GetInstance().RegisterAsset(shader);
-        return shader;
+        auto asset = std::make_shared<ShaderAsset>(name, assetPath);
+        AssetsSystem::GetInstance().RegisterAsset(asset);
+        return asset;
     }
 
     static std::shared_ptr<ShaderAsset> Get(const std::string& name)
     {
-        auto shaders = AssetsSystem::GetInstance().GetAssets<ShaderAsset>();
-        auto it = shaders.find(name);
+        auto assets = AssetsSystem::GetInstance().GetAssets<ShaderAsset>();
+        auto it = assets.find(name);
 
-        if (it == shaders.end())
+        if (it == assets.end())
             return nullptr;
 
         auto casted = std::dynamic_pointer_cast<ShaderAsset>(it->second);
@@ -126,7 +126,13 @@ public:
 
     TextureData Load()
     {
-        TextureData data;
+        if (m_assetPath.empty())
+        {
+            CMD_LOG("Asset path is null or empty!!!", CMDLogType::ERROR);
+            return {};
+        }
+
+        TextureData data{};
 
         std::vector<unsigned char> image;
         unsigned width, height;
@@ -150,28 +156,66 @@ public:
 #pragma region CreateNew/Get
     static std::shared_ptr<TextureAsset> CreateNew(const std::string& name, const std::string& assetPath)
     {
-        auto shader = std::make_shared<TextureAsset>(name, assetPath);
-        AssetsSystem::GetInstance().RegisterAsset(shader);
-        return shader;
+        auto asset = std::make_shared<TextureAsset>(name, assetPath);
+        AssetsSystem::GetInstance().RegisterAsset(asset);
+        return asset;
+    }
+
+    static std::shared_ptr<TextureAsset> CreateOrGet(const std::string& name, const std::string& assetPath)
+    {
+        auto asset = AssetsSystem::GetInstance().HasAsset(Type, name);
+        if (asset)
+            return std::dynamic_pointer_cast<TextureAsset>(asset);
+
+        auto texAsset = std::make_shared<TextureAsset>(name, assetPath);
+        AssetsSystem::GetInstance().RegisterAsset(texAsset);
+        return texAsset;
     }
 
     static std::shared_ptr<TextureAsset> Get(const std::string& name)
     {
-        auto shaders = AssetsSystem::GetInstance().GetAssets<TextureAsset>();
-        auto it = shaders.find(name);
+        auto assets = AssetsSystem::GetInstance().GetAssets<TextureAsset>();
+        auto it = assets.find(name);
 
-        if (it == shaders.end())
+        if (it == assets.end())
+        {
+            CMD_LOG("Couldn't find texture [" + name + "].", WARNING);
             return nullptr;
+        }
 
         auto casted = std::dynamic_pointer_cast<TextureAsset>(it->second);
         return casted;
     }
+
+    static std::shared_ptr<TextureAsset> GetError() { return TextureAsset::Get("error"); }
 #pragma endregion
 };
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
+using json = nlohmann::json;
+
+struct MaterialData
+{
+    std::string Shader;
+    std::string BaseTexture;
+};
+
+inline void to_json(json& j, const MaterialData& data) 
+{
+    j = json{
+        {"shader", data.Shader},
+        {"basetexture", data.BaseTexture}
+    };
+}
+
+inline void from_json(const json& j, MaterialData& data) 
+{
+    j.at("shader").get_to(data.Shader);
+    j.at("basetexture").get_to(data.BaseTexture);
+}
+
 class MaterialAsset : public BaseAsset
 {
 private:
@@ -186,26 +230,69 @@ public:
     {
         m_name = name;
         m_assetPath = assetPath;
+
+        std::ifstream inFile(m_assetPath);
+
+        if (!inFile.is_open()) 
+        {
+            CMD_LOG("Couldn't open file [" + m_assetPath + "].", CMDLogType::ERROR);
+            return;
+        }
+
+        json j;
+        inFile >> j;
+        inFile.close();
+
+        MaterialData data{};
+
+        try 
+        {
+            data = j.get<MaterialData>();
+        }
+        catch (const json::exception& e) 
+        {
+            CMD_LOG(std::string("JSON parse error: ") + e.what(), CMDLogType::ERROR);
+            return;
+        }
+
+        std::filesystem::path baseTexturePath(data.BaseTexture);
+
+        auto fullTexturePath = AssetsSystem::GetMaterialsPath() / baseTexturePath;
+
+        if (std::filesystem::exists(fullTexturePath))
+            m_textureAsset = TextureAsset::CreateOrGet(fullTexturePath.stem().string(), fullTexturePath.string());
+        else
+        {
+            CMD_LOG("Texture not found: " + fullTexturePath.string(), WARNING);
+            m_textureAsset = TextureAsset::GetError();
+        }
+                
+        m_shaderAsset = ShaderAsset::Get(data.Shader);
     }
+
+    std::shared_ptr<TextureAsset> TextureAsset() const { return m_textureAsset; }
+    std::shared_ptr<ShaderAsset> ShaderAsset() const { return m_shaderAsset; }
 
 #pragma region CreateNew/Get
     static std::shared_ptr<MaterialAsset> CreateNew(const std::string& name, const std::string& assetPath)
     {
-        auto shader = std::make_shared<MaterialAsset>(name, assetPath);
-        AssetsSystem::GetInstance().RegisterAsset(shader);
-        return shader;
+        auto asset = std::make_shared<MaterialAsset>(name, assetPath);
+        AssetsSystem::GetInstance().RegisterAsset(asset);
+        return asset;
     }
 
     static std::shared_ptr<MaterialAsset> Get(const std::string& name)
     {
-        auto shaders = AssetsSystem::GetInstance().GetAssets<MaterialAsset>();
-        auto it = shaders.find(name);
+        auto assets = AssetsSystem::GetInstance().GetAssets<MaterialAsset>();
+        auto it = assets.find(name);
 
-        if (it == shaders.end())
+        if (it == assets.end())
             return nullptr;
 
         auto casted = std::dynamic_pointer_cast<MaterialAsset>(it->second);
         return casted;
     }
+
+    static std::shared_ptr<MaterialAsset> GetError() { return MaterialAsset::Get("error"); }
 #pragma endregion
 };

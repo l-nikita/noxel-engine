@@ -97,11 +97,17 @@ bool Engine::InitGUI()
 //-----------------------------------------------------------------------------
 bool Engine::Init()
 {
-    CMD_LOG("Hello! I am engine!", CMDLogType::INFO);
+    CMD_LOG("Hello! I am engine!", INFO);
+
+#ifdef _DEBUG
+    CMD_LOG("Built in DEBUG mode.", INFO);
+#else
+    CMD_LOG("Built in RELEASE mode.", INFO);
+#endif
 
     if (!glfwInit()) 
     {
-        CMD_LOG("GLFW init failed", CMDLogType::ERROR);
+        CMD_LOG("GLFW init failed", ERROR);
         return false;
     }
 
@@ -109,7 +115,7 @@ bool Engine::Init()
     if (!m_Window)
     {
         glfwTerminate();
-        CMD_LOG("Window creation failed", CMDLogType::ERROR);
+        CMD_LOG("Window creation failed", ERROR);
         return false;
     }
 
@@ -119,7 +125,7 @@ bool Engine::Init()
     if (!Renderer::GetInstance().LoadGLLoader())
     {
         glfwTerminate();
-        CMD_LOG("Failed to initialize glad", CMDLogType::ERROR);
+        CMD_LOG("Failed to initialize glad", ERROR);
         return false;
     }
 
@@ -131,7 +137,7 @@ bool Engine::Init()
     InitGUI();
 
     CMD::GetInstance().Setup();
-    CMD_LOG("Engine initialized successfully.", CMDLogType::INFO);
+    CMD_LOG("Engine initialized successfully.", INFO);
 
     return true;
 }

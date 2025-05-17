@@ -1,4 +1,4 @@
 {
-	"Shader" : "Default",
-	"BaseTexture" : "dirt.png"
+	"shader" : "default",
+	"basetexture" : "dirt.png"
 }

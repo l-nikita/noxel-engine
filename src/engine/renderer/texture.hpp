@@ -8,13 +8,19 @@
 class Texture 
 {
 public:
-    Texture(TextureAsset& asset)
+    Texture(TextureAsset* asset)
     {
+        if (asset == nullptr)
+        {
+            CMD_LOG("TextureAsset is nullptr!", ERROR);
+            return;
+        }
+
         glGenTextures(1, &m_id);
 
         Bind();
 
-        m_data = std::make_unique<TextureData>(asset.Load());
+        m_data = std::make_unique<TextureData>(asset->Load());
         glTexImage2D(
             GL_TEXTURE_2D,
             0,

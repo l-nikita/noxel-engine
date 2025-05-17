@@ -137,11 +137,10 @@ void Renderer::Init(GLFWwindow* window)
     };
 
     MeshData data(vertices, indices, uv);
-    auto asset = ShaderAsset::Get("default");
-    auto texAsset = TextureAsset::Get("dirt");
+    auto matAsset = MaterialAsset::Get("dirt");
 
-    TestShader = std::make_unique<ShaderProgram>(*asset);
-    TestTexture = std::make_unique<Texture>(*texAsset);
+    TestShader = std::make_unique<ShaderProgram>(matAsset.get()->ShaderAsset().get());
+    TestTexture = std::make_unique<Texture>(matAsset.get()->TextureAsset().get());
     TestMesh = std::make_unique<Mesh>(data);
 }
 
