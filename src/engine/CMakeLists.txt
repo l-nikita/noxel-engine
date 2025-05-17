@@ -100,9 +100,9 @@ target_include_directories(engine PRIVATE
 )
 
 target_link_libraries(engine PRIVATE 
-	glfw 
-	glm 
-	imgui 
-	lodepng 
+	glfw
+	glm
+	imgui
+	lodepng
 	glad
 )

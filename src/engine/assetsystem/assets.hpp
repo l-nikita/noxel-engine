@@ -7,6 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <lodepng.h>
+#include <json.hpp>
 
 #include "base_asset.hpp"
 #include "assets_system.hpp"
@@ -78,6 +79,7 @@ public:
         return "";
     }
 
+#pragma region CreateNew/Get
     static std::shared_ptr<ShaderAsset> CreateNew(const std::string& name, const std::string& assetPath)
     {
         auto shader = std::make_shared<ShaderAsset>(name, assetPath);
@@ -96,6 +98,7 @@ public:
         auto casted = std::dynamic_pointer_cast<ShaderAsset>(it->second);
         return casted;
     }
+#pragma endregion
 };
 
 //-----------------------------------------------------------------------------
@@ -144,6 +147,7 @@ public:
         return data;
     }
 
+#pragma region CreateNew/Get
     static std::shared_ptr<TextureAsset> CreateNew(const std::string& name, const std::string& assetPath)
     {
         auto shader = std::make_shared<TextureAsset>(name, assetPath);
@@ -162,4 +166,46 @@ public:
         auto casted = std::dynamic_pointer_cast<TextureAsset>(it->second);
         return casted;
     }
+#pragma endregion
+};
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+class MaterialAsset : public BaseAsset
+{
+private:
+    std::shared_ptr<TextureAsset> m_textureAsset;
+    std::shared_ptr<ShaderAsset> m_shaderAsset;
+
+public:
+    AssetType GetType() const override { return Type; }
+    static constexpr AssetType Type = AssetType::MATERIAL;
+
+    MaterialAsset(const std::string& name, const std::string& assetPath)
+    {
+        m_name = name;
+        m_assetPath = assetPath;
+    }
+
+#pragma region CreateNew/Get
+    static std::shared_ptr<MaterialAsset> CreateNew(const std::string& name, const std::string& assetPath)
+    {
+        auto shader = std::make_shared<MaterialAsset>(name, assetPath);
+        AssetsSystem::GetInstance().RegisterAsset(shader);
+        return shader;
+    }
+
+    static std::shared_ptr<MaterialAsset> Get(const std::string& name)
+    {
+        auto shaders = AssetsSystem::GetInstance().GetAssets<MaterialAsset>();
+        auto it = shaders.find(name);
+
+        if (it == shaders.end())
+            return nullptr;
+
+        auto casted = std::dynamic_pointer_cast<MaterialAsset>(it->second);
+        return casted;
+    }
+#pragma endregion
 };

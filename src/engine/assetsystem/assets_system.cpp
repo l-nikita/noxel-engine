@@ -5,6 +5,7 @@ bool AssetsSystem::Init()
 {
 	ShaderAsset::CreateNew("default", "E:/DEV/Sources/NoxelEngine/build/assets/shaders/default.glsl");
 	TextureAsset::CreateNew("dirt", "E:/DEV/Sources/NoxelEngine/build/assets/materials/dirt.png");
+	TextureAsset::CreateNew("atlas", "E:/DEV/Sources/NoxelEngine/build/assets/materials/atlas.png");
 	return true;
 }
 
