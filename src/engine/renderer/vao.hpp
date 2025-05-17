@@ -13,6 +13,8 @@ public:
 		Bind();
 	}
 
+	~VAO() { Dispose(); }
+
 	void LinkToVAO(const int& location, const int& size, const int& vertexSize, const VBO& vbo)
 	{
 		Bind();

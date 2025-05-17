@@ -1,36 +1,12 @@
 #pragma once
 
 #include <glad/glad.h>
-#include <string>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <string>
 
 #include "cmd.hpp"
-
-constexpr auto DEFAULT_VERTEX_SHADER = R"(
-    #version 330 core
-    layout (location = 0) in vec3 aPosition;
-
-    uniform mat4 model;
-    uniform mat4 view;
-    uniform mat4 projection;
-
-    void main() 
-    {
-	    gl_Position = projection * view * model * vec4(aPosition, 1.0);
-    }
-)";
-
-constexpr auto DEFAULT_FRAGMENT_SHADER = R"(
-    #version 330 core
-    out vec4 FragColor;
-
-    void main() 
-    {
-	    FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    }
-)";
+#include "assets.hpp"
 
 static GLuint CompileShader(GLenum type, const char* src)
 {
@@ -80,12 +56,12 @@ static bool CheckShaderLink(const GLuint& id)
 class ShaderProgram
 {
 public:
-	ShaderProgram()
+	ShaderProgram(const ShaderAsset& asset)
 	{
 		m_id = glCreateProgram();
 
-        auto vertShader = CompileShader(GL_VERTEX_SHADER, DEFAULT_VERTEX_SHADER);
-        auto fragShader = CompileShader(GL_FRAGMENT_SHADER, DEFAULT_FRAGMENT_SHADER);
+        auto vertShader = CompileShader(GL_VERTEX_SHADER, asset.GetShaderSource(GL_VERTEX_SHADER).c_str());
+        auto fragShader = CompileShader(GL_FRAGMENT_SHADER, asset.GetShaderSource(GL_FRAGMENT_SHADER).c_str());
         glAttachShader(m_id, vertShader);
         glAttachShader(m_id, fragShader);
 

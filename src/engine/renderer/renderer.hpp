@@ -13,6 +13,7 @@ public:
 	std::unique_ptr<RenderCamera> m_Camera;
 
 	void Init(GLFWwindow* window);
+	void InitGUI();
 	bool LoadGLLoader();
 	void Draw();
 	void DrawGUI();

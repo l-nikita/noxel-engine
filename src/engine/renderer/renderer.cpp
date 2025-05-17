@@ -4,12 +4,16 @@
 #include <imgui_impl_opengl3.h>
 
 #include "engine.hpp"
+#include "assets_system.hpp"
 #include "renderer.hpp"
 #include "singleton.hpp"
 #include "cmd.hpp"
+
 #include "mesh.hpp"
 #include "shader_program.hpp"
+#include "texture.hpp"
 
+static std::unique_ptr<Texture> TestTexture;
 static std::unique_ptr<Mesh> TestMesh;
 static std::unique_ptr<ShaderProgram> TestShader;
 
@@ -23,16 +27,15 @@ void Renderer::Init(GLFWwindow* window)
 
     m_Camera = std::make_unique<RenderCamera>(width, height);
 
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-
     const char* version = (const char*)glGetString(GL_VERSION);
     CMD_LOG("OpenGL Version: " + std::string(version), CMDLogType::INFO);
+
+    InitGUI();
+
+    glFrontFace(GL_CW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
 
     std::vector<float> vertices =
     {
@@ -94,8 +97,63 @@ void Renderer::Init(GLFWwindow* window)
         22, 21, 20,
     };
 
-    TestMesh = std::make_unique<Mesh>(vertices, indices);
-    TestShader = std::make_unique<ShaderProgram>();
+    std::vector<float> uv =
+    {
+        //right (z)
+        1.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f,
+        0.0f, 0.0f,
+
+        //left (-z)
+        1.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f,
+        0.0f, 0.0f,
+
+        //forward (x)
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+
+        //backward (-x)
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+
+        //top (y)
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+
+        //bottom (-y)
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+    };
+
+    MeshData data(vertices, indices, uv);
+    auto asset = ShaderAsset::Get("default");
+    auto texAsset = TextureAsset::Get("dirt");
+
+    TestShader = std::make_unique<ShaderProgram>(*asset);
+    TestTexture = std::make_unique<Texture>(*texAsset);
+    TestMesh = std::make_unique<Mesh>(data);
+}
+
+void Renderer::InitGUI()
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 }
 
 bool Renderer::LoadGLLoader()
@@ -106,21 +164,20 @@ bool Renderer::LoadGLLoader()
 void Renderer::Draw()
 {
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (TestMesh)
     {
+        TestTexture->Bind();
         TestShader->Bind();
+
         TestShader->SetMatrix4("model", TestMesh->GetTransformMatrix());
         TestShader->SetMatrix4("view", m_Camera->GetViewMatrix());
         TestShader->SetMatrix4("projection", m_Camera->GetProjectionMatrix());
         TestMesh->Draw();
-        //TestShader->Unbind();
     }
 
     DrawGUI();
-
-    glFinish();
 }
 
 void Renderer::DrawGUI()

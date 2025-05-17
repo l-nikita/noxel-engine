@@ -6,7 +6,7 @@
 #include "input.hpp"
 #include "engine.hpp"
 
-constexpr auto CAMERA_FOV = 85.0f;
+constexpr auto CAMERA_FOV = 95.0f;
 constexpr auto DEPTH_NEAR = 0.1f;
 constexpr auto DEPTH_FAR = 100.0f;
 constexpr auto SENSITIVITY = 0.1f;
@@ -14,7 +14,6 @@ constexpr auto SENSITIVITY = 0.1f;
 RenderCamera::RenderCamera(int& width, int& height)
 {
 	OnFrameBufferResize(width, height);
-	//CMD_LOG(width+" "+ height, CMDLogType::DEFAULT);
 }
 
 void RenderCamera::OnFrameBufferResize(int& width, int& height)
@@ -41,22 +40,24 @@ void RenderCamera::Update()
 	bool isS = Input::GetInstance().IsKeyPressed(GLFW_KEY_S);
 	bool isD = Input::GetInstance().IsKeyPressed(GLFW_KEY_D);
 
+
 	if (isW)
-		Move(m_Transform.Forward(), 0.1f);	
+		Move(m_Transform.Forward(), 0.005f);
 	
 	if (isS)
-		Move(m_Transform.Backward(), 0.1f);
+		Move(m_Transform.Backward(), 0.005f);
 	
 	if (isA)
-		Move(m_Transform.Left(), 0.1f);
+		Move(m_Transform.Left(), 0.005f);
 	
 	if (isD)
-		Move(m_Transform.Right(), 0.1f);
+		Move(m_Transform.Right(), 0.005f);
 }
 
 void RenderCamera::Move(glm::vec3 direction, float distance)
 {
-	m_Transform.Position += direction * distance;
+	auto deltaTime = Engine::GetInstance().DeltaTime();
+	m_Transform.Position += direction * distance * deltaTime;
 }
 
 glm::mat4 RenderCamera::GetViewMatrix() const

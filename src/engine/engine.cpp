@@ -3,12 +3,13 @@
 #include <iostream>
 #include <chrono>
 
-#include "panel.hpp"
 #include "engine.hpp"
+#include "panel.hpp"
+#include "profiler.hpp"
 #include "renderer.hpp"
 #include "input.hpp"
-#include "profiler.hpp"
 #include "cmd.hpp"
+#include "assets_system.hpp"
 
 //-----------------------------------------------------------------------------
 // Constructor
@@ -39,6 +40,7 @@ void Engine::Run()
 {
     using namespace std::chrono;
     auto lastTime = high_resolution_clock::now();
+    auto startTime = high_resolution_clock::now();
 
     Profiler updateProfiler("Update");
     Profiler renderProfiler("Render");
@@ -49,6 +51,7 @@ void Engine::Run()
         auto currentTime = high_resolution_clock::now();
         m_deltaTime = duration<float, std::milli>(currentTime - lastTime);
         lastTime = currentTime;
+        m_elapsedTime = duration<float, std::milli>(currentTime - startTime);
 
         updateProfiler.Start();
         Update();
@@ -122,6 +125,7 @@ bool Engine::Init()
 
     glfwSetFramebufferSizeCallback(m_Window, Callback_OnFrameBufferSize);
 
+    AssetsSystem::GetInstance().Init();
     Input::GetInstance().Init(m_Window);
     Renderer::GetInstance().Init(m_Window);
     InitGUI();

@@ -41,6 +41,7 @@ target_include_directories(engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/imgui/debug_menu
     ${CMAKE_CURRENT_SOURCE_DIR}/cmd
     ${CMAKE_CURRENT_SOURCE_DIR}/common
+    ${CMAKE_CURRENT_SOURCE_DIR}/assetsystem
 )
 
 target_compile_definitions(engine PRIVATE ENGINE_EXPORTS)
@@ -71,6 +72,24 @@ target_include_directories(imgui PUBLIC
 )
 
 # ------------------
+# lodepng lib
+file(GLOB LODEPNG_SOURCES
+    ../libs/lodepng/lodepng.h
+    ../libs/lodepng/lodepng.cpp
+    #../libs/lodepng/lodepng_benchmark.cpp
+    ../libs/lodepng/lodepng_fuzzer.cpp
+    ../libs/lodepng/lodepng_unittest.cpp
+    ../libs/lodepng/lodepng_util.cpp
+    ../libs/lodepng/pngdetail.cpp
+)
+
+add_library(lodepng STATIC ${LODEPNG_SOURCES})
+
+target_include_directories(lodepng PUBLIC
+    ../libs/lodepng
+)
+
+# ------------------
 # link libs
 target_include_directories(engine PRIVATE 
 	../libs/glad/include 
@@ -84,5 +103,6 @@ target_link_libraries(engine PRIVATE
 	glfw 
 	glm 
 	imgui 
+	lodepng 
 	glad
 )

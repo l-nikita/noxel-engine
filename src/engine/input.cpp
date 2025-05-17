@@ -14,6 +14,9 @@ bool Input::Init(GLFWwindow* window)
     glfwSetMouseButtonCallback(m_window, Callback_MouseButton);
     glfwSetScrollCallback(m_window, Callback_Scroll);
 
+    if (glfwRawMouseMotionSupported())
+        glfwSetInputMode(m_window, GLFW_RAW_MOUSE_MOTION, true);
+
     return true;
 }
 

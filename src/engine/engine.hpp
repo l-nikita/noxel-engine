@@ -22,7 +22,12 @@ public:
     void Render();
 
     std::chrono::duration<float, std::milli> DeltaDuration() const { return m_deltaTime; }
-    float DeltaTime() const { return m_deltaTime.count(); }
+    // Delta time (ms)
+    float DeltaTime() const { return m_deltaTime.count(); }    
+    
+    std::chrono::duration<float, std::milli> ElapsedDuration() const { return m_elapsedTime; }
+    // Elapsed time since engine loop ran (ms)
+    float ElapsedTime() const { return m_elapsedTime.count(); }
 
     GLFWwindow* m_Window = nullptr;
 
@@ -31,6 +36,7 @@ public:
 
 private:
     std::chrono::duration<float, std::milli> m_deltaTime;
+    std::chrono::duration<float, std::milli> m_elapsedTime;
 
     std::vector<Panel*> m_panels;
 

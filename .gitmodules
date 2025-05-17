@@ -7,3 +7,6 @@
 [submodule "src/libs/imgui"]
 	path = src/libs/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "src/libs/lodepng"]
+	path = src/libs/lodepng
+	url = https://github.com/lvandeve/lodepng.git

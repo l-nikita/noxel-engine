@@ -1,4 +1,5 @@
 #include <imgui.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "dev_menu.hpp"
 #include "renderer.hpp"
@@ -13,20 +14,16 @@ void DevPanel::Draw()
 			{
                 ImGui::SeparatorText("Camera");
 
-                //auto pos = Renderer::GetInstance().m_Camera;
-                //ImGui::InputFloat3("Position", ref pos);
+                auto& transform = Renderer::GetInstance().m_Camera->m_Transform;
+                ImGui::InputFloat3("Position", glm::value_ptr(transform.Position) );
 
-                //var ang = new Vector3(
-                //    Camera.Transform.Rotation.Pitch,
-                //    Camera.Transform.Rotation.Yaw,
-                //    Camera.Transform.Rotation.Roll);
-
-                //ImGui::InputFloat3("Rotation", ref ang);
+                glm::vec3 ang(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
+                ImGui::InputFloat3("Rotation", glm::value_ptr(ang));
 
                 if (ImGui::Button("Reset"))
                 {
-                    //Camera.Transform.Position = Vector3.Zero;
-                    //Camera.Transform.Rotation = Angles.Zero;
+					transform.Position = glm::zero<glm::vec3>();
+					transform.Rotation = Angles::Zero();
                 }
 
                 ImGui::SeparatorText("Render");
@@ -47,6 +44,9 @@ void DevPanel::Draw()
 
 			ImGui::EndTabBar();
 		}
+
+		if (m_demoViewEnabled)
+			ImGui::ShowDemoWindow();
 	}
 
 	ImGui::End();

@@ -14,6 +14,8 @@ public:
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 	}
 
+	~VBO() { Dispose(); }
+
 	void Bind() const { glBindBuffer(GL_ARRAY_BUFFER, m_id); }
 	void Unbind() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }
 	void Dispose() const { glDeleteBuffers(1, &m_id); }
