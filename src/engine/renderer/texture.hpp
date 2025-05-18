@@ -49,6 +49,27 @@ public:
     void Unbind() const { glBindTexture(GL_TEXTURE_2D, 0); }
     void Dispose() const { glDeleteTextures(1, &m_id); }
 
+    Texture(const Texture&) = delete;
+    Texture& operator=(const Texture&) = delete;
+
+    Texture(Texture&& other) noexcept
+        : m_id(other.m_id), m_data(std::move(other.m_data))
+    {
+        other.m_id = 0;
+    }
+
+    Texture& operator=(Texture&& other) noexcept
+    {
+        if (this != &other)
+        {
+            Dispose();
+            m_id = other.m_id;
+            m_data = std::move(other.m_data);
+            other.m_id = 0;
+        }
+        return *this;
+    }
+
 private:
     GLuint m_id;
     std::unique_ptr<TextureData> m_data;

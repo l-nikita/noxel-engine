@@ -27,7 +27,7 @@ void RenderCamera::Update()
 {
 	auto delta = Input::GetInstance().GetMouseDelta();
 
-	if (Input::GetInstance().GetCursorMode() == GLFW_CURSOR_NORMAL)
+	if (Input::GetInstance().GetRelativeMouseMode() == false)
 		return;
 
 	m_Transform.Rotation.Pitch -= delta.y * SENSITIVITY;
@@ -35,11 +35,12 @@ void RenderCamera::Update()
 	m_Transform.Rotation.Yaw -= delta.x * SENSITIVITY;
 	m_Transform.Rotation.Normalize();
 
-	bool isW = Input::GetInstance().IsKeyPressed(GLFW_KEY_W);
-	bool isA = Input::GetInstance().IsKeyPressed(GLFW_KEY_A);
-	bool isS = Input::GetInstance().IsKeyPressed(GLFW_KEY_S);
-	bool isD = Input::GetInstance().IsKeyPressed(GLFW_KEY_D);
-
+	bool isW = Input::GetInstance().IsKeyDown(SDL_SCANCODE_W);
+	bool isA = Input::GetInstance().IsKeyDown(SDL_SCANCODE_A);
+	bool isS = Input::GetInstance().IsKeyDown(SDL_SCANCODE_S);
+	bool isD = Input::GetInstance().IsKeyDown(SDL_SCANCODE_D);
+	bool isSpace = Input::GetInstance().IsKeyDown(SDL_SCANCODE_SPACE);
+	bool isLShift = Input::GetInstance().IsKeyDown(SDL_SCANCODE_LSHIFT);
 
 	if (isW)
 		Move(m_Transform.Forward(), 0.005f);
@@ -52,6 +53,12 @@ void RenderCamera::Update()
 	
 	if (isD)
 		Move(m_Transform.Right(), 0.005f);
+
+	if (isSpace)
+		Move(glm::vec3(0.0f, 1.0f, 0.0f), 0.005f);
+
+	if (isLShift)
+		Move(glm::vec3(0.0f, -1.0f, 0.0f), 0.005f);
 }
 
 void RenderCamera::Move(glm::vec3 direction, float distance)

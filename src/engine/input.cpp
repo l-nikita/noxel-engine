@@ -4,18 +4,9 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Input::Init(GLFWwindow* window)
+bool Input::Init(SDL_Window* window)
 {
     m_window = window;
-    glfwSetKeyCallback(m_window, Callback_Key);
-    glfwSetCharModsCallback(m_window, Callback_CharMods);
-
-    glfwSetCursorPosCallback(m_window, Callback_MouseMove);
-    glfwSetMouseButtonCallback(m_window, Callback_MouseButton);
-    glfwSetScrollCallback(m_window, Callback_Scroll);
-
-    if (glfwRawMouseMotionSupported())
-        glfwSetInputMode(m_window, GLFW_RAW_MOUSE_MOTION, true);
 
     return true;
 }
@@ -23,52 +14,85 @@ bool Input::Init(GLFWwindow* window)
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Input::IsKeyPressed(int key)
+bool Input::IsKeyDown(SDL_Scancode key)
 {
-    return glfwGetKey(m_window, key) == GLFW_PRESS;
+    return m_keyDown[key];
 }
 
-bool Input::IsKeyReleased(int key)
+bool Input::IsKeyPressed(SDL_Scancode key)
 {
-    return glfwGetKey(m_window, key) == GLFW_RELEASE;
+    if (m_keyPressed[key]) 
+    {
+        m_keyPressed[key] = false;
+        return true;
+    }
+
+    return false;
+}
+
+bool Input::IsKeyReleased(SDL_Scancode key)
+{
+    if (m_keyReleased[key])
+    {
+        m_keyReleased[key] = false;
+        return true;
+    }
+
+    return m_keyReleased[key];
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Input::IsButtonPressed(int button)
+bool Input::IsButtonDown(Uint8 button)
 {
-    return glfwGetMouseButton(m_window, button) == GLFW_PRESS;
+    return m_mouseDown[button];
 }
 
-bool Input::IsButtonReleased(int button)
+bool Input::IsButtonPressed(Uint8 button)
 {
-    return glfwGetMouseButton(m_window, button) == GLFW_RELEASE;
+    if (m_mousePressed[button])
+    {
+        m_mousePressed[button] = false;
+        return true;
+    }
+
+    return false;
 }
 
-void Input::SetCursorMode(int mode)
+bool Input::IsButtonReleased(Uint8 button)
 {
-    glfwSetInputMode(m_window, GLFW_CURSOR, mode);
+    if (m_mouseReleased[button])
+    {
+        m_mouseReleased[button] = false;
+        return true;
+    }
+
+    return m_mouseReleased[button];
 }
 
-int Input::GetCursorMode() 
+void Input::SetRelativeMouseMode(bool value)
 {
-    return glfwGetInputMode(m_window, GLFW_CURSOR);
+    SDL_SetWindowRelativeMouseMode(m_window, value);
+}
+
+bool Input::GetRelativeMouseMode()
+{
+    return SDL_GetWindowRelativeMouseMode(m_window);
 }
 
 glm::vec2 Input::GetMousePos()
 {
-    double x, y;
-    glfwGetCursorPos(m_window, &x, &y);
+    float x, y;
+    SDL_GetMouseState(&x, &y);
     return glm::vec2(x, y);
 }
 
 glm::vec2 Input::GetMouseDelta()
 {
-    auto mousePos = GetMousePos();
-    glm::vec2 delta = mousePos - m_lastMousePos;
-    m_lastMousePos = mousePos;
-    return delta;
+    float dx, dy;
+    SDL_GetRelativeMouseState(&dx, &dy);
+    return glm::vec2(dx, dy);
 }
 
 glm::vec2 Input::GetMouseScroll() const
@@ -77,34 +101,48 @@ glm::vec2 Input::GetMouseScroll() const
 }
 
 //-----------------------------------------------------------------------------
-// Callbacks
+//
 //-----------------------------------------------------------------------------
-void Input::Callback_Key(GLFWwindow* window, int key, int scancode, int action, int mods)
+void Input::OnKey(SDL_KeyboardEvent keyEvent)
 {
-    if (key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_PRESS)
-        Engine::GetInstance().m_DebugMenu->m_IsVisible = !Engine::GetInstance().m_DebugMenu->m_IsVisible;
-    else if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
+    if (keyEvent.type == SDL_EVENT_KEY_DOWN && !keyEvent.repeat)
     {
-        if (Input::GetInstance().GetCursorMode() == GLFW_CURSOR_NORMAL)
-            Input::GetInstance().SetCursorMode(GLFW_CURSOR_DISABLED);
-        else
-            Input::GetInstance().SetCursorMode(GLFW_CURSOR_NORMAL);
+        m_keyDown[keyEvent.scancode] = true;
+        m_keyPressed[keyEvent.scancode] = true;
+        if (m_keyReleased[keyEvent.scancode])
+            m_keyReleased[keyEvent.scancode] = false;
+    }
+    else if (keyEvent.type == SDL_EVENT_KEY_UP)
+    {
+        m_keyDown[keyEvent.scancode] = false;
+        if(!m_keyReleased[keyEvent.scancode])
+            m_keyReleased[keyEvent.scancode] = true;
     }
 }
 
-void Input::Callback_CharMods(GLFWwindow* window, unsigned int codepoint, int mods)
+void Input::OnMouseMotion(SDL_MouseMotionEvent mouseEvent)
 {
+
 }
 
-void Input::Callback_MouseMove(GLFWwindow* window, double xpos, double ypos)
+void Input::OnMouseButton(SDL_MouseButtonEvent buttonEvent)
 {
+    if (buttonEvent.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+    {
+        m_mouseDown[buttonEvent.button] = true;
+        m_mousePressed[buttonEvent.button] = true;
+        if (m_mouseReleased[buttonEvent.button])
+            m_mouseReleased[buttonEvent.button] = false;
+    }
+    else if (buttonEvent.type == SDL_EVENT_MOUSE_BUTTON_UP)
+    {
+        m_mouseDown[buttonEvent.button] = false;
+        if (!m_mouseReleased[buttonEvent.button])
+            m_mouseReleased[buttonEvent.button] = true;
+    }
 }
 
-void Input::Callback_MouseButton(GLFWwindow* window, int button, int action, int mods)
+void Input::OnMouseWheel(SDL_MouseWheelEvent wheelEvent)
 {
-}
-
-void Input::Callback_Scroll(GLFWwindow* window, double xoffset, double yoffset)
-{
-    Input::GetInstance().m_scrollDelta += glm::vec2(xoffset, yoffset);
+    m_scrollDelta += glm::vec2(wheelEvent.x, wheelEvent.y);
 }

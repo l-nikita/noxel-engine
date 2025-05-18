@@ -12,8 +12,9 @@ target_include_directories(launcher PRIVATE
 )
 
 target_include_directories(launcher PRIVATE 
+	../libs/SDL 
+	../libs/SDL/include 
 	../libs/glad/include 
-	../libs/glfw/include 
 	../libs/glm
 	../libs/imgui
 	../libs/imgui/backends

@@ -2,36 +2,7 @@ file(GLOB_RECURSE headers ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 file(GLOB_RECURSE sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 add_library(engine SHARED ${sources} ${headers})
-
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-#add_library(engine SHARED)
-
-# file(GLOB_RECURSE UTILS_SOURCE 
-	# ./utils/*.cpp
-	# ./utils/*.hpp
-# )
-
-# file(GLOB_RECURSE GUI_SOURCE 
-	# ./gui/*.cpp
-	# ./gui/*.hpp
-	# ./gui/imgui/*.cpp
-	# ./gui/imgui/*.hpp
-	# ./gui/imgui/debug_menu/*.cpp
-	# ./gui/imgui/debug_menu/*.hpp
-# )
-
-# source_group("GUI Files" FILES ${GUI_SOURCE})
-# source_group("Utils Files" FILES ${UTILS_SOURCE})
-
-# target_sources(engine PRIVATE
-    # engine.cpp
-    # engine.hpp
-	# cmd.cpp
-	# cmd.hpp
-	# ${GUI_SOURCE}
-	# ${UTILS_SOURCE}
-# )
 
 target_include_directories(engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -59,7 +30,7 @@ add_custom_command(TARGET engine POST_BUILD
 file(GLOB IMGUI_SOURCES
     ../libs/imgui/*.h
     ../libs/imgui/*.cpp
-    ../libs/imgui/backends/imgui_impl_glfw.cpp
+    ../libs/imgui/backends/imgui_impl_sdl3.cpp
     ../libs/imgui/backends/imgui_impl_opengl3.cpp
 )
 
@@ -68,7 +39,7 @@ add_library(imgui STATIC ${IMGUI_SOURCES})
 target_include_directories(imgui PUBLIC
     ../libs/imgui
     ../libs/imgui/backends
-	../libs/glfw/include
+	../libs/SDL/include 
 )
 
 # ------------------
@@ -92,15 +63,16 @@ target_include_directories(lodepng PUBLIC
 # ------------------
 # link libs
 target_include_directories(engine PRIVATE 
+	../libs/SDL 
+	../libs/SDL/include 
 	../libs/glad/include 
-	../libs/glfw/include 
 	../libs/glm
 	../libs/imgui
 	../libs/imgui/backends
 )
 
 target_link_libraries(engine PRIVATE 
-	glfw
+	SDL3::SDL3
 	glm
 	imgui
 	glad

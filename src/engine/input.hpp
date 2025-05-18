@@ -1,6 +1,6 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
+#include <SDL3/SDL.h>
 #include <glm/glm.hpp>
 
 #include "singleton.hpp"
@@ -8,27 +8,37 @@
 class Input : public Singleton<Input>
 {
 public:
-	bool Init(GLFWwindow* window);
-	bool IsKeyPressed(int key);
-	bool IsKeyReleased(int key);
-	bool IsButtonPressed(int button);
-	bool IsButtonReleased(int button);
+	bool Init(SDL_Window* window);
+	bool IsKeyDown(SDL_Scancode key);
+	bool IsKeyPressed(SDL_Scancode key);
+	bool IsKeyReleased(SDL_Scancode key);
 
-	void SetCursorMode(int mode);
-	int GetCursorMode();
+	bool IsButtonDown(Uint8 button);
+	bool IsButtonPressed(Uint8 button);
+	bool IsButtonReleased(Uint8 button);
+
+	void SetRelativeMouseMode(bool value);
+	bool GetRelativeMouseMode();
 
 	glm::vec2 GetMousePos();
 	glm::vec2 GetMouseDelta();
 	glm::vec2 GetMouseScroll() const;
 
+	void OnKey(SDL_KeyboardEvent keyEvent);
+
+	void OnMouseMotion(SDL_MouseMotionEvent mouseEvent);
+	void OnMouseButton(SDL_MouseButtonEvent buttonEvent);
+	void OnMouseWheel(SDL_MouseWheelEvent wheelEvent);
+
 private:
-	GLFWwindow* m_window;
-	glm::vec2 m_lastMousePos;
+	SDL_Window* m_window;
 	glm::vec2 m_scrollDelta;
 
-	static void Callback_Key(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static void Callback_CharMods(GLFWwindow* window, unsigned int codepoint, int mods);
-	static void Callback_MouseMove(GLFWwindow* window, double xpos, double ypos);
-	static void Callback_MouseButton(GLFWwindow* window, int button, int action, int mods);
-	static void Callback_Scroll(GLFWwindow* window, double xoffset, double yoffset);
+	std::unordered_map<SDL_Scancode, bool> m_keyDown;
+	std::unordered_map<SDL_Scancode, bool> m_keyPressed;
+	std::unordered_map<SDL_Scancode, bool> m_keyReleased;
+
+	std::unordered_map<Uint8, bool> m_mouseDown;
+	std::unordered_map<Uint8, bool> m_mousePressed;
+	std::unordered_map<Uint8, bool> m_mouseReleased;
 };

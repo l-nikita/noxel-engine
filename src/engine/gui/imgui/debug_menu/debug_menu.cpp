@@ -1,4 +1,6 @@
 #include <imgui.h>
+
+#include "engine.hpp"
 #include "debug_menu.hpp"
 
 DebugMenu::DebugMenu()
@@ -14,6 +16,9 @@ void DebugMenu::Draw()
 	{
 		if (ImGui::BeginMenu("Engine"))
 		{
+			if (ImGui::MenuItem("Toggle Fullscreen"))
+				Engine::GetInstance().ToggleFullscreen();
+
 			ImGui::Separator();
 
 			if (ImGui::MenuItem("Exit"))

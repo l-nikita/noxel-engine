@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GLFW/glfw3.h"
+#include "SDL3/SDL.h"
 
 #include "common.hpp"
 #include "debug_menu.hpp"
@@ -15,11 +15,19 @@ public:
 
     bool Init();
     bool InitGUI();
+    bool CreateWindow();
+    bool CreateContext();
+    bool LoadGLAD();
+
     void Run();
     void Stop();
 
     void Update();
     void Render();
+
+    void SetFullscreen(bool fullscreen);
+    void ToggleFullscreen();
+    bool IsInFullscreen();
 
     std::chrono::duration<float, std::milli> DeltaDuration() const { return m_deltaTime; }
     // Delta time (ms)
@@ -29,16 +37,17 @@ public:
     // Elapsed time since engine loop ran (ms)
     float ElapsedTime() const { return m_elapsedTime.count(); }
 
-    GLFWwindow* m_Window = nullptr;
+    SDL_Window* m_Window = nullptr;
+    SDL_GLContext m_Context = nullptr;
 
     std::vector<Panel*> GetPanels() { return m_panels; }
     std::unique_ptr<DebugMenu> m_DebugMenu;
 
 private:
+    bool m_isRunning;
+
     std::chrono::duration<float, std::milli> m_deltaTime;
     std::chrono::duration<float, std::milli> m_elapsedTime;
 
     std::vector<Panel*> m_panels;
-
-    static void Callback_OnFrameBufferSize(GLFWwindow* window, int width, int height);
 };

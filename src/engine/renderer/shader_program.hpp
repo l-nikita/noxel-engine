@@ -82,6 +82,8 @@ public:
         glDeleteShader(fragShader);
 	}
 
+    ~ShaderProgram() { Dispose(); }
+
     void SetMatrix4(const std::string& name, const glm::mat4& matrix4) const
     {
         glUniformMatrix4fv(GetUniformLocation(name), 1, false, glm::value_ptr(matrix4));
@@ -106,6 +108,28 @@ public:
     void Dispose() const { glDeleteProgram(m_id); }
 
     bool IsValid() const { return glIsProgram(m_id) == GL_TRUE; }
+
+    ShaderProgram(const ShaderProgram&) = delete;
+    ShaderProgram& operator=(const ShaderProgram&) = delete;
+
+    ShaderProgram(ShaderProgram&& other) noexcept
+        : m_id(other.m_id),
+        m_uniformLocations(std::move(other.m_uniformLocations))
+    {
+        other.m_id = 0;
+    }
+
+    ShaderProgram& operator=(ShaderProgram&& other) noexcept
+    {
+        if (this != &other)
+        {
+            Dispose(); // удалить старый
+            m_id = other.m_id;
+            m_uniformLocations = std::move(other.m_uniformLocations);
+            other.m_id = 0;
+        }
+        return *this;
+    }
 
 private:
 	GLuint m_id;

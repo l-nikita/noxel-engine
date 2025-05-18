@@ -11,8 +11,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # dirs
+add_subdirectory(src/libs/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(src/libs/glad)
-add_subdirectory(src/libs/glfw)
 add_subdirectory(src/libs/glm)
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
