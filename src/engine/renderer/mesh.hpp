@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <optional>
+#include <stdexcept>
 
 #include "mesh_data.hpp"
 #include "ebo.hpp"
@@ -15,14 +17,20 @@ public:
 		m_data(std::move(data)),
 		m_indicesCount(m_data.Indices.size()),
 		m_EBO(m_data.Indices),
-		m_VBO(m_data.Vertices),
-		m_uvVBO(m_data.UV)
+		m_VBO(m_data.Vertices)
 	{
+		if (m_data.Vertices.empty() || m_data.Indices.empty())
+			throw std::runtime_error("Vertices or Indices are empty!");
+
 		m_VAO.Bind();
 		m_EBO.Bind();
 
 		m_VAO.LinkToVAO(0, 3, 3, m_VBO);
-		m_VAO.LinkToVAO(1, 2, 2, m_uvVBO);
+		if (!m_data.UV.empty())
+		{
+			m_uvVBO = VBO(m_data.UV);
+			m_VAO.LinkToVAO(1, 2, 2, *m_uvVBO);
+		}
 
 		m_VAO.Unbind();
 		m_VBO.Unbind();
@@ -37,11 +45,12 @@ public:
 		glDrawElements(GL_TRIANGLES, m_indicesCount, GL_UNSIGNED_INT, 0);
 	}
 
-	void Dispose() const
+	void Dispose()
 	{
 		m_VAO.Dispose();
 		m_VBO.Dispose();
-		m_uvVBO.Dispose();
+		if(m_uvVBO.has_value())
+			m_uvVBO->Dispose();
 		m_EBO.Dispose();
 	}
 
@@ -60,5 +69,5 @@ protected:
 	EBO m_EBO;
 	VAO m_VAO;
 	VBO m_VBO;
-	VBO m_uvVBO;
+	std::optional<VBO> m_uvVBO;
 };

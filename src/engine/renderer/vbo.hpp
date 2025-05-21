@@ -18,7 +18,34 @@ public:
 
 	void Bind() const { glBindBuffer(GL_ARRAY_BUFFER, m_id); }
 	void Unbind() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }
-	void Dispose() const { glDeleteBuffers(1, &m_id); }
+	void Dispose() 
+	{
+		if (m_id != 0)
+		{
+			glDeleteBuffers(1, &m_id);
+			m_id = 0;
+		}
+	}
+
+	// ban copy, only move
+	VBO(const VBO&) = delete;
+	VBO& operator=(const VBO&) = delete;
+
+	VBO(VBO&& other) noexcept : m_id(other.m_id)
+	{
+		other.m_id = 0;
+	}
+
+	VBO& operator=(VBO&& other) noexcept
+	{
+		if (this != &other)
+		{
+			Dispose();
+			m_id = other.m_id;
+			other.m_id = 0;
+		}
+		return *this;
+	}
 
 private:
 	GLuint m_id;

@@ -26,7 +26,34 @@ public:
 
 	void Bind() const { glBindVertexArray(m_id); }
 	void Unbind() const { glBindVertexArray(0); }
-	void Dispose() const { glDeleteVertexArrays(1, &m_id); }
+	void Dispose() 
+	{ 
+		if (m_id != 0)
+		{
+			glDeleteVertexArrays(1, &m_id);
+			m_id = 0;
+		}
+	}
+
+	// ban copy, only move
+	VAO(const VAO&) = delete;
+	VAO& operator=(const VAO&) = delete;
+
+	VAO(VAO&& other) noexcept : m_id(other.m_id) 
+	{
+		other.m_id = 0;
+	}
+
+	VAO& operator=(VAO&& other) noexcept 
+	{
+		if (this != &other) 
+		{
+			Dispose();
+			m_id = other.m_id;
+			other.m_id = 0;
+		}
+		return *this;
+	}
 
 private:
 	GLuint m_id;

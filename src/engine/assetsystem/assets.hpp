@@ -138,7 +138,7 @@ public:
         unsigned width, height;
         
         // PNG -> RGBA
-        unsigned error = lodepng::decode(data.Image, width, height, m_assetPath);
+        unsigned error = lodepng::decode(data.Image, width, height, m_assetPath.string());
         
         if (error)
         {
@@ -202,18 +202,18 @@ struct MaterialData
     std::string BaseTexture;
 };
 
-inline void to_json(json& j, const MaterialData& data) 
-{
-    j = json{
-        {"shader", data.Shader},
-        {"basetexture", data.BaseTexture}
-    };
-}
+//inline void to_json(json& j, const MaterialData& data) 
+//{
+//    j = json{
+//        {"shader", data.Shader},
+//        {"basetexture", data.BaseTexture}
+//    };
+//}
 
 inline void from_json(const json& j, MaterialData& data) 
 {
-    j.at("shader").get_to(data.Shader);
-    j.at("basetexture").get_to(data.BaseTexture);
+    data.Shader = j.value("shader", "default");
+    data.BaseTexture = j.value("basetexture", "");
 }
 
 class MaterialAsset : public BaseAsset
@@ -235,7 +235,7 @@ public:
 
         if (!inFile.is_open()) 
         {
-            CMD_LOG("Couldn't open file [" + m_assetPath + "].", CMDLogType::ERROR);
+            CMD_LOG("Couldn't open file [" + m_assetPath.string() + "].", CMDLogType::ERROR);
             return;
         }
 
@@ -255,18 +255,21 @@ public:
             return;
         }
 
-        std::filesystem::path baseTexturePath(data.BaseTexture);
-
-        auto fullTexturePath = AssetsSystem::GetMaterialsPath() / baseTexturePath;
-
-        if (std::filesystem::exists(fullTexturePath))
-            m_textureAsset = TextureAsset::CreateOrGet(fullTexturePath.stem().string(), fullTexturePath.string());
-        else
+        if (!data.BaseTexture.empty())
         {
-            CMD_LOG("Texture not found: " + fullTexturePath.string(), WARNING);
-            m_textureAsset = TextureAsset::GetError();
+            std::filesystem::path baseTexturePath(data.BaseTexture);
+
+            auto fullTexturePath = AssetsSystem::GetMaterialsPath() / baseTexturePath;
+
+            if (std::filesystem::exists(fullTexturePath))
+                m_textureAsset = TextureAsset::CreateOrGet(fullTexturePath.stem().string(), fullTexturePath.string());
+            else
+            {
+                CMD_LOG("Texture not found: " + fullTexturePath.string(), WARNING);
+                m_textureAsset = TextureAsset::GetError();
+            }
         }
-                
+
         m_shaderAsset = ShaderAsset::Get(data.Shader);
     }
 

@@ -29,6 +29,8 @@ public:
     void ToggleFullscreen();
     bool IsInFullscreen();
 
+    void OnWindowResize();
+
     std::chrono::duration<float, std::milli> DeltaDuration() const { return m_deltaTime; }
     // Delta time (ms)
     float DeltaTime() const { return m_deltaTime.count(); }    

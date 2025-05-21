@@ -31,7 +31,10 @@ void Model::Draw()
     {
         auto mat = GetMaterial(i);
         if (!mat)
+        {
+            CMD_LOG("Material is invalid!", ERROR);
             continue;
+        }
 
         mat->Bind();
 
@@ -44,7 +47,6 @@ void Model::Draw()
         }
 
         m_meshes[i]->Draw();
-        mat->Unbind();
     }
 }
 

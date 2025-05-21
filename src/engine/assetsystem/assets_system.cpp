@@ -12,7 +12,9 @@ bool AssetsSystem::Init()
 	m_assetsPath = std::filesystem::current_path().parent_path() / "assets";
 
 	ShaderAsset::CreateNew("default", "E:/DEV/Sources/NoxelEngine/build/assets/shaders/default.glsl");
+	ShaderAsset::CreateNew("gizmos", "E:/DEV/Sources/NoxelEngine/build/assets/shaders/gizmos.glsl");
 	MaterialAsset::CreateNew("error", "E:/DEV/Sources/NoxelEngine/build/assets/materials/engine/error.nmt");
+	MaterialAsset::CreateNew("gizmos", "E:/DEV/Sources/NoxelEngine/build/assets/materials/engine/gizmos.nmt");
 
 	MaterialAsset::CreateNew("dirt", "E:/DEV/Sources/NoxelEngine/build/assets/materials/dirt.nmt");
 	MaterialAsset::CreateNew("atlas", "E:/DEV/Sources/NoxelEngine/build/assets/materials/atlas.nmt");

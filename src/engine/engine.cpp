@@ -124,7 +124,7 @@ bool Engine::CreateWindow()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    m_Window = SDL_CreateWindow("SDL3 Window", 1920, 1080, SDL_WINDOW_OPENGL);
+    m_Window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_OPENGL);
     if (!m_Window)
     {
         CMD_LOG("SDL_CreateWindow Error: " + std::string(SDL_GetError()), ERROR);
@@ -211,4 +211,11 @@ bool Engine::IsInFullscreen()
 {
     Uint32 flags = SDL_GetWindowFlags(m_Window);
     return (flags & SDL_WINDOW_FULLSCREEN);
+}
+
+void Engine::OnWindowResize()
+{
+    int width, height;
+    SDL_GetWindowSizeInPixels(m_Window, &width, &height);
+    Renderer::GetInstance().OnWindowResize(width, height);
 }

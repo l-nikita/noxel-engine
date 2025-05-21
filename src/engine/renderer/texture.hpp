@@ -47,8 +47,16 @@ public:
 
     void Bind() const { glBindTexture(GL_TEXTURE_2D, m_id); }
     void Unbind() const { glBindTexture(GL_TEXTURE_2D, 0); }
-    void Dispose() const { glDeleteTextures(1, &m_id); }
+    void Dispose() 
+    { 
+        if (m_id != 0)
+        {
+            glDeleteTextures(1, &m_id);
+            m_id = 0;
+        }
+    }
 
+    // ban copy, only move
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
 

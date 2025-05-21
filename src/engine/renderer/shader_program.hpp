@@ -22,11 +22,9 @@ static GLuint CompileShader(GLenum type, const char* src)
         GLint logLength;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
 
-        char* infoLog = new char[logLength];
-        glGetShaderInfoLog(shader, logLength, &logLength, infoLog);
-        CMD_LOG("Shader Compilation Failed:" + std::string(infoLog), ERROR);
-
-        delete[] infoLog;
+        std::vector<char> infoLog(logLength);
+        glGetShaderInfoLog(shader, logLength, &logLength, infoLog.data());
+        CMD_LOG("Shader Compilation Failed:" + std::string(infoLog.data()), ERROR);
 
         return 0;
     }
@@ -42,6 +40,7 @@ static bool CheckShaderLink(const GLuint& id)
     {
         GLint logLength = 0;
         glGetProgramiv(id, GL_INFO_LOG_LENGTH, &logLength);
+
         std::vector<char> infoLog(logLength);
         glGetProgramInfoLog(id, logLength, nullptr, infoLog.data());
         CMD_LOG("Shader Program Linking Failed:\n" + std::string(infoLog.data()), ERROR);
@@ -74,7 +73,11 @@ public:
         glLinkProgram(m_id);
 
         if (!CheckShaderLink(m_id))
+        {
+            glDeleteProgram(m_id);
+            m_id = 0;
             return;
+        }
 
         glDetachShader(m_id, vertShader);
         glDetachShader(m_id, fragShader);
@@ -105,7 +108,14 @@ public:
 
     void Bind() const { glUseProgram(m_id); }
     void Unbind() const { glUseProgram(0); }
-    void Dispose() const { glDeleteProgram(m_id); }
+    void Dispose() 
+    { 
+        if (m_id != 0)
+        {
+            glDeleteProgram(m_id);
+            m_id = 0;
+        }
+    }
 
     bool IsValid() const { return glIsProgram(m_id) == GL_TRUE; }
 
@@ -123,7 +133,7 @@ public:
     {
         if (this != &other)
         {
-            Dispose(); // удалить старый
+            Dispose();
             m_id = other.m_id;
             m_uniformLocations = std::move(other.m_uniformLocations);
             other.m_id = 0;

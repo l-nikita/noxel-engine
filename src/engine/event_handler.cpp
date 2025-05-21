@@ -23,6 +23,11 @@ void EventHandler::OnEvent(SDL_Event& event)
 		case SDL_EVENT_QUIT:
 			Engine::GetInstance().Stop();
 			break;
+		case SDL_EVENT_WINDOW_RESIZED:
+			Engine::GetInstance().OnWindowResize();
+			break;
+
+		// input events
 		case SDL_EVENT_KEY_DOWN:
 			Input::GetInstance().OnKey(event.key);
 			break;
