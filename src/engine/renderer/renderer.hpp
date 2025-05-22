@@ -22,6 +22,10 @@ public:
 	void OnWindowResize(int width, int height);
 	void OnWindowClose();
 
+#ifdef _DEBUG
+	int m_DrawCallCount;
+#endif
+
 private:
 	SDL_Window* m_window = nullptr;
 	bool m_firstFrame = false;

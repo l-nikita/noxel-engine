@@ -5,6 +5,7 @@
 #include <optional>
 #include <stdexcept>
 
+#include "renderer.hpp"
 #include "mesh_data.hpp"
 #include "ebo.hpp"
 #include "vao.hpp"
@@ -43,6 +44,9 @@ public:
 	{
 		m_VAO.Bind();
 		glDrawElements(m_data.PrimitiveType, m_indicesCount, GL_UNSIGNED_INT, 0);
+#ifdef _DEBUG
+		Renderer::GetInstance().m_DrawCallCount++;
+#endif
 	}
 
 	void Dispose()

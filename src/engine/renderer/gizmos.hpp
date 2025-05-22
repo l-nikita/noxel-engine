@@ -177,3 +177,38 @@ public:
         return ptr;
     }
 };
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+class WorldCoords : public BaseGizmo
+{
+protected:
+    std::shared_ptr<Line> m_lineX;
+    std::shared_ptr<Line> m_lineY;
+    std::shared_ptr<Line> m_lineZ;
+
+    WorldCoords(const Transform& transform)
+    {
+        const glm::vec3& p = transform.Position;
+
+        m_lineX = Line::Create(p, p + glm::vec3(1, 0, 0), glm::vec3(1, 0, 0)); // Red
+        m_lineY = Line::Create(p, p + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0)); // Green
+        m_lineZ = Line::Create(p, p + glm::vec3(0, 0, 1), glm::vec3(0, 0, 1)); // Blue
+    }
+
+public:
+    void Dispose() override
+    {
+        if (m_lineX) m_lineX->Dispose();
+        if (m_lineY) m_lineY->Dispose();
+        if (m_lineZ) m_lineZ->Dispose();
+    }
+
+    static std::shared_ptr<WorldCoords> Create(const Transform& transform)
+    {
+        auto ptr = std::shared_ptr<WorldCoords>(new WorldCoords(transform));
+        Gizmos::GetInstance().Add(ptr);
+        return ptr;
+    }
+};

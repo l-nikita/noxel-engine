@@ -1,5 +1,7 @@
 #include <imgui.h>
+
 #include "engine.hpp"
+#include "renderer.hpp"
 #include "budget_panel.hpp"
 #include "profiler.hpp"
 
@@ -15,6 +17,9 @@ void BudgetPanel::Draw()
 		auto& io = ImGui::GetIO();
 		m_fps = io.Framerate;
 		ImGui::Text("FPS: %f", m_fps);
+#ifdef _DEBUG
+		ImGui::Text("DrawCalls: %i", Renderer::GetInstance().m_DrawCallCount);
+#endif
 		ImGui::Separator();
 
 		if (ImGui::BeginTable("ProfilersTable", 2, table_flags))
