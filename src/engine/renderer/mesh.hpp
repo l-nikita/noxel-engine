@@ -42,7 +42,7 @@ public:
 	void Draw() const
 	{
 		m_VAO.Bind();
-		glDrawElements(GL_TRIANGLES, m_indicesCount, GL_UNSIGNED_INT, 0);
+		glDrawElements(m_data.PrimitiveType, m_indicesCount, GL_UNSIGNED_INT, 0);
 	}
 
 	void Dispose()

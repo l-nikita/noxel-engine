@@ -132,12 +132,12 @@ void Renderer::Init(SDL_Window* window)
         0.0f, 0.0f,
     };
 
-    //MeshData data(vertices, indices, uv);
-    //auto mesh = std::make_shared<Mesh>(data);
-    //auto mat = Material::Get("error");
-    //TestModel = std::make_unique<Model>(mesh, mat);
+    MeshData data(vertices, indices, uv, GL_TRIANGLES);
+    auto mesh = std::make_shared<Mesh>(data);
+    auto mat = Material::Get("dirt");
+    TestModel = std::make_unique<Model>(mesh, mat);
 
-    TestGrid = std::make_unique<Grid>(16, 5.0f, glm::vec4(1.0f));
+    Grid::Create(16, 5.0f, glm::vec3(1.0f));
 }
 
 void Renderer::InitAPI()
@@ -174,15 +174,15 @@ void Renderer::Draw()
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (TestGrid)
+    if (TestModel)
     {
-        //TestModel->Draw();
-        //auto deltaTime = Engine::GetInstance().DeltaTime() / 1000;
-        //test += deltaTime * 10.0f;
-        //TestModel->m_Transform.Rotation = Angles(0, test, 0);
-
-        TestGrid->Draw();
+        TestModel->Draw();
+        auto deltaTime = Engine::GetInstance().DeltaTime() / 1000;
+        test += deltaTime * 10.0f;
+        TestModel->m_Transform.Rotation = Angles(0, test, 0);
     }
+
+    Gizmos::GetInstance().Draw();
 
     DrawGUI();
 }

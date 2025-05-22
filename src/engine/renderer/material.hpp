@@ -31,15 +31,16 @@ public:
 
 	void SetTexture(TextureAsset& texAsset)
 	{
-		if (m_texture.has_value())
-		{
-			m_texture->Dispose();
-			m_texture = Texture(&texAsset);
-		}
+		if (!m_texture.has_value()) return;
+
+		m_texture->Dispose();
+		m_texture = Texture(&texAsset);
 	}
 
 	void SetTexture(std::string texName)
 	{
+		if (!m_texture.has_value()) return;
+
 		auto asset = TextureAsset::Get(texName);
 		if (asset != nullptr)
 		{
@@ -71,19 +72,22 @@ public:
 
 	void Bind()
 	{
-		m_texture->Bind();
+		if (m_texture.has_value())
+			m_texture->Bind();
 		m_shader.Bind();
 	}
 
 	void Unbind()
 	{
-		m_texture->Unbind();
+		if (m_texture.has_value())
+			m_texture->Unbind();
 		m_shader.Unbind();
 	}
 
 	void Dispose()
 	{
-		m_texture->Dispose();
+		if (m_texture.has_value())
+			m_texture->Dispose();
 		m_shader.Dispose();
 	}
 };
