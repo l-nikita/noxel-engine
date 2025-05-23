@@ -15,6 +15,9 @@ add_subdirectory(src/libs/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(src/libs/glad)
 add_subdirectory(src/libs/glm)
 
+set(ENET_TEST OFF CACHE BOOL "" FORCE)
+add_subdirectory(src/libs/enet)
+
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(src/libs/nlohmann_json)
 

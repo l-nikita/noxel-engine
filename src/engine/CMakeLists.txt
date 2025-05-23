@@ -13,6 +13,8 @@ target_include_directories(engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/cmd
     ${CMAKE_CURRENT_SOURCE_DIR}/common
     ${CMAKE_CURRENT_SOURCE_DIR}/assetsystem
+    ${CMAKE_CURRENT_SOURCE_DIR}/server
+    ${CMAKE_CURRENT_SOURCE_DIR}/client
 )
 
 target_compile_definitions(engine PRIVATE ENGINE_EXPORTS)
@@ -69,6 +71,8 @@ target_include_directories(engine PRIVATE
 	../libs/glm
 	../libs/imgui
 	../libs/imgui/backends
+	../libs/enet
+	../libs/enet/include
 )
 
 target_link_libraries(engine PRIVATE 
@@ -77,5 +81,6 @@ target_link_libraries(engine PRIVATE
 	imgui
 	glad
 	lodepng
+	enet_static
 	nlohmann_json::nlohmann_json
 )

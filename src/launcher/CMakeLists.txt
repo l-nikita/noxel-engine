@@ -18,6 +18,8 @@ target_include_directories(launcher PRIVATE
 	../libs/glm
 	../libs/imgui
 	../libs/imgui/backends
+	../libs/enet
+	../libs/enet/include
 )
 
 add_custom_command(TARGET launcher POST_BUILD

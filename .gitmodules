@@ -13,3 +13,6 @@
 [submodule "src/libs/SDL"]
 	path = src/libs/SDL
 	url = https://github.com/libsdl-org/SDL.git
+[submodule "src/libs/GameNetworkingSockets"]
+	path = src/libs/GameNetworkingSockets
+	url = https://github.com/ValveSoftware/GameNetworkingSockets.git

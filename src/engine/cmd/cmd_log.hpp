@@ -3,6 +3,10 @@
 #include <string>
 #include <ctime>
 
+#ifdef ERROR
+#undef ERROR
+#endif
+
 enum CMDLogType
 {
 	DEFAULT, // White

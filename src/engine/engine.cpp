@@ -13,6 +13,8 @@
 #include "event_handler.hpp"
 #include "input.hpp"
 #include "cmd.hpp"
+#include "server.hpp"
+#include "client.hpp"
 
 //-----------------------------------------------------------------------------
 // Constructor
@@ -95,6 +97,10 @@ void Engine::Run()
 void Engine::Stop()
 {
     m_isRunning = false;
+
+    Client::GetInstance().Shutdown();
+    Server::GetInstance().Shutdown();
+    enet_deinitialize();
 
     if(m_Window)
         SDL_DestroyWindow(m_Window);
@@ -184,12 +190,21 @@ bool Engine::Init()
     if (!LoadGLAD()) return false;
     if (!InitGUI()) return false;
 
+    if (enet_initialize() != 0)
+    {
+        CMD_LOG("An error occurred while initializing ENet.", ERROR);
+        return false;
+    }
+
     AssetsSystem::GetInstance().Init();
     Input::GetInstance().Init(m_Window);
     Renderer::GetInstance().Init(m_Window);
 
     CMD::GetInstance().Setup();
     CMD_LOG("Engine initialized successfully.", INFO);
+
+    Server::GetInstance().Init();
+    Client::GetInstance().Init();
 
     return true;
 }
