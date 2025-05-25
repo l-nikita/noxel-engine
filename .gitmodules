@@ -16,3 +16,9 @@
 [submodule "src/libs/GameNetworkingSockets"]
 	path = src/libs/GameNetworkingSockets
 	url = https://github.com/ValveSoftware/GameNetworkingSockets.git
+[submodule "src/libs/JoltPhysics"]
+	path = src/libs/JoltPhysics
+	url = https://github.com/jrouwe/JoltPhysics.git
+[submodule "src/libs/entt"]
+	path = src/libs/entt
+	url = https://github.com/skypjack/entt.git

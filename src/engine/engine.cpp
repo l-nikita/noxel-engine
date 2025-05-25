@@ -6,28 +6,26 @@
 #include <chrono>
 
 #include "engine.hpp"
+#include "assets_system.hpp"
+#include "physics.hpp"
+#include "input.hpp"
+#include "renderer.hpp"
+#include "networking.hpp"
+
 #include "panel.hpp"
 #include "profiler.hpp"
-#include "assets_system.hpp"
-#include "renderer.hpp"
 #include "event_handler.hpp"
-#include "input.hpp"
 #include "cmd.hpp"
 #include "server.hpp"
 #include "client.hpp"
-
-//-----------------------------------------------------------------------------
-// Constructor
-//-----------------------------------------------------------------------------
-Engine::Engine()
-{
-}
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 void Engine::Update()
 {
+    Physics::GetInstance().Update();
+
     EventHandler::GetInstance().HandleEvents();
 
     if(Renderer::GetInstance().m_Camera)
@@ -96,11 +94,11 @@ void Engine::Run()
 //-----------------------------------------------------------------------------
 void Engine::Stop()
 {
-    m_isRunning = false;
+    if (!m_isRunning) return;
 
-    Client::GetInstance().Shutdown();
-    Server::GetInstance().Shutdown();
-    enet_deinitialize();
+    m_isRunning = false;
+    Networking::GetInstance().Shutdown();
+    Physics::GetInstance().Shutdown();
 
     if(m_Window)
         SDL_DestroyWindow(m_Window);
@@ -108,6 +106,7 @@ void Engine::Stop()
         SDL_GL_DestroyContext(m_Context);
 
     SDL_Quit();
+    CMD_LOG_INFO("Engine stopped.");
 }
 
 //-----------------------------------------------------------------------------
@@ -190,21 +189,14 @@ bool Engine::Init()
     if (!LoadGLAD()) return false;
     if (!InitGUI()) return false;
 
-    if (enet_initialize() != 0)
-    {
-        CMD_LOG("An error occurred while initializing ENet.", ERROR);
-        return false;
-    }
-
-    AssetsSystem::GetInstance().Init();
-    Input::GetInstance().Init(m_Window);
-    Renderer::GetInstance().Init(m_Window);
+    if (!Networking::GetInstance().Init()) return false;
+    if (!AssetsSystem::GetInstance().Init()) return false;
+    if (!Input::GetInstance().Init(m_Window)) return false;
+    if (!Renderer::GetInstance().Init(m_Window)) return false;
+    if (!Physics::GetInstance().Init()) return false;
 
     CMD::GetInstance().Setup();
     CMD_LOG("Engine initialized successfully.", INFO);
-
-    Server::GetInstance().Init();
-    Client::GetInstance().Init();
 
     return true;
 }

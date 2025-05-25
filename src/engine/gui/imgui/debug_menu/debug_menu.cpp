@@ -2,6 +2,9 @@
 
 #include "engine.hpp"
 #include "debug_menu.hpp"
+#include "cmd.hpp"
+#include "networking.hpp"
+#include "client.hpp"
 
 DebugMenu::DebugMenu()
 {
@@ -25,6 +28,17 @@ void DebugMenu::Draw()
 				exit(0);
 
             ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Networking"))
+		{
+			if (ImGui::MenuItem("Start", NULL, false, !Networking::GetInstance().IsRunning()))
+				CMD::GetInstance().Execute("net_start");
+
+			if (ImGui::MenuItem("Connect to local", NULL, false, !Client::GetInstance().IsConnected() && Networking::GetInstance().IsRunning()))
+				CMD::GetInstance().Execute("net_connect_local");
+
+			ImGui::EndMenu();
 		}
 
 		if (ImGui::BeginMenu("View"))

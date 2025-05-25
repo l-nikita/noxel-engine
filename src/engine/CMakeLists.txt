@@ -15,6 +15,7 @@ target_include_directories(engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/assetsystem
     ${CMAKE_CURRENT_SOURCE_DIR}/server
     ${CMAKE_CURRENT_SOURCE_DIR}/client
+    ${CMAKE_CURRENT_SOURCE_DIR}/physics
 )
 
 target_compile_definitions(engine PRIVATE ENGINE_EXPORTS)
@@ -71,8 +72,11 @@ target_include_directories(engine PRIVATE
 	../libs/glm
 	../libs/imgui
 	../libs/imgui/backends
-	../libs/enet
-	../libs/enet/include
+	../libs/GameNetworkingSockets
+	../libs/GameNetworkingSockets/include
+	../libs/entt
+	../libs/entt/single_include
+	${JoltPhysics_SOURCE_DIR}/..
 )
 
 target_link_libraries(engine PRIVATE 
@@ -81,6 +85,10 @@ target_link_libraries(engine PRIVATE
 	imgui
 	glad
 	lodepng
-	enet_static
+	GameNetworkingSockets_s
 	nlohmann_json::nlohmann_json
+	proto
+	protobuf::libprotobuf
+	Jolt
+	EnTT
 )

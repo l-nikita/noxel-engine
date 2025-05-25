@@ -14,13 +14,12 @@
 #include "model.hpp"
 #include "gizmos.hpp"
 
-//static std::vector<std::shared_ptr<Model>> TestBlocks;
-//static std::unique_ptr<Model> TestModel;
+static std::unique_ptr<Model> TestModel;
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Renderer::Init(SDL_Window* window)
+bool Renderer::Init(SDL_Window* window)
 {
     m_window = window;
 
@@ -132,27 +131,21 @@ void Renderer::Init(SDL_Window* window)
         0.0f, 0.0f,
     };
 
-    //MeshData data(vertices, indices, uv, GL_TRIANGLES);
-    //auto mesh = std::make_shared<Mesh>(data);
-    //auto mat = Material::Get("dirt");
-    //TestModel = std::make_unique<Model>(mesh, mat);
+    MeshData data(vertices, indices, uv, GL_TRIANGLES);
+    auto mesh = std::make_shared<Mesh>(data);
+    auto mat = Material::Get("dirt");
+    TestModel = std::make_unique<Model>(mesh, mat);
 
-    //MeshData data(vertices, indices, uv, GL_TRIANGLES);
-    //auto mesh = std::make_shared<Mesh>(data);
-    //auto mat = Material::Get("dirt");
-
-    //for (int z = 0; z < 10; z++)
-    //    for (int j = 0; j < 50; j++)
-    //        for (int i = 0; i < 50; i++)
-    //        {
-    //            auto model = std::make_shared<Model>(mesh, mat);
-    //            model->m_Transform.Position = glm::vec3(1.5f * i, z, j);
-    //            TestBlocks.push_back(model);
-    //        }
-
-    auto grid = Grid::Create(16, 5.0f, glm::vec3(1.0f));
+    auto grid = Gismo::Grid::Create(16, 5.0f, glm::vec3(1.0f));
     grid->m_Transform.Position = glm::vec3(-2.5f, -1.0f, -2.5f);
-    WorldCoords::Create(Transform{});
+
+    Gismo::WorldCoords::Create(Transform{});
+
+    //glm::vec3 min(-0.5f, -0.5f, -0.5f);
+    //glm::vec3 max(0.5f, 0.8f, 0.5f);
+    //Gismo::Box::Create(min, max, glm::vec3(1.0f));
+
+    return true;
 }
 
 void Renderer::InitAPI()
@@ -182,8 +175,6 @@ void Renderer::InitGUI()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-static float test = 0;
-
 void Renderer::Draw()
 {
 #ifdef _DEBUG
@@ -195,22 +186,13 @@ void Renderer::Draw()
 
     Gizmos::GetInstance().Draw();
 
-    //if (TestModel)
-    //{
-    //    TestModel->Draw();
-    //    auto deltaTime = Engine::GetInstance().DeltaTime() / 1000;
-    //    test += deltaTime * 10.0f;
-    //    TestModel->m_Transform.Rotation = Angles(0, test, 0);
-    //}
-
-    //auto deltaTime = Engine::GetInstance().DeltaTime() / 1000;
-    //test += deltaTime * 10.0f;
-
-    //for (const auto& block : TestBlocks)
-    //{
-    //    block->Draw();
-    //    block->m_Transform.Rotation = Angles(0, test, 0);
-    //}
+    if (TestModel)
+    {
+        TestModel->Draw();
+        //auto deltaTime = Engine::GetInstance().DeltaTime() / 1000;
+        //test += deltaTime * 10.0f;
+        //TestModel->m_Transform.Rotation = Angles(0, test, 0);
+    }
 
     DrawGUI();
 }

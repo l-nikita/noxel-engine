@@ -1,12 +1,27 @@
 #include <iostream>
 #include "engine.hpp"
+#include <windows.h>
 
-int main() 
+BOOL WINAPI ConsoleHandler(DWORD signal) 
 {
-	if (Engine::GetInstance().Init())
-		Engine::GetInstance().Run();
+    if (signal == CTRL_C_EVENT || signal == CTRL_CLOSE_EVENT) 
+        return TRUE;
 
-	Engine::GetInstance().Stop();
+    return FALSE;
+}
 
-	return 0;
+int main()
+{
+    if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) 
+    {
+        std::cerr << "Error: Couldn't set control handler!" << std::endl;
+        return 1;
+    }
+
+    if (Engine::GetInstance().Init()) 
+        Engine::GetInstance().Run();
+    else 
+        std::cerr << "Error: Couldn't init engine!!!" << std::endl;
+
+    return 0;
 }

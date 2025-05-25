@@ -11,8 +11,6 @@
 class ENGINE_API Engine : public Singleton<Engine>
 {
 public:
-    Engine();
-
     bool Init();
     bool InitGUI();
     bool CreateWindow();
@@ -44,6 +42,8 @@ public:
 
     std::vector<Panel*> GetPanels() { return m_panels; }
     std::unique_ptr<DebugMenu> m_DebugMenu;
+
+    bool IsRunning() { return m_isRunning; }
 
 private:
     bool m_isRunning;

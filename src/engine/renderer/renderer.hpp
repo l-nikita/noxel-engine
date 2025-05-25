@@ -6,13 +6,14 @@
 #include "common.hpp"
 #include "singleton.hpp"
 #include "render_camera.hpp"
+#include "angles.hpp"
 
 class Renderer : public Singleton<Renderer>
 {
 public:
 	std::unique_ptr<RenderCamera> m_Camera;
 
-	void Init(SDL_Window* window);
+	bool Init(SDL_Window* window);
 	void InitGUI();
 	void InitAPI();
 

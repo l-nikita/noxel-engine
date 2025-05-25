@@ -18,8 +18,11 @@ target_include_directories(launcher PRIVATE
 	../libs/glm
 	../libs/imgui
 	../libs/imgui/backends
-	../libs/enet
-	../libs/enet/include
+	../libs/GameNetworkingSockets
+	../libs/GameNetworkingSockets/include
+	../libs/entt
+	../libs/entt/single_include
+	${JoltPhysics_SOURCE_DIR}/..
 )
 
 add_custom_command(TARGET launcher POST_BUILD

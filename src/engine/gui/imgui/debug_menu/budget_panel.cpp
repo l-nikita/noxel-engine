@@ -48,6 +48,8 @@ void BudgetPanel::Draw()
 
 void BudgetPanel::DrawRow(Profiler* profiler)
 {
+	if (profiler == nullptr) return;
+
 	ImGui::TableNextRow();
 
 	for (int column = 0; column < 2; column++)

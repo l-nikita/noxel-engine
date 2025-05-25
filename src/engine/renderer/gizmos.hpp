@@ -42,173 +42,239 @@ public:
     }
 };
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-class Grid : public BaseGizmo
+namespace Gismo
 {
-protected:
-    std::unique_ptr<Model> m_model;
-
-    Grid(const int& slices, const float& gridSize, const glm::vec3& color)
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class Grid : public BaseGizmo
     {
-        int vertexCount = (slices + 1) * (slices + 1);
-        std::vector<float> vertices(vertexCount * 3);
+    protected:
+        std::unique_ptr<Model> m_model;
 
-        int indexCount = slices * slices * 8;
-        std::vector<int> indices(indexCount);
-
-        int vi = 0;
-        for (int j = 0; j <= slices; ++j)
+        Grid(const int& slices, const float& gridSize, const glm::vec3& color)
         {
-            for (int i = 0; i <= slices; ++i)
-            {
-                float x = static_cast<float>(i) / slices * gridSize;
-                float y = 0.0f;
-                float z = static_cast<float>(j) / slices * gridSize;
+            int vertexCount = (slices + 1) * (slices + 1);
+            std::vector<float> vertices(vertexCount * 3);
 
-                vertices[vi++] = x;
-                vertices[vi++] = y;
-                vertices[vi++] = z;
+            int indexCount = slices * slices * 8;
+            std::vector<int> indices(indexCount);
+
+            int vi = 0;
+            for (int j = 0; j <= slices; ++j)
+            {
+                for (int i = 0; i <= slices; ++i)
+                {
+                    float x = static_cast<float>(i) / slices * gridSize;
+                    float y = 0.0f;
+                    float z = static_cast<float>(j) / slices * gridSize;
+
+                    vertices[vi++] = x;
+                    vertices[vi++] = y;
+                    vertices[vi++] = z;
+                }
             }
+
+            int ii = 0;
+            for (int j = 0; j < slices; ++j)
+            {
+                for (int i = 0; i < slices; ++i)
+                {
+                    int row1 = j * (slices + 1);
+                    int row2 = (j + 1) * (slices + 1);
+
+                    indices[ii++] = row1 + i;
+                    indices[ii++] = row1 + i + 1;
+
+                    indices[ii++] = row1 + i + 1;
+                    indices[ii++] = row2 + i + 1;
+
+                    indices[ii++] = row2 + i + 1;
+                    indices[ii++] = row2 + i;
+
+                    indices[ii++] = row2 + i;
+                    indices[ii++] = row1 + i;
+                }
+            }
+
+            MeshData data(vertices, indices, {}, GL_LINES);
+            auto material = Material::Get("gizmos");
+            auto& shader = material->GetShader();
+            shader.Bind();
+            shader.SetVec3("color", color);
+            shader.Unbind();
+
+            auto mesh = std::make_shared<Mesh>(data);
+            m_model = std::make_unique<Model>(mesh, material);
         }
 
-        int ii = 0;
-        for (int j = 0; j < slices; ++j)
+    public:
+        void Draw()
         {
-            for (int i = 0; i < slices; ++i)
-            {
-                int row1 = j * (slices + 1);
-                int row2 = (j + 1) * (slices + 1);
-
-                indices[ii++] = row1 + i;
-                indices[ii++] = row1 + i + 1;
-
-                indices[ii++] = row1 + i + 1;
-                indices[ii++] = row2 + i + 1;
-
-                indices[ii++] = row2 + i + 1;
-                indices[ii++] = row2 + i;
-
-                indices[ii++] = row2 + i;
-                indices[ii++] = row1 + i;
-            }
+            m_model->SetTransform(m_Transform);
+            m_model->Draw();
         }
 
-        MeshData data(vertices, indices, {}, GL_LINES);
-        auto material = Material::Get("gizmos");
-        auto& shader = material->GetShader();
-        shader.Bind();
-        shader.SetVec3("color", color);
-        shader.Unbind();
-
-        auto mesh = std::make_shared<Mesh>(data);
-        m_model = std::make_unique<Model>(mesh, material);
-    }
-
-public:
-	void Draw()
-	{
-		m_model->SetTransform(m_Transform);
-		m_model->Draw();
-	}
-
-	void Dispose()
-	{
-		m_model->Dispose();
-	}
-
-    static std::shared_ptr<Grid> Create(const int& slices, const float& gridSize, const glm::vec3& color)
-    {
-        auto ptr = std::shared_ptr<Grid>(new Grid(slices, gridSize, color));
-        Gizmos::GetInstance().Add(ptr);
-        return ptr;
-    }
-};
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-class Line : public BaseGizmo
-{
-protected:
-    std::unique_ptr<Model> m_model;
-
-    Line(const glm::vec3& start, const glm::vec3& end, const glm::vec3& color)
-    {
-        std::vector<int> indices = 
+        void Dispose()
         {
-            0, 1
-        };
+            m_model->Dispose();
+        }
 
-        std::vector<float> vertices =
+        static std::shared_ptr<Grid> Create(const int& slices, const float& gridSize, const glm::vec3& color)
         {
-            start.x, start.y, start.z,
-            end.x, end.y, end.z,
-        };
+            auto ptr = std::shared_ptr<Grid>(new Grid(slices, gridSize, color));
+            Gizmos::GetInstance().Add(ptr);
+            return ptr;
+        }
+    };
 
-        MeshData data(vertices, indices, {}, GL_LINES);
-        auto material = Material::Get("gizmos");
-        auto& shader = material->GetShader();
-        shader.Bind();
-        shader.SetVec3("color", color);
-        shader.Unbind();
-
-        auto mesh = std::make_shared<Mesh>(data);
-        m_model = std::make_unique<Model>(mesh, material);
-    }
-
-public:
-    void Draw()
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class Line : public BaseGizmo
     {
-        m_model->SetTransform(m_Transform);
-        m_model->Draw();
-    }
+    protected:
+        std::unique_ptr<Model> m_model;
 
-    void Dispose()
+        Line(const glm::vec3& start, const glm::vec3& end, const glm::vec3& color)
+        {
+            std::vector<int> indices =
+            {
+                0, 1
+            };
+
+            std::vector<float> vertices =
+            {
+                start.x, start.y, start.z,
+                end.x, end.y, end.z,
+            };
+
+            MeshData data(vertices, indices, {}, GL_LINES);
+            auto material = Material::Get("gizmos");
+            auto& shader = material->GetShader();
+            shader.Bind();
+            shader.SetVec3("color", color);
+            shader.Unbind();
+
+            auto mesh = std::make_shared<Mesh>(data);
+            m_model = std::make_unique<Model>(mesh, material);
+        }
+
+    public:
+        void Draw()
+        {
+            m_model->SetTransform(m_Transform);
+            m_model->Draw();
+        }
+
+        void Dispose()
+        {
+            m_model->Dispose();
+        }
+
+        static std::shared_ptr<Line> Create(const glm::vec3& start, const glm::vec3& end, const glm::vec3& color)
+        {
+            auto ptr = std::shared_ptr<Line>(new Line(start, end, color));
+            Gizmos::GetInstance().Add(ptr);
+            return ptr;
+        }
+    };
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class WorldCoords : public BaseGizmo
     {
-        m_model->Dispose();
-    }
+    protected:
+        std::shared_ptr<Line> m_lineX;
+        std::shared_ptr<Line> m_lineY;
+        std::shared_ptr<Line> m_lineZ;
 
-    static std::shared_ptr<Line> Create(const glm::vec3& start, const glm::vec3& end, const glm::vec3& color)
+        WorldCoords(const Transform& transform)
+        {
+            const glm::vec3& p = transform.Position;
+
+            m_lineX = Line::Create(p, p + glm::vec3(1, 0, 0), glm::vec3(1, 0, 0)); // Red
+            m_lineY = Line::Create(p, p + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0)); // Green
+            m_lineZ = Line::Create(p, p + glm::vec3(0, 0, 1), glm::vec3(0, 0, 1)); // Blue
+        }
+
+    public:
+        void Dispose() override
+        {
+            if (m_lineX) m_lineX->Dispose();
+            if (m_lineY) m_lineY->Dispose();
+            if (m_lineZ) m_lineZ->Dispose();
+        }
+
+        static std::shared_ptr<WorldCoords> Create(const Transform& transform)
+        {
+            auto ptr = std::shared_ptr<WorldCoords>(new WorldCoords(transform));
+            Gizmos::GetInstance().Add(ptr);
+            return ptr;
+        }
+    };
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class Box : public BaseGizmo
     {
-        auto ptr = std::shared_ptr<Line>(new Line(start, end, color));
-        Gizmos::GetInstance().Add(ptr);
-        return ptr;
-    }
-};
+    protected:
+        std::unique_ptr<Model> m_model;
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-class WorldCoords : public BaseGizmo
-{
-protected:
-    std::shared_ptr<Line> m_lineX;
-    std::shared_ptr<Line> m_lineY;
-    std::shared_ptr<Line> m_lineZ;
+        Box(const glm::vec3& min, const glm::vec3& max, const glm::vec3& color)
+        {
+            std::vector<glm::vec3> corners = {
+                {min.x, min.y, min.z}, {max.x, min.y, min.z},
+                {max.x, max.y, min.z}, {min.x, max.y, min.z},
+                {min.x, min.y, max.z}, {max.x, min.y, max.z},
+                {max.x, max.y, max.z}, {min.x, max.y, max.z}
+            };
 
-    WorldCoords(const Transform& transform)
-    {
-        const glm::vec3& p = transform.Position;
+            // Indices for 12 edges of a box (wireframe)
+            std::vector<int> indices = {
+                0, 1, 1, 2, 2, 3, 3, 0, // bottom face
+                4, 5, 5, 6, 6, 7, 7, 4, // top face
+                0, 4, 1, 5, 2, 6, 3, 7  // vertical edges
+            };
 
-        m_lineX = Line::Create(p, p + glm::vec3(1, 0, 0), glm::vec3(1, 0, 0)); // Red
-        m_lineY = Line::Create(p, p + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0)); // Green
-        m_lineZ = Line::Create(p, p + glm::vec3(0, 0, 1), glm::vec3(0, 0, 1)); // Blue
-    }
+            std::vector<float> vertices;
+            for (const auto& v : corners)
+            {
+                vertices.push_back(v.x);
+                vertices.push_back(v.y);
+                vertices.push_back(v.z);
+            }
 
-public:
-    void Dispose() override
-    {
-        if (m_lineX) m_lineX->Dispose();
-        if (m_lineY) m_lineY->Dispose();
-        if (m_lineZ) m_lineZ->Dispose();
-    }
+            MeshData data(vertices, indices, {}, GL_LINES);
+            auto material = Material::Get("gizmos");
+            auto& shader = material->GetShader();
+            shader.Bind();
+            shader.SetVec3("color", color);
+            shader.Unbind();
 
-    static std::shared_ptr<WorldCoords> Create(const Transform& transform)
-    {
-        auto ptr = std::shared_ptr<WorldCoords>(new WorldCoords(transform));
-        Gizmos::GetInstance().Add(ptr);
-        return ptr;
-    }
-};
+            auto mesh = std::make_shared<Mesh>(data);
+            m_model = std::make_unique<Model>(mesh, material);
+        }
+
+    public:
+        void Draw()
+        {
+            m_model->SetTransform(m_Transform);
+            m_model->Draw();
+        }
+
+        void Dispose()
+        {
+            m_model->Dispose();
+        }
+
+        static std::shared_ptr<Box> Create(const glm::vec3& min, const glm::vec3& max, const glm::vec3& color)
+        {
+            auto ptr = std::shared_ptr<Box>(new Box(min, max, color));
+            Gizmos::GetInstance().Add(ptr);
+            return ptr;
+        }
+    };
+}
