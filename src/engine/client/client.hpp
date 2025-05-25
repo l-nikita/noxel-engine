@@ -2,9 +2,9 @@
 
 #include <thread>
 #include <iostream>
-#include <steam/steamnetworkingsockets.h>
-#include <steam/steamnetworkingtypes.h>
-#include <steam/isteamnetworkingutils.h>
+#include <GameNetworkingSockets/steam/steamnetworkingsockets.h>
+#include <GameNetworkingSockets/steam/steamnetworkingtypes.h>
+#include <GameNetworkingSockets/steam/isteamnetworkingutils.h>
 
 #include "singleton.hpp"
 

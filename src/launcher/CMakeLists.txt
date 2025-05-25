@@ -6,23 +6,8 @@ target_sources(launcher PRIVATE
 
 # --- libs ---- #
 target_link_libraries(launcher PRIVATE engine)
-
 target_include_directories(launcher PRIVATE
 	../engine
-)
-
-target_include_directories(launcher PRIVATE 
-	../libs/SDL 
-	../libs/SDL/include 
-	../libs/glad/include 
-	../libs/glm
-	../libs/imgui
-	../libs/imgui/backends
-	../libs/GameNetworkingSockets
-	../libs/GameNetworkingSockets/include
-	../libs/entt
-	../libs/entt/single_include
-	${JoltPhysics_SOURCE_DIR}/..
 )
 
 add_custom_command(TARGET launcher POST_BUILD

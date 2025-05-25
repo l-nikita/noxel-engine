@@ -7,28 +7,30 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/build/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/build/bin)
 
-# cpp
+# ------------------ cpp ------------------
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-# libs
-find_package(Protobuf REQUIRED)
+# ------------------ packages ------------------
+find_package(SDL3 REQUIRED CONFIG)
+find_package(SDL3_image REQUIRED CONFIG)
+find_package(EnTT REQUIRED CONFIG)
+find_package(glm REQUIRED CONFIG)
+find_package(Jolt REQUIRED CONFIG)
+find_package(nlohmann_json REQUIRED CONFIG)
+find_package(Protobuf REQUIRED CONFIG)
+find_package(GameNetworkingSockets REQUIRED CONFIG)
+find_package(imgui REQUIRED CONFIG)
 
-# dirs
-add_subdirectory(src/libs/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(src/libs/glad)
-add_subdirectory(src/libs/glm)
-add_subdirectory(src/libs/JoltPhysics/Build)
 
-set(BUILD_SHARED_LIB OFF CACHE INTERNAL "")
-add_subdirectory(src/libs/GameNetworkingSockets)
-
+# ------------------ settings ------------------
+set(BUILD_STATIC_LIB OFF CACHE INTERNAL "")
+set(BUILD_SHARED_LIB ON CACHE INTERNAL "")
 set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory(src/libs/nlohmann_json)
 
-add_subdirectory(src/libs/entt)
-
+# ------------------ main projects ------------------
 add_subdirectory(src/proto)
 add_subdirectory(src/engine)
 add_subdirectory(src/launcher)

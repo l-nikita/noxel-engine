@@ -4,7 +4,7 @@
 
 void ConsolePanel::Draw()
 {
-    if (ImGui::Begin("Console", NULL, (ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking)))
+    if (ImGui::Begin("Console", NULL, (ImGuiWindowFlags_MenuBar)))
     {
         DrawMenuBar();
         DrawLogWindow();

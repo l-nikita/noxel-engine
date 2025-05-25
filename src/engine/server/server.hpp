@@ -3,8 +3,8 @@
 #include <map>
 #include <string>
 #include <thread>
-#include <steam/steamnetworkingtypes.h>
-#include <steam/isteamnetworkingsockets.h>
+#include <GameNetworkingSockets/steam/steamnetworkingtypes.h>
+#include <GameNetworkingSockets/steam/isteamnetworkingsockets.h>
 
 #include "singleton.hpp"
 

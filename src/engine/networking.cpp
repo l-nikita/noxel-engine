@@ -1,5 +1,5 @@
-#include <steam/steamnetworkingsockets.h>
-#include <steam/isteamnetworkingutils.h>
+#include <GameNetworkingSockets/steam/steamnetworkingsockets.h>
+#include <GameNetworkingSockets/steam/isteamnetworkingutils.h>
 
 #include "networking.hpp"
 #include "server.hpp"

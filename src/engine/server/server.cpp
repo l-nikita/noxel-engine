@@ -1,9 +1,10 @@
+#include <GameNetworkingSockets/steam/isteamnetworkingsockets.h>
+#include <GameNetworkingSockets/steam/steamnetworkingsockets.h>
+#include <GameNetworkingSockets/steam/steamnetworkingtypes.h>
+#include <GameNetworkingSockets/steam/isteamnetworkingutils.h>
+
 #include <atomic>
 #include <thread>
-#include <steam/isteamnetworkingsockets.h>
-#include <steam/steamnetworkingsockets.h>
-#include <steam/steamnetworkingtypes.h>
-#include <steam/isteamnetworkingutils.h>
 
 #include "server.hpp"
 #include "cmd.hpp"

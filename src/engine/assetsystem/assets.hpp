@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <memory>
-#include <lodepng.h>
+#include <SDL3_image/SDL_image.h>
 #include <nlohmann/json.hpp>
 
 #include "base_asset.hpp"
@@ -134,21 +134,21 @@ public:
 
         TextureData data{};
 
-        std::vector<unsigned char> image;
-        unsigned width, height;
-        
-        // PNG -> RGBA
-        unsigned error = lodepng::decode(data.Image, width, height, m_assetPath.string());
-        
-        if (error)
-        {
-            CMD_LOG("PNG decode error " + std::to_string(error) + ": " + lodepng_error_text(error), CMDLogType::ERROR);
-            return {};
-        }
+        //std::vector<unsigned char> image;
+        //unsigned width, height;
+        //
+        //// PNG -> RGBA
+        //unsigned error = lodepng::decode(data.Image, width, height, m_assetPath.string());
+        //
+        //if (error)
+        //{
+        //    CMD_LOG("PNG decode error " + std::to_string(error) + ": " + lodepng_error_text(error), CMDLogType::ERROR);
+        //    return {};
+        //}
 
-        data.Format = GL_RGBA;
-        data.Width = width;
-        data.Height = height;
+        //data.Format = GL_RGBA;
+        //data.Width = width;
+        //data.Height = height;
 
         return data;
     }

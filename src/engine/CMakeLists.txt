@@ -26,69 +26,30 @@ add_custom_command(TARGET engine POST_BUILD
     $<TARGET_FILE_DIR:launcher>
 )
 
-# --- libs ---- #
-
 # ------------------
-# imgui lib
 file(GLOB IMGUI_SOURCES
-    ../libs/imgui/*.h
-    ../libs/imgui/*.cpp
-    ../libs/imgui/backends/imgui_impl_sdl3.cpp
-    ../libs/imgui/backends/imgui_impl_opengl3.cpp
+    ${imgui_SOURCE_DIR}/*.h
+    ${imgui_SOURCE_DIR}/*.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
 
 add_library(imgui STATIC ${IMGUI_SOURCES})
-
-target_include_directories(imgui PUBLIC
-    ../libs/imgui
-    ../libs/imgui/backends
-	../libs/SDL/include 
-)
+target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR})
+target_compile_features(imgui PRIVATE cxx_std_20)
+target_link_libraries(imgui PUBLIC SDL3::SDL3)
 
 # ------------------
-# lodepng lib
-file(GLOB LODEPNG_SOURCES
-    ../libs/lodepng/lodepng.h
-    ../libs/lodepng/lodepng.cpp
-    #../libs/lodepng/lodepng_benchmark.cpp
-    ../libs/lodepng/lodepng_fuzzer.cpp
-    ../libs/lodepng/lodepng_unittest.cpp
-    ../libs/lodepng/lodepng_util.cpp
-    ../libs/lodepng/pngdetail.cpp
-)
-
-add_library(lodepng STATIC ${LODEPNG_SOURCES})
-
-target_include_directories(lodepng PUBLIC
-    ../libs/lodepng
-)
-
-# ------------------
-# link libs
-target_include_directories(engine PRIVATE 
-	../libs/SDL 
-	../libs/SDL/include 
-	../libs/glad/include 
-	../libs/glm
-	../libs/imgui
-	../libs/imgui/backends
-	../libs/GameNetworkingSockets
-	../libs/GameNetworkingSockets/include
-	../libs/entt
-	../libs/entt/single_include
-	${JoltPhysics_SOURCE_DIR}/..
-)
-
-target_link_libraries(engine PRIVATE 
-	SDL3::SDL3
-	glm
-	imgui
-	glad
-	lodepng
-	GameNetworkingSockets_s
-	nlohmann_json::nlohmann_json
+target_link_libraries(engine PUBLIC 
 	proto
-	protobuf::libprotobuf
+	glad
+	SDL3::SDL3
+	SDL3_image::SDL3_image
+	EnTT	
+	glm
 	Jolt
-	EnTT
+	nlohmann_json::nlohmann_json
+	protobuf::libprotobuf
+	GameNetworkingSockets
+	imgui
 )
