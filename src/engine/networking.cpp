@@ -41,6 +41,7 @@ bool Networking::Init()
         Client::GetInstance().Send();
     });
 
+    CMD_LOG("] Networking initialized", INFO);
     return true;
 }
 

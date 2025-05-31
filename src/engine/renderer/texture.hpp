@@ -30,7 +30,7 @@ public:
             0,
             m_data->Format,
             GL_UNSIGNED_BYTE,
-            m_data->Image.data()
+            m_data->Image
         );
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
@@ -51,6 +51,7 @@ public:
     { 
         if (m_id != 0)
         {
+            stbi_image_free(m_data->Image);
             glDeleteTextures(1, &m_id);
             m_id = 0;
         }

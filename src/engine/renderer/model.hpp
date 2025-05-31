@@ -5,7 +5,6 @@
 #include "mesh.hpp"
 #include "mesh_data.hpp"
 #include "material.hpp"
-#include "renderer.hpp"
 #include "transformable.hpp"
 
 class Model : public Transformable

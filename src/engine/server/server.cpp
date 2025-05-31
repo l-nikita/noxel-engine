@@ -2,6 +2,7 @@
 #include <GameNetworkingSockets/steam/steamnetworkingsockets.h>
 #include <GameNetworkingSockets/steam/steamnetworkingtypes.h>
 #include <GameNetworkingSockets/steam/isteamnetworkingutils.h>
+#include <GameNetworkingSockets/steam/isteamnetworkingmessages.h>
 
 #include <atomic>
 #include <thread>

@@ -6,7 +6,6 @@
 #include "common.hpp"
 #include "singleton.hpp"
 #include "render_camera.hpp"
-#include "angles.hpp"
 
 class Renderer : public Singleton<Renderer>
 {
@@ -29,5 +28,4 @@ public:
 
 private:
 	SDL_Window* m_window = nullptr;
-	bool m_firstFrame = false;
 };

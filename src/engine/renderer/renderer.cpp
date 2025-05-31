@@ -6,6 +6,7 @@
 
 #include "engine.hpp"
 #include "assets_system.hpp"
+#include "entities.hpp"
 #include "renderer.hpp"
 #include "singleton.hpp"
 #include "cmd.hpp"
@@ -136,22 +137,29 @@ bool Renderer::Init(SDL_Window* window)
     auto mat = Material::Get("dirt");
     TestModel = std::make_unique<Model>(mesh, mat);
 
-    auto grid = Gismo::Grid::Create(16, 5.0f, glm::vec3(1.0f));
-    grid->m_Transform.Position = glm::vec3(-2.5f, -1.0f, -2.5f);
+    //auto grid = Gizmo::Grid::Create(16, 5.0f, glm::vec3(1.0f));
+    //grid->m_Transform.Position = glm::vec3(-2.5f, -1.0f, -2.5f);
 
-    Gismo::WorldCoords::Create(Transform{});
+    //Gizmo::WorldCoords::Create(Transform{});
 
     //glm::vec3 min(-0.5f, -0.5f, -0.5f);
     //glm::vec3 max(0.5f, 0.8f, 0.5f);
     //Gismo::Box::Create(min, max, glm::vec3(1.0f));
 
+    CMD_LOG("] Renderer initialized", INFO);
     return true;
 }
 
 void Renderer::InitAPI()
 {
+    CMD_LOG("//----------------------------------", DEFAULT);
+    const char* vendor = (const char*)glGetString(GL_VENDOR);
+    const char* renderer = (const char*)glGetString(GL_RENDERER);
     const char* version = (const char*)glGetString(GL_VERSION);
+    CMD_LOG("GPU: " + std::string(renderer), CMDLogType::INFO);
+    CMD_LOG("GPU Vendor: " + std::string(vendor), CMDLogType::INFO);
     CMD_LOG("OpenGL Version: " + std::string(version), CMDLogType::INFO);
+    CMD_LOG("//----------------------------------", DEFAULT);
 
     SDL_GL_SetSwapInterval(1);
 
@@ -184,8 +192,6 @@ void Renderer::Draw()
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    Gizmos::GetInstance().Draw();
-
     if (TestModel)
     {
         TestModel->Draw();
@@ -194,6 +200,8 @@ void Renderer::Draw()
         //TestModel->m_Transform.Rotation = Angles(0, test, 0);
     }
 
+    Entities::GetInstance().DrawAll();
+
     DrawGUI();
 }
 
@@ -201,13 +209,6 @@ void Renderer::DrawGUI()
 {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
-
-    if (!m_firstFrame)
-    {
-        m_firstFrame = true;
-        auto& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    }
 
     ImGui::NewFrame();
 

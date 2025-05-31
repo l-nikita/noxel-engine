@@ -6,8 +6,8 @@
 #include <sstream>
 #include <iostream>
 #include <memory>
-#include <SDL3_image/SDL_image.h>
 #include <nlohmann/json.hpp>
+#include <stb_image.h>
 
 #include "base_asset.hpp"
 #include "assets_system.hpp"
@@ -106,7 +106,7 @@ public:
 //-----------------------------------------------------------------------------
 struct TextureData
 {
-    std::vector<unsigned char> Image;
+    unsigned char* Image = nullptr;
     int Width;
     int Height;
     GLenum Format;
@@ -134,21 +134,30 @@ public:
 
         TextureData data{};
 
-        //std::vector<unsigned char> image;
-        //unsigned width, height;
-        //
-        //// PNG -> RGBA
-        //unsigned error = lodepng::decode(data.Image, width, height, m_assetPath.string());
-        //
-        //if (error)
-        //{
-        //    CMD_LOG("PNG decode error " + std::to_string(error) + ": " + lodepng_error_text(error), CMDLogType::ERROR);
-        //    return {};
-        //}
+        int width, height, channels;
+        unsigned char* image = stbi_load(m_assetPath.string().c_str(), &width, &height, &channels, 0);
+        if (!image)
+        {
+            CMD_LOG("Couln't load texture ["+ m_assetPath.string()+"]!", ERROR);
+            return {};
+        }
 
-        //data.Format = GL_RGBA;
-        //data.Width = width;
-        //data.Height = height;
+        GLenum glFormat = GL_RGB;
+
+        if (channels == 3)
+            glFormat = GL_RGB;
+        else if (channels == 4)
+            glFormat = GL_RGBA;
+        else
+        {
+            CMD_LOG("Couln't load texture [" + m_assetPath.string() + "] due to unsupported number of channels!", ERROR);
+            return {};
+        }
+
+        data.Image = image;
+        data.Format = glFormat;
+        data.Width = width;
+        data.Height = height;
 
         return data;
     }

@@ -1,5 +1,6 @@
 #include "engine.hpp"
 #include "input.hpp"
+#include "cmd.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -8,6 +9,7 @@ bool Input::Init(SDL_Window* window)
 {
     m_window = window;
 
+    CMD_LOG("] Input initialized", INFO);
     return true;
 }
 
@@ -21,23 +23,11 @@ bool Input::IsKeyDown(SDL_Scancode key)
 
 bool Input::IsKeyPressed(SDL_Scancode key)
 {
-    if (m_keyPressed[key]) 
-    {
-        m_keyPressed[key] = false;
-        return true;
-    }
-
-    return false;
+    return m_keyPressed[key];
 }
 
 bool Input::IsKeyReleased(SDL_Scancode key)
 {
-    if (m_keyReleased[key])
-    {
-        m_keyReleased[key] = false;
-        return true;
-    }
-
     return m_keyReleased[key];
 }
 
@@ -51,23 +41,11 @@ bool Input::IsButtonDown(Uint8 button)
 
 bool Input::IsButtonPressed(Uint8 button)
 {
-    if (m_mousePressed[button])
-    {
-        m_mousePressed[button] = false;
-        return true;
-    }
-
     return false;
 }
 
 bool Input::IsButtonReleased(Uint8 button)
 {
-    if (m_mouseReleased[button])
-    {
-        m_mouseReleased[button] = false;
-        return true;
-    }
-
     return m_mouseReleased[button];
 }
 
@@ -98,6 +76,23 @@ glm::vec2 Input::GetMouseDelta()
 glm::vec2 Input::GetMouseScroll() const
 {
     return m_scrollDelta;
+}
+
+void Input::Reset()
+{
+    for (int i = 0; i < SDL_SCANCODE_COUNT; ++i)
+    {
+        m_keyPressed[(SDL_Scancode)i] = false;
+        m_keyReleased[(SDL_Scancode)i] = false;
+    }
+
+    for (int i = 0; i < 8; ++i)
+    {
+        m_mousePressed[i] = false;
+        m_mouseReleased[i] = false;
+    }
+
+    m_scrollDelta = glm::vec2(0.0f);
 }
 
 //-----------------------------------------------------------------------------

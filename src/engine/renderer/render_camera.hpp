@@ -21,4 +21,7 @@ private:
 	int m_screenWidth;
 	int m_screenHeight;
 	float m_screenAspect;
+
+	float m_yaw = 0.0f;
+	float m_pitch = 0.0f;
 };

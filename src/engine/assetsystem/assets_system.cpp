@@ -4,6 +4,9 @@
 
 #include "assets_system.hpp"
 #include "assets.hpp"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
  
 bool AssetsSystem::Init()
 {
@@ -19,6 +22,7 @@ bool AssetsSystem::Init()
 	MaterialAsset::CreateNew("dirt", "E:/DEV/Sources/NoxelEngine/build/assets/materials/dirt.nmt");
 	MaterialAsset::CreateNew("atlas", "E:/DEV/Sources/NoxelEngine/build/assets/materials/atlas.nmt");
 
+	CMD_LOG("] Assets system initialized", INFO);
 	return true;
 }
 

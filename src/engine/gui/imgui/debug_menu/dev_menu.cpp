@@ -17,13 +17,14 @@ void DevPanel::Draw()
                 auto& transform = Renderer::GetInstance().m_Camera->m_Transform;
                 ImGui::InputFloat3("Position", glm::value_ptr(transform.Position) );
 
-                glm::vec3 ang(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
+				auto rot = glm::degrees(glm::eulerAngles(transform.Rotation));
+                glm::vec3 ang(rot.x, rot.y, rot.z);
                 ImGui::InputFloat3("Rotation", glm::value_ptr(ang));
 
                 if (ImGui::Button("Reset"))
                 {
 					transform.Position = glm::zero<glm::vec3>();
-					transform.Rotation = Angles::Zero();
+					transform.Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
                 }
 
                 ImGui::SeparatorText("Render");

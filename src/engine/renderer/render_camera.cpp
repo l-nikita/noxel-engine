@@ -5,6 +5,8 @@
 #include "cmd.hpp"
 #include "input.hpp"
 #include "engine.hpp"
+#include "entities.hpp"
+#include "player.hpp"
 
 constexpr auto CAMERA_FOV = 95.0f;
 constexpr auto DEPTH_NEAR = 0.1f;
@@ -23,42 +25,38 @@ void RenderCamera::OnFrameBufferResize(int& width, int& height)
 	m_screenAspect = (float)m_screenWidth / (float)m_screenHeight;
 }
 
-void RenderCamera::Update() 
+void RenderCamera::Update()
 {
 	auto delta = Input::GetInstance().GetMouseDelta();
 
 	if (Input::GetInstance().GetRelativeMouseMode() == false)
 		return;
 
-	m_Transform.Rotation.Pitch -= delta.y * SENSITIVITY;
-	m_Transform.Rotation.Pitch = std::clamp(m_Transform.Rotation.Pitch, -85.0f, 85.0f);
-	m_Transform.Rotation.Yaw -= delta.x * SENSITIVITY;
-	m_Transform.Rotation.Normalize();
+	m_yaw -= delta.x * SENSITIVITY;
+	m_pitch -= delta.y * SENSITIVITY;
+	m_pitch = std::clamp(m_pitch, -85.0f, 85.0f);
 
-	bool isW = Input::GetInstance().IsKeyDown(SDL_SCANCODE_W);
-	bool isA = Input::GetInstance().IsKeyDown(SDL_SCANCODE_A);
-	bool isS = Input::GetInstance().IsKeyDown(SDL_SCANCODE_S);
-	bool isD = Input::GetInstance().IsKeyDown(SDL_SCANCODE_D);
-	bool isSpace = Input::GetInstance().IsKeyDown(SDL_SCANCODE_SPACE);
-	bool isLShift = Input::GetInstance().IsKeyDown(SDL_SCANCODE_LSHIFT);
+	glm::quat qPitch = glm::angleAxis(glm::radians(m_pitch), glm::vec3(1, 0, 0));
+	glm::quat qYaw = glm::angleAxis(glm::radians(m_yaw), glm::vec3(0, 1, 0));
+	m_Transform.Rotation = qYaw * qPitch;
 
-	if (isW)
+	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_W))      
 		Move(m_Transform.Forward(), 0.005f);
-	
-	if (isS)
+
+	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_S))      
 		Move(m_Transform.Backward(), 0.005f);
-	
-	if (isA)
+
+	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_A))      
 		Move(m_Transform.Left(), 0.005f);
-	
-	if (isD)
+
+	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_D))      
 		Move(m_Transform.Right(), 0.005f);
 
-	if (isSpace)
-		Move(glm::vec3(0.0f, 1.0f, 0.0f), 0.005f);
+	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_SPACE))  
+		Move(glm::vec3(0, 1, 0), 0.005f);
 
-	if (isLShift)
-		Move(glm::vec3(0.0f, -1.0f, 0.0f), 0.005f);
+	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_LSHIFT)) 
+		Move(glm::vec3(0, -1, 0), 0.005f);
 }
 
 void RenderCamera::Move(glm::vec3 direction, float distance)

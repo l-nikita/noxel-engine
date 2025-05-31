@@ -25,7 +25,7 @@ void DebugMenu::Draw()
 			ImGui::Separator();
 
 			if (ImGui::MenuItem("Exit"))
-				exit(0);
+				Engine::GetInstance().Stop();
 
             ImGui::EndMenu();
 		}

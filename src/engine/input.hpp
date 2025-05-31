@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <glm/glm.hpp>
+#include <unordered_map>
 
 #include "singleton.hpp"
 
@@ -16,6 +17,8 @@ public:
 	bool IsButtonDown(Uint8 button);
 	bool IsButtonPressed(Uint8 button);
 	bool IsButtonReleased(Uint8 button);
+
+	void Reset();
 
 	void SetRelativeMouseMode(bool value);
 	bool GetRelativeMouseMode();

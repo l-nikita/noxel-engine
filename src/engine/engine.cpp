@@ -11,6 +11,8 @@
 #include "input.hpp"
 #include "renderer.hpp"
 #include "networking.hpp"
+#include "entities.hpp"
+#include "gizmos.hpp"
 
 #include "panel.hpp"
 #include "profiler.hpp"
@@ -24,9 +26,10 @@
 //-----------------------------------------------------------------------------
 void Engine::Update()
 {
-    Physics::GetInstance().Update();
-
     EventHandler::GetInstance().HandleEvents();
+
+    Physics::GetInstance().Update();
+    Entities::GetInstance().Update();
 
     if(Renderer::GetInstance().m_Camera)
         Renderer::GetInstance().m_Camera->Update();
@@ -41,6 +44,8 @@ void Engine::Update()
         Input::GetInstance().SetRelativeMouseMode(!Input::GetInstance().GetRelativeMouseMode());
     else if (isF11)
         ToggleFullscreen();
+
+    Input::GetInstance().Reset();
 }
 
 void Engine::Render()
@@ -97,8 +102,10 @@ void Engine::Stop()
     if (!m_isRunning) return;
 
     m_isRunning = false;
-    Networking::GetInstance().Shutdown();
+
+    Entities::GetInstance().Shutdown();
     Physics::GetInstance().Shutdown();
+    Networking::GetInstance().Shutdown();
 
     if(m_Window)
         SDL_DestroyWindow(m_Window);
@@ -189,11 +196,13 @@ bool Engine::Init()
     if (!LoadGLAD()) return false;
     if (!InitGUI()) return false;
 
-    if (!Networking::GetInstance().Init()) return false;
     if (!AssetsSystem::GetInstance().Init()) return false;
     if (!Input::GetInstance().Init(m_Window)) return false;
-    if (!Renderer::GetInstance().Init(m_Window)) return false;
     if (!Physics::GetInstance().Init()) return false;
+    if (!Renderer::GetInstance().Init(m_Window)) return false;
+    if (!Gizmos::GetInstance().Init()) return false;
+    if (!Networking::GetInstance().Init()) return false;
+    if (!Entities::GetInstance().Init()) return false;
 
     CMD::GetInstance().Setup();
     CMD_LOG("Engine initialized successfully.", INFO);
