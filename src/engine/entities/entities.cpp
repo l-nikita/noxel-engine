@@ -26,7 +26,7 @@ bool Entities::Init()
     //    entity.Get<Transform>().Position = glm::vec3(i * 1.0f, 0.0f, 0.0f);
     //}
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 5; i++)
     {
         Players.push_back(CreatePlayer(m_registry));
     }
@@ -64,10 +64,17 @@ void Entities::DrawAll()
     for (auto& player : Players)
     {
         auto& playerTrans = player.Get<Transform>();
-        Gizmo::DrawBox(glm::vec3(), glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::vec3(10.0f, 1.0f, 10.0f), glm::vec3(-10.0f, -1.0f, -10.0f));
-        Gizmo::DrawBox(playerTrans.Position, playerTrans.Rotation, glm::vec3(1.0f), glm::vec3(-1.0f));
-        Gizmo::DrawLine(glm::vec3(), playerTrans.Position);
+        Gizmo::DrawBox(playerTrans.Position, playerTrans.Rotation, glm::vec3(1.0f), glm::vec3(-1.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        //Gizmo::DrawLine(glm::vec3(), playerTrans.Position);
     }
+
+    //Gizmo::DrawTriangle(
+    //    glm::vec3(0.0f, 5.0f, 0.0f),
+    //    glm::vec3(0.0f, 0.0f, 0.0f), 
+    //    glm::vec3(1.0f, 0.0f, 0.0f), 
+    //    glm::vec3(0.0f, 1.0f, 0.0f));
+
+    Gizmo::DrawBox(glm::vec3(), glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::vec3(10.0f, 1.0f, 10.0f), glm::vec3(-10.0f, -1.0f, -10.0f));
 }
 
 //-----------------------------------------------------------------------------
@@ -75,6 +82,7 @@ void Entities::DrawAll()
 //-----------------------------------------------------------------------------
 void Entities::Shutdown()
 {
+    m_isRunning = false;
     m_registry.clear();
     m_UUIDs.clear();
 }

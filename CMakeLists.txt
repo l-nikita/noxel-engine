@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(SDL3 REQUIRED CONFIG)
 find_package(EnTT REQUIRED CONFIG)
 find_package(glm REQUIRED CONFIG)
-find_package(Jolt REQUIRED CONFIG)
+find_package(Jolt REQUIRED CONFIG) # vcpkg install joltphysics[debugrenderer]
 find_package(nlohmann_json REQUIRED CONFIG)
 find_package(Protobuf REQUIRED CONFIG)
 find_package(GameNetworkingSockets REQUIRED CONFIG)

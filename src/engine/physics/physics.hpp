@@ -12,10 +12,11 @@
 
 #include "physics_layers.hpp"
 #include "physics_listeners.hpp"
+#include "physics_renderer.hpp"
 
 struct EPhysicsBody
 {
-	JPH::Body* Body = nullptr;
+	JPH::BodyID BodyID;
 };
 
 class Physics : public Singleton<Physics>
@@ -25,10 +26,12 @@ public:
 
 	bool Init();
 	void Update();
+	void Draw();
 	void Shutdown();
 
 	bool IsRunning() { return m_IsRunning; }
 	Profiler* m_updateProfiler;
+	Profiler* m_drawProfiler;
 
 	JPH::PhysicsSystem* GetSystem() { return m_system; }
 
@@ -36,18 +39,34 @@ public:
 
 	// Shapes
 
-	static JPH::Body* CreateShapeBox(
+	static JPH::BodyID CreateShapeBox(
 		const JPH::RVec3& pos,
 		const JPH::Quat& quat,
 		const JPH::RVec3& offset,
 		const JPH::Quat& quatOffset,
 		const JPH::RVec3& halfExtent,
-		const float& convexRadius,
+		JPH::EActivation activation = JPH::EActivation::Activate,
 		JPH::EMotionType motionType = JPH::EMotionType::Dynamic,
+		float convexRadius = 0.05f,
+		const JPH::PhysicsMaterial* material = nullptr);
+
+	static JPH::BodyID CreateShapeSphere(
+		const JPH::RVec3& pos,
+		const JPH::Quat& quat,
+		const JPH::RVec3& offset,
+		const JPH::Quat& quatOffset,
+		float radius,
+		JPH::EActivation activation = JPH::EActivation::Activate,
+		JPH::EMotionType motionType = JPH::EMotionType::Dynamic,
+		float convexRadius = 0.05f,
 		const JPH::PhysicsMaterial* material = nullptr);
 
 private:
 	bool m_IsRunning;
+
+	PhysicsDebugRenderer* m_debugRenderer;
+
+	std::vector<JPH::BodyID> m_bodiesIDs;
 
 	JPH::PhysicsSystem* m_system;
 	JPH::TempAllocatorImpl* m_tempAllocator;

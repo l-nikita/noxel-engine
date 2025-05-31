@@ -16,8 +16,10 @@ class Gizmos : public Singleton<Gizmos>
 {
 public:
     std::shared_ptr<Material> m_Material;
+
     std::shared_ptr<Mesh> m_BoxMesh;
     std::shared_ptr<Mesh> m_LineMesh;
+    std::shared_ptr<Mesh> m_TriangleMesh;
 
     bool Init()
     {
@@ -25,6 +27,7 @@ public:
 
         InitBox();
         InitLine();
+        InitTriangle();
 
         return true;
     }
@@ -62,13 +65,11 @@ public:
 
     void InitLine()
     {
-        std::vector<int> indices =
-        {
+        std::vector<int> indices = {
             0, 1
         };
 
-        std::vector<float> vertices =
-        {
+        std::vector<float> vertices = {
             0.0f, 0.0f, 0.0f,
             1.0f, 0.0f, 0.0f
         };
@@ -76,11 +77,27 @@ public:
         MeshData data(vertices, indices, {}, GL_LINES);
         m_LineMesh = std::make_shared<Mesh>(data);
     }
+
+    void InitTriangle()
+    {
+        std::vector<int> indices = {
+            0, 1, 2
+        };
+
+        std::vector<float> vertices = {
+            0.0f, 0.0f, 0.0f, // p0
+            1.0f, 0.0f, 0.0f, // p1
+            0.0f, 1.0f, 0.0f  // p2
+        };
+
+        MeshData data(vertices, indices, {}, GL_TRIANGLES);
+        m_TriangleMesh = std::make_shared<Mesh>(data);
+    }
 };
 
 namespace Gizmo
 {
-    static void DrawBox(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& min, const glm::vec3& max, const glm::vec3& color = glm::vec3(1.0f))
+    static void DrawBox(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& min, const glm::vec3& max, const glm::vec4& color = glm::vec4(1.0f))
     {
         glm::vec3 scale = (max - min) * 0.5f;
         glm::mat4 model = glm::translate(glm::mat4(1.0f), position) 
@@ -91,7 +108,7 @@ namespace Gizmo
         auto& shader = gizmos.m_Material->GetShader();
 
         shader.Bind();
-        shader.SetVec3("color", color);
+        shader.SetVec4("color", color);
         shader.SetMatrix4("model", model);
         shader.SetMatrix4("view", Renderer::GetInstance().m_Camera->GetViewMatrix());
         shader.SetMatrix4("projection", Renderer::GetInstance().m_Camera->GetProjectionMatrix());
@@ -100,7 +117,7 @@ namespace Gizmo
         shader.Unbind();
     }
 
-    static void DrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3& color = glm::vec3(1.0f))
+    static void DrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color = glm::vec4(1.0f))
     {
         glm::vec3 dir = end - start;
         float length = glm::length(dir);
@@ -117,12 +134,41 @@ namespace Gizmo
         auto& gizmos = Gizmos::GetInstance();
         auto& shader = gizmos.m_Material->GetShader();
         shader.Bind();
-        shader.SetVec3("color", color);
+        shader.SetVec4("color", color);
         shader.SetMatrix4("model", model);
         shader.SetMatrix4("view", Renderer::GetInstance().m_Camera->GetViewMatrix());
         shader.SetMatrix4("projection", Renderer::GetInstance().m_Camera->GetProjectionMatrix());
 
         gizmos.m_LineMesh->Draw();
+        shader.Unbind();
+    }
+
+    static void DrawTriangle(
+        const glm::vec3& position,
+        const glm::vec3& v1, 
+        const glm::vec3& v2, 
+        const glm::vec3& v3, 
+        const glm::vec4& color = glm::vec4(1.0f))
+    {
+        glm::vec3 edge1 = v2 - v1;
+        glm::vec3 edge2 = v3 - v1;
+        glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
+
+        glm::mat3 basis(edge1, edge2, normal);
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, v1);
+        model *= glm::mat4(glm::mat3(basis)); // scale/rotate
+        model *= glm::translate(glm::mat4(1.0f), position);
+
+        auto& gizmos = Gizmos::GetInstance();
+        auto& shader = gizmos.m_Material->GetShader();
+        shader.Bind();
+        shader.SetVec4("color", color);
+        shader.SetMatrix4("model", model);
+        shader.SetMatrix4("view", Renderer::GetInstance().m_Camera->GetViewMatrix());
+        shader.SetMatrix4("projection", Renderer::GetInstance().m_Camera->GetProjectionMatrix());
+
+        gizmos.m_TriangleMesh->Draw();
         shader.Unbind();
     }
 

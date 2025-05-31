@@ -10,6 +10,7 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyManager.h>
 
 #include <glm/glm.hpp>
 #include <string>
@@ -20,8 +21,7 @@
 #include "engine.hpp"
 #include "cmd.hpp"
 #include "gizmos.hpp"
-
-// TO DO: MAKE RENDERER
+#include "utils.hpp"
 
 using namespace JPH;
 
@@ -60,12 +60,10 @@ static bool AssertFailedImpl(const char* inExpression, const char* inMessage, co
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-static Body* TestFloor;
-static BodyID TestSphereID;
-
 bool Physics::Init()
 {
 	m_updateProfiler = new Profiler("PhysicsUpdate");
+	m_drawProfiler = new Profiler("PhysicsDraw");
 
 	RegisterDefaultAllocator();
 
@@ -74,6 +72,8 @@ bool Physics::Init()
 
 	Factory::sInstance = new Factory();
 	RegisterTypes();
+
+	m_debugRenderer = new PhysicsDebugRenderer();
 
 	m_tempAllocator = new TempAllocatorImpl(10 * 1024 * 1024);
 	m_jobSystem = new JobSystemThreadPool(cMaxPhysicsJobs, cMaxPhysicsBarriers, thread::hardware_concurrency() - 1);
@@ -103,32 +103,11 @@ bool Physics::Init()
 	m_system->SetContactListener(contact_listener);
 
 	//---------------------------------------------------------------------
-	BodyInterface& body_interface = m_system->GetBodyInterface();
-
-	BoxShapeSettings floor_shape_settings(RVec3(10.0f, 1.0f, 10.0f));
-	floor_shape_settings.SetEmbedded();
-
-	ShapeSettings::ShapeResult floor_shape_result = floor_shape_settings.Create();
-	ShapeRefC floor_shape = floor_shape_result.Get();
-
-	BodyCreationSettings floor_settings(floor_shape, RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
-
-	TestFloor = body_interface.CreateBody(floor_settings);
-	body_interface.AddBody(TestFloor->GetID(), EActivation::DontActivate);
-
-	//glm::vec3 center(-2.5f, -1.0f, -2.5f);
-	//glm::vec3 half_extents(10.0f, 1.0f, 10.0f);
-
-	//glm::vec3 min = center - half_extents;
-	//glm::vec3 max = center + half_extents;
-
-	//Gizmo::Box::Create(min, max, glm::vec3(1.0f));
-
-	////---------------------------------------------------------------------
-	//BodyCreationSettings sphere_settings(new SphereShape(0.5f), RVec3(-2.5f, 5.0f, -2.5f), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
-	//TestSphereID = body_interface.CreateAndAddBody(sphere_settings, EActivation::Activate);
-
-	//body_interface.SetLinearVelocity(TestSphereID, Vec3(0.0f, -5.0f, 0.0f));
+	Physics::CreateShapeBox(
+		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+		RVec3(10.0f, 1.0f, 10.0f), 
+		EActivation::Activate, EMotionType::Static);
 
 	m_system->OptimizeBroadPhase();
 	m_IsRunning = true;
@@ -143,6 +122,7 @@ bool Physics::Init()
 void Physics::Update()
 {
 	if (!IsRunning()) return;
+
 	m_updateProfiler->Start();
 
 	const float cDeltaTime = 1.0f / 144.0f;
@@ -154,24 +134,49 @@ void Physics::Update()
 	m_updateProfiler->End();
 }
 
+void Physics::Draw()
+{
+	if (!IsRunning()) return;
+
+	m_drawProfiler->Start();
+
+	JPH::BodyManager::DrawSettings drawSettings;
+	drawSettings.mDrawShape = false;
+	drawSettings.mDrawBoundingBox = true;
+	drawSettings.mDrawCenterOfMassTransform = true;
+	m_system->DrawBodies(drawSettings, m_debugRenderer);
+
+	m_drawProfiler->End();
+}
+
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 void Physics::Shutdown()
 {
 	if (!IsRunning()) return;
+	m_IsRunning = false;
 
 	BodyInterface& body_interface = m_system->GetBodyInterface();
-	body_interface.RemoveBody(TestFloor->GetID());
-	body_interface.DestroyBody(TestFloor->GetID());
 
+	for (auto& bodyID : m_bodiesIDs)
+	{
+		body_interface.RemoveBody(bodyID);
+		body_interface.DestroyBody(bodyID);
+	}
+
+	m_bodiesIDs.clear();
 	UnregisterTypes();
 
 	delete m_updateProfiler;
+	delete m_drawProfiler;
 
 	delete m_system;
 	delete m_tempAllocator;
 	delete m_jobSystem;
+
+	delete Factory::sInstance;
+	Factory::sInstance = nullptr;
 
 	delete broad_phase_layer_interface;
 	delete object_vs_broadphase_layer_filter;
@@ -180,6 +185,5 @@ void Physics::Shutdown()
 	delete body_activation_listener;
 	delete contact_listener;
 
-	delete Factory::sInstance;
-	Factory::sInstance = nullptr;
+	delete m_debugRenderer;
 }

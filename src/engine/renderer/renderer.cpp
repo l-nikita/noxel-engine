@@ -10,6 +10,7 @@
 #include "renderer.hpp"
 #include "singleton.hpp"
 #include "cmd.hpp"
+#include "physics.hpp"
 
 #include "mesh.hpp"
 #include "model.hpp"
@@ -167,6 +168,9 @@ void Renderer::InitAPI()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void Renderer::InitGUI()
@@ -201,6 +205,7 @@ void Renderer::Draw()
     }
 
     Entities::GetInstance().DrawAll();
+    Physics::GetInstance().Draw(); // for debug purposes
 
     DrawGUI();
 }
