@@ -10,7 +10,7 @@ class RenderCamera;
 class Renderer : public IRenderer
 {
 public:
-	bool Init(SDL_Window* window, IEngine* engine) override;
+	bool Init() override;
 	bool InitAPI();
 
 	void Render() override;
@@ -29,8 +29,5 @@ public:
 	SDL_GLContext m_Context = nullptr;
 
 private:
-	SDL_Window* m_window = nullptr;
-	IEngine* m_engine = nullptr;
-
 	RenderCamera* m_camera;
 };

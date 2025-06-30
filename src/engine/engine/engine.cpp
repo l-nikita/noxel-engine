@@ -9,7 +9,7 @@
 #include "gui/gui.hpp"
 #include "assetsystem/assets_system.hpp"
 #include "physics/physics.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
 
 #include "renderer/renderer.hpp"
 #include "renderer/gizmos.hpp"
@@ -21,11 +21,12 @@
 #include "common/profiler.hpp"
 #include "event_handler.hpp"
 #include "cmd/cmd.hpp"
-#include "networking.hpp"
+#include "networking/networking.hpp"
 #include "server/server.hpp"
 #include "client/client.hpp"
 
 IEngine* g_Engine = nullptr;
+IInput* g_Input = nullptr;
 
 //-----------------------------------------------------------------------------
 //
@@ -41,18 +42,18 @@ void Engine::Update()
     if (camera)
         camera->Update();
 
-    bool isGrave = Input::GetInstance().IsKeyPressed(SDL_SCANCODE_GRAVE);
-    bool isF3 = Input::GetInstance().IsKeyPressed(SDL_SCANCODE_F3);
-    bool isF11 = Input::GetInstance().IsKeyPressed(SDL_SCANCODE_F11);
+    bool isGrave = g_Input->IsKeyPressed(SDL_SCANCODE_GRAVE);
+    bool isF3 = g_Input->IsKeyPressed(SDL_SCANCODE_F3);
+    bool isF11 = g_Input->IsKeyPressed(SDL_SCANCODE_F11);
 
     //if (isGrave)
     //    m_DebugMenu->m_IsVisible = !m_DebugMenu->m_IsVisible;
     if (isF3)
-        Input::GetInstance().SetRelativeMouseMode(!Input::GetInstance().GetRelativeMouseMode());
+        g_Input->SetRelativeMouseMode(!g_Input->GetRelativeMouseMode());
     else if (isF11)
         ToggleFullscreen();
 
-    Input::GetInstance().Reset();
+    g_Input->Reset();
 }
 
 void Engine::Render()
@@ -95,7 +96,7 @@ void Engine::Run()
 
         //move to renderer
         swapBuffers.Start();
-        SDL_GL_SwapWindow(m_window);
+        SDL_GL_SwapWindow(GetWindow());
         swapBuffers.End();
     }
 
@@ -118,11 +119,12 @@ void Engine::Shutdown()
     m_renderer->Shutdown();
     m_gui->Shutdown();
 
+    delete g_Input;
     delete m_renderer;
     delete m_gui;
 
-    if(m_window)
-        SDL_DestroyWindow(m_window);
+    if(GetWindow())
+        SDL_DestroyWindow(GetWindow());
 
     SDL_Quit();
     CMD_LOG_INFO("Engine stopped.");
@@ -138,7 +140,7 @@ bool Engine::CreateWindow()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     m_window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_OPENGL);
-    if (!m_window)
+    if (!GetWindow())
     {
         CMD_LOG("SDL_CreateWindow Error: " + std::string(SDL_GetError()), ERROR);
         Shutdown();
@@ -170,14 +172,17 @@ bool Engine::Init()
     if (!CreateWindow()) return false;
 
     if (!AssetsSystem::GetInstance().Init()) return false;
-    if (!Input::GetInstance().Init(m_window)) return false;
+
+    g_Input = new Input();
+    if (!g_Input->Init()) return false;
+
     if (!Physics::GetInstance().Init()) return false;
 
     m_renderer = new Renderer();
-    if (!m_renderer->Init(m_window, this)) return false;
+    if (!m_renderer->Init()) return false;
 
     m_gui = new Gui();
-    if (!m_gui->Init(m_window, this)) return false;
+    if (!m_gui->Init()) return false;
        
     if (!Gizmos::GetInstance().Init()) return false;
     if (!Networking::GetInstance().Init()) return false;
@@ -195,7 +200,7 @@ bool Engine::Init()
 void* Engine::GetNativeWindowHandle()
 {
 #ifdef SDL_PLATFORM_WIN32
-    return SDL_GetPointerProperty(SDL_GetWindowProperties(m_window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+    return SDL_GetPointerProperty(SDL_GetWindowProperties(GetWindow()), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
 #else
     return nullptr;
 #endif
@@ -203,7 +208,7 @@ void* Engine::GetNativeWindowHandle()
 
 void Engine::SetFullscreen(bool fullscreen)
 {
-    SDL_SetWindowFullscreen(m_window, fullscreen);
+    SDL_SetWindowFullscreen(GetWindow(), fullscreen);
 }
 
 void Engine::ToggleFullscreen()
@@ -213,13 +218,13 @@ void Engine::ToggleFullscreen()
 
 bool Engine::IsInFullscreen()
 {
-    Uint32 flags = SDL_GetWindowFlags(m_window);
+    Uint32 flags = SDL_GetWindowFlags(GetWindow());
     return (flags & SDL_WINDOW_FULLSCREEN);
 }
 
 void Engine::OnWindowResize()
 {
     int width, height;
-    SDL_GetWindowSizeInPixels(m_window, &width, &height);
+    SDL_GetWindowSizeInPixels(GetWindow(), &width, &height);
     m_renderer->OnWindowResize(width, height);
 }

@@ -4,6 +4,7 @@
 
 class IRenderer;
 class IGui;
+struct SDL_Window; // IWindow
 
 class ENGINE_API IEngine
 {
@@ -22,6 +23,7 @@ public:
 	virtual float DeltaTime() = 0;
 	virtual float ElapsedTime() = 0;
 
+	virtual SDL_Window* GetWindow() = 0;
 	virtual int GetWindowWidth() = 0;
 	virtual int GetWindowHeight() = 0;
 	virtual void* GetNativeWindowHandle() = 0;

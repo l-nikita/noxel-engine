@@ -21,6 +21,7 @@ public:
     void Update() override;
     void Render() override;
 
+    SDL_Window* GetWindow() override { return m_window; }
     int GetWindowWidth() override { return 0; }
     int GetWindowHeight() override { return 0; }
     void* GetNativeWindowHandle() override;

@@ -5,10 +5,8 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Input::Init(SDL_Window* window)
+bool Input::Init()
 {
-    m_window = window;
-
     CMD_LOG("] Input initialized", INFO);
     return true;
 }
@@ -51,12 +49,12 @@ bool Input::IsButtonReleased(Uint8 button)
 
 void Input::SetRelativeMouseMode(bool value)
 {
-    SDL_SetWindowRelativeMouseMode(m_window, value);
+    SDL_SetWindowRelativeMouseMode(g_Engine->GetWindow(), value);
 }
 
 bool Input::GetRelativeMouseMode()
 {
-    return SDL_GetWindowRelativeMouseMode(m_window);
+    return SDL_GetWindowRelativeMouseMode(g_Engine->GetWindow());
 }
 
 glm::vec2 Input::GetMousePos()
@@ -73,7 +71,7 @@ glm::vec2 Input::GetMouseDelta()
     return glm::vec2(dx, dy);
 }
 
-glm::vec2 Input::GetMouseScroll() const
+glm::vec2 Input::GetMouseScroll()
 {
     return m_scrollDelta;
 }

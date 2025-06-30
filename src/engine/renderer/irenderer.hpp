@@ -7,7 +7,7 @@ class IRenderer
 public:
 	virtual ~IRenderer() = default;
 
-	virtual bool Init(struct SDL_Window* window, class IEngine* engine) = 0;
+	virtual bool Init() = 0;
 	virtual void Render() = 0;
 	virtual void Shutdown() = 0;
 	virtual void OnWindowResize(int width, int height) = 0;

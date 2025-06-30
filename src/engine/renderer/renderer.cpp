@@ -19,15 +19,12 @@ static std::unique_ptr<Model> TestModel;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Renderer::Init(SDL_Window* window, IEngine* engine)
+bool Renderer::Init()
 {
-    m_window = window;
-    m_engine = engine;
-
     if (!InitAPI()) return false;
 
     int width, height;
-    SDL_GetWindowSizeInPixels(m_window, &width, &height);
+    SDL_GetWindowSizeInPixels(g_Engine->GetWindow(), &width, &height);
     OnWindowResize(width, height);
 
     m_camera = new RenderCamera(width, height);
@@ -143,7 +140,7 @@ bool Renderer::Init(SDL_Window* window, IEngine* engine)
 
 bool Renderer::InitAPI()
 {
-    m_Context = SDL_GL_CreateContext(m_window);
+    m_Context = SDL_GL_CreateContext(g_Engine->GetWindow());
     if (!m_Context)
     {
         CMD_LOG("SDL_GL_CreateContext Error: " + std::string(SDL_GetError()), ERROR);
@@ -160,9 +157,9 @@ bool Renderer::InitAPI()
     const char* vendor = (const char*)glGetString(GL_VENDOR);
     const char* renderer = (const char*)glGetString(GL_RENDERER);
     const char* version = (const char*)glGetString(GL_VERSION);
-    CMD_LOG("GPU: " + std::string(renderer), CMDLogType::INFO);
-    CMD_LOG("GPU Vendor: " + std::string(vendor), CMDLogType::INFO);
-    CMD_LOG("OpenGL Version: " + std::string(version), CMDLogType::INFO);
+    CMD_LOG("GPU: " + std::string(renderer), INFO);
+    CMD_LOG("GPU Vendor: " + std::string(vendor), INFO);
+    CMD_LOG("OpenGL Version: " + std::string(version), INFO);
     CMD_LOG("//----------------------------------", DEFAULT);
 
     SDL_GL_SetSwapInterval(1);
@@ -199,7 +196,7 @@ void Renderer::Render()
     Entities::GetInstance().DrawAll();
     Physics::GetInstance().Draw(); // for debug purposes
 
-    m_engine->GetGui()->Render();
+    g_Engine->GetGui()->Render();
 }
 
 void Renderer::Shutdown()

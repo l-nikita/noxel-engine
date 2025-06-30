@@ -7,7 +7,7 @@ class DebugMenu;
 class Gui : public IGui
 {
 public:
-	bool Init(SDL_Window* window, IEngine* engine) override;
+	bool Init() override;
 	void Render() override;
 	void Shutdown() override;
 
@@ -16,7 +16,4 @@ public:
 
 private:
 	std::vector<Panel*> m_panels;
-
-	SDL_Window* m_window = nullptr;
-	IEngine* m_engine = nullptr;
 };

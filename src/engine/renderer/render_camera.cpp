@@ -3,7 +3,7 @@
 
 #include "render_camera.hpp"
 #include "cmd/cmd.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
 #include "iengine.hpp"
 #include "entities/entities.hpp"
 
@@ -26,9 +26,9 @@ void RenderCamera::OnFrameBufferResize(int& width, int& height)
 
 void RenderCamera::Update()
 {
-	auto delta = Input::GetInstance().GetMouseDelta();
+	auto delta = g_Input->GetMouseDelta();
 
-	if (Input::GetInstance().GetRelativeMouseMode() == false)
+	if (g_Input->GetRelativeMouseMode() == false)
 		return;
 
 	m_yaw -= delta.x * SENSITIVITY;
@@ -39,22 +39,22 @@ void RenderCamera::Update()
 	glm::quat qYaw = glm::angleAxis(glm::radians(m_yaw), glm::vec3(0, 1, 0));
 	m_Transform.Rotation = qYaw * qPitch;
 
-	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_W))      
+	if (g_Input->IsKeyDown(SDL_SCANCODE_W))
 		Move(m_Transform.Forward(), 0.01f);
 
-	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_S))      
+	if (g_Input->IsKeyDown(SDL_SCANCODE_S))
 		Move(m_Transform.Backward(), 0.01f);
 
-	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_A))      
+	if (g_Input->IsKeyDown(SDL_SCANCODE_A))
 		Move(m_Transform.Left(), 0.01f);
 
-	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_D))      
+	if (g_Input->IsKeyDown(SDL_SCANCODE_D))
 		Move(m_Transform.Right(), 0.01f);
 
-	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_SPACE))  
+	if (g_Input->IsKeyDown(SDL_SCANCODE_SPACE))
 		Move(glm::vec3(0, 1, 0), 0.01f);
 
-	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_LSHIFT)) 
+	if (g_Input->IsKeyDown(SDL_SCANCODE_LSHIFT))
 		Move(glm::vec3(0, -1, 0), 0.01f);
 }
 

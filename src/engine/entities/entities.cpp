@@ -6,12 +6,10 @@
 #include "renderer/gizmos.hpp"
 #include "physics/physics.hpp"
 #include "server/player.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
 
 static std::vector<entt::entity> Players;
 static std::unique_ptr<Model> TestModel;
-
-//TO_DO: CONVARS
 
 //-----------------------------------------------------------------------------
 //
@@ -154,7 +152,7 @@ void Entities::Update()
 
     Physics::UpdateEntityPhysics(m_registry);
 
-    if (Input::GetInstance().IsKeyPressed(SDL_SCANCODE_B))
+    if (g_Input->IsKeyPressed(SDL_SCANCODE_B))
     {
         auto player = CreatePlayer(0);
         player.Get<Transform>().Scale = glm::vec3(2.0f);
@@ -164,7 +162,7 @@ void Entities::Update()
         Players.push_back(player.GetHandler());
     }
 
-    if (Input::GetInstance().IsKeyPressed(SDL_SCANCODE_Y))
+    if (g_Input->IsKeyPressed(SDL_SCANCODE_Y))
     {
         for (auto& entt : Players)
         {

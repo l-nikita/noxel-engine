@@ -1,6 +1,6 @@
 #include "physics.hpp"
 #include "entities/entities.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
 
 void Physics::UpdateEntityPhysics(entt::registry& registry)
 {
@@ -14,7 +14,7 @@ void Physics::UpdateEntityPhysics(entt::registry& registry)
         transform.Position = Utils::GLM_Vec3_JPH(body_interface.GetPosition(bodyID));
         transform.Rotation = Utils::GLM_Quat_JPH(body_interface.GetRotation(bodyID));
 
-        if (Input::GetInstance().IsKeyPressed(SDL_SCANCODE_R))
+        if (g_Input->IsKeyPressed(SDL_SCANCODE_R))
         {
             std::random_device rd;
             std::mt19937 gen(rd());

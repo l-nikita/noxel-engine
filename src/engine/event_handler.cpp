@@ -1,7 +1,7 @@
 #include <imgui_impl_sdl3.h>
 
 #include "event_handler.hpp"
-#include "input.hpp"
+#include "input/input.hpp"
 
 void EventHandler::HandleEvents()
 {
@@ -28,22 +28,22 @@ void EventHandler::OnEvent(SDL_Event& event)
 			break;
 		// input events
 		case SDL_EVENT_KEY_DOWN:
-			Input::GetInstance().OnKey(event.key);
+			g_Input->OnKey(event.key);
 			break;
 		case SDL_EVENT_KEY_UP:
-			Input::GetInstance().OnKey(event.key);
+			g_Input->OnKey(event.key);
 			break;
 		case SDL_EVENT_MOUSE_MOTION:
-			Input::GetInstance().OnMouseMotion(event.motion);
+			g_Input->OnMouseMotion(event.motion);
 			break;
 		case SDL_EVENT_MOUSE_BUTTON_DOWN:
-			Input::GetInstance().OnMouseButton(event.button);
+			g_Input->OnMouseButton(event.button);
 			break;
 		case SDL_EVENT_MOUSE_BUTTON_UP:
-			Input::GetInstance().OnMouseButton(event.button);
+			g_Input->OnMouseButton(event.button);
 			break;
 		case SDL_EVENT_MOUSE_WHEEL:
-			Input::GetInstance().OnMouseWheel(event.wheel);
+			g_Input->OnMouseWheel(event.wheel);
 			break;
 	}
 }

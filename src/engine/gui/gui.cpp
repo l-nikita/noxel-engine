@@ -9,18 +9,15 @@
 #include "cmd/cmd.hpp"
 #include "imgui/debug_menu/debug_menu.hpp"
 
-bool Gui::Init(SDL_Window* window, IEngine* engine)
+bool Gui::Init()
 {
-    m_window = window;
-    m_engine = engine;
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
     ImGui::StyleColorsDark();
 
     auto renderer = static_cast<Renderer*>(g_Engine->GetRenderer());
-    ImGui_ImplSDL3_InitForOpenGL(m_window, renderer->m_Context);
+    ImGui_ImplSDL3_InitForOpenGL(g_Engine->GetWindow(), renderer->m_Context);
     ImGui_ImplOpenGL3_Init("#version 330");
 
     m_DebugMenu = new DebugMenu();

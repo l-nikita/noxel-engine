@@ -3,7 +3,7 @@
 #include "engine.hpp"
 #include "debug_menu.hpp"
 #include "cmd/cmd.hpp"
-#include "networking.hpp"
+#include "networking/networking.hpp"
 #include "client/client.hpp"
 
 DebugMenu::DebugMenu()
