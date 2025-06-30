@@ -1,6 +1,6 @@
 #include "client.hpp"
-#include "cmd.hpp"
-#include "profiler.hpp"
+#include "cmd/cmd.hpp"
+#include "common/profiler.hpp"
 
 //proto
 #include "test.pb.h"

@@ -1,8 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-
-#include "transform.hpp"
+#include "common/transform.hpp"
 
 class RenderCamera
 {

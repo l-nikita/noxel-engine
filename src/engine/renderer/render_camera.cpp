@@ -2,11 +2,10 @@
 #include <algorithm>
 
 #include "render_camera.hpp"
-#include "cmd.hpp"
+#include "cmd/cmd.hpp"
 #include "input.hpp"
-#include "engine.hpp"
-#include "entities.hpp"
-#include "player.hpp"
+#include "iengine.hpp"
+#include "entities/entities.hpp"
 
 constexpr auto CAMERA_FOV = 95.0f;
 constexpr auto DEPTH_NEAR = 0.1f;
@@ -41,27 +40,27 @@ void RenderCamera::Update()
 	m_Transform.Rotation = qYaw * qPitch;
 
 	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_W))      
-		Move(m_Transform.Forward(), 0.005f);
+		Move(m_Transform.Forward(), 0.01f);
 
 	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_S))      
-		Move(m_Transform.Backward(), 0.005f);
+		Move(m_Transform.Backward(), 0.01f);
 
 	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_A))      
-		Move(m_Transform.Left(), 0.005f);
+		Move(m_Transform.Left(), 0.01f);
 
 	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_D))      
-		Move(m_Transform.Right(), 0.005f);
+		Move(m_Transform.Right(), 0.01f);
 
 	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_SPACE))  
-		Move(glm::vec3(0, 1, 0), 0.005f);
+		Move(glm::vec3(0, 1, 0), 0.01f);
 
 	if (Input::GetInstance().IsKeyDown(SDL_SCANCODE_LSHIFT)) 
-		Move(glm::vec3(0, -1, 0), 0.005f);
+		Move(glm::vec3(0, -1, 0), 0.01f);
 }
 
 void RenderCamera::Move(glm::vec3 direction, float distance)
 {
-	auto deltaTime = Engine::GetInstance().DeltaTime();
+	auto deltaTime = g_Engine->DeltaTime();
 	m_Transform.Position += direction * distance * deltaTime;
 }
 

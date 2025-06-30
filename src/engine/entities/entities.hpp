@@ -3,9 +3,9 @@
 #include <entt/entt.hpp>
 #include <boost/uuid.hpp>
 
-#include "singleton.hpp"
-#include "transform.hpp"
-#include "model.hpp"
+#include "common/singleton.hpp"
+#include "common/transform.hpp"
+#include "renderer/model.hpp"
 
 //-----------------------------------------------------------------------------
 typedef boost::uuids::uuid UUID;
@@ -17,7 +17,7 @@ struct EEntityID
 
 struct EModel
 {
-    std::shared_ptr<Model> Model;
+    Model* Model;
 };
 
 //-----------------------------------------------------------------------------
@@ -46,7 +46,11 @@ public:
     template<typename T>
     void Remove() { m_registry.remove<T>(m_handler); }
 
-    void Destroy();
+    void Destroy()
+    {
+        if (IsValid())
+            m_registry.destroy(m_handler);
+    }
 
     Entity(const Entity&) = default;
     Entity& operator=(const Entity&) = default;
@@ -69,6 +73,7 @@ public:
     void Update();
     void DrawAll();
     void Shutdown();
+    void DestroyAll();
 
     static Entity CreateEntity();
     std::optional<Entity> GetEntityByUUID(const UUID& uuid);

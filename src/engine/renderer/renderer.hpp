@@ -3,29 +3,34 @@
 #include <SDL3/SDL.h>
 #include <memory>
 
-#include "common.hpp"
-#include "singleton.hpp"
-#include "render_camera.hpp"
+#include "irenderer.hpp"
 
-class Renderer : public Singleton<Renderer>
+class RenderCamera;
+
+class Renderer : public IRenderer
 {
 public:
-	std::unique_ptr<RenderCamera> m_Camera;
+	bool Init(SDL_Window* window, IEngine* engine) override;
+	bool InitAPI();
 
-	bool Init(SDL_Window* window);
-	void InitGUI();
-	void InitAPI();
+	void Render() override;
+	void Shutdown() override;
 
-	void Draw();
-	void DrawGUI();
+	void OnWindowResize(int width, int height) override;
 
-	void OnWindowResize(int width, int height);
-	void OnWindowClose();
+	RenderCamera* GetCamera() { return m_camera; };
 
 #ifdef _DEBUG
 	int m_DrawCallCount;
+	void AddDrawCallCount() override { m_DrawCallCount++; }
+	int GetDrawCallCount() override { return m_DrawCallCount; }
 #endif
+
+	SDL_GLContext m_Context = nullptr;
 
 private:
 	SDL_Window* m_window = nullptr;
+	IEngine* m_engine = nullptr;
+
+	RenderCamera* m_camera;
 };

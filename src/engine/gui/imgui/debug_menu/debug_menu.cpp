@@ -2,9 +2,9 @@
 
 #include "engine.hpp"
 #include "debug_menu.hpp"
-#include "cmd.hpp"
+#include "cmd/cmd.hpp"
 #include "networking.hpp"
-#include "client.hpp"
+#include "client/client.hpp"
 
 DebugMenu::DebugMenu()
 {
@@ -20,12 +20,14 @@ void DebugMenu::Draw()
 		if (ImGui::BeginMenu("Engine"))
 		{
 			if (ImGui::MenuItem("Toggle Fullscreen"))
-				Engine::GetInstance().ToggleFullscreen();
+			{
+				//Engine::GetInstance().ToggleFullscreen();
+			}
 
 			ImGui::Separator();
 
 			if (ImGui::MenuItem("Exit"))
-				Engine::GetInstance().Stop();
+				g_Engine->Shutdown();
 
             ImGui::EndMenu();
 		}

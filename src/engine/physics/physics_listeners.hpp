@@ -2,7 +2,7 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
-#include "cmd.hpp"
+#include "cmd/cmd.hpp"
 
 //-----------------------------------------------------------------------------
 //

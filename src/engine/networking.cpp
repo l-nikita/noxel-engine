@@ -2,9 +2,9 @@
 #include <GameNetworkingSockets/steam/isteamnetworkingutils.h>
 
 #include "networking.hpp"
-#include "server.hpp"
-#include "client.hpp"
-#include "cmd.hpp"
+#include "server/server.hpp"
+#include "client/client.hpp"
+#include "cmd/cmd.hpp"
 
 static void SteamNetDebugOutput(ESteamNetworkingSocketsDebugOutputType eType, const char* pszMsg)
 {

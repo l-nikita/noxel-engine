@@ -1,9 +1,9 @@
 #include <imgui.h>
 
 #include "engine.hpp"
-#include "renderer.hpp"
+#include "renderer/renderer.hpp"
 #include "budget_panel.hpp"
-#include "profiler.hpp"
+#include "common/profiler.hpp"
 
 static ImGuiTableFlags table_flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH
 	| ImGuiTableFlags_Resizable
@@ -18,7 +18,7 @@ void BudgetPanel::Draw()
 		m_fps = io.Framerate;
 		ImGui::Text("FPS: %f", m_fps);
 #ifdef _DEBUG
-		ImGui::Text("DrawCalls: %i", Renderer::GetInstance().m_DrawCallCount);
+		ImGui::Text("DrawCalls: %i", g_Engine->GetRenderer()->GetDrawCallCount());
 #endif
 		ImGui::Separator();
 

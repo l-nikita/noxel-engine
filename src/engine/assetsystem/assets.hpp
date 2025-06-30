@@ -11,7 +11,7 @@
 
 #include "base_asset.hpp"
 #include "assets_system.hpp"
-#include "cmd.hpp"
+#include "cmd/cmd.hpp"
 
 //-----------------------------------------------------------------------------
 //

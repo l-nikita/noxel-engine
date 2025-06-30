@@ -1,6 +1,6 @@
 #include "imgui.h"
 #include "console_panel.hpp"
-#include "cmd.hpp"
+#include "cmd/cmd.hpp"
 
 void ConsolePanel::Draw()
 {
@@ -46,7 +46,7 @@ void ConsolePanel::DrawLogWindow()
             ImGui::PushTextWrapPos(ImGui::GetColumnWidth() - timestampWidth);
 
             ImVec4 color;
-            switch (log->m_Type) 
+            switch (log->Type) 
             {
                 case CMDLogType::INFO:    color = ImVec4(0.4f, 1.0f, 1.0f, 1.0f); break;
                 case CMDLogType::WARNING: color = ImVec4(0.9f, 0.7f, 0.0f, 1.0f); break;
@@ -55,7 +55,7 @@ void ConsolePanel::DrawLogWindow()
             }
 
             ImGui::PushStyleColor(ImGuiCol_Text, color);
-            ImGui::Text(log->m_Text.c_str());
+            ImGui::Text(log->Text.c_str());
             ImGui::PopStyleColor();
 
             if (m_timeStamp)
@@ -63,7 +63,7 @@ void ConsolePanel::DrawLogWindow()
                 ImGui::PopTextWrapPos();
                 ImGui::SameLine(ImGui::GetColumnWidth() - timestampWidth);
 
-                std::tm* timeInfo = std::localtime(&log->m_Time);
+                std::tm* timeInfo = std::localtime(&log->Time);
                 char timeBuffer[32];
                 std::strftime(timeBuffer, sizeof(timeBuffer), "%H:%M:%S", timeInfo);
 

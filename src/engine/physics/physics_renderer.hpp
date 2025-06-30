@@ -3,7 +3,7 @@
 
 #include "utils.hpp"
 #include "physics.hpp"
-#include "gizmos.hpp"
+#include "renderer/gizmos.hpp"
 
 class PhysicsDebugRenderer : public JPH::DebugRendererSimple
 {

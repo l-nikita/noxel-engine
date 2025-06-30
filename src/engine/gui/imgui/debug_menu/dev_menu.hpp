@@ -1,6 +1,6 @@
 #pragma once
 
-#include "panel.hpp"
+#include "gui/panel.hpp"
 
 class DevPanel : public Panel
 {

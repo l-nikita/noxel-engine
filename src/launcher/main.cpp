@@ -18,8 +18,10 @@ int main()
         return 1;
     }
 
-    if (Engine::GetInstance().Init()) 
-        Engine::GetInstance().Run();
+    g_Engine = new Engine();
+
+    if (g_Engine->Init())
+        g_Engine->Run();
     else 
         std::cerr << "Error: Couldn't init engine!!!" << std::endl;
 

@@ -2,7 +2,8 @@
 
 #include "SDL3/SDL.h"
 #include "engine.hpp"
-#include "singleton.hpp"
+#include "common/singleton.hpp"
+#include "common/profiler.hpp"
 
 class EventHandler : public Singleton<EventHandler>
 {

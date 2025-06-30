@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <unordered_map>
 
-#include "singleton.hpp"
+#include "common/singleton.hpp"
 
 class Input : public Singleton<Input>
 {

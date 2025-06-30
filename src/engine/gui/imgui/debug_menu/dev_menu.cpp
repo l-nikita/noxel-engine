@@ -1,8 +1,10 @@
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "iengine.hpp"
 #include "dev_menu.hpp"
-#include "renderer.hpp"
+#include "renderer/renderer.hpp"
+#include "renderer/render_camera.hpp"
 
 void DevPanel::Draw()
 {
@@ -14,7 +16,7 @@ void DevPanel::Draw()
 			{
                 ImGui::SeparatorText("Camera");
 
-                auto& transform = Renderer::GetInstance().m_Camera->m_Transform;
+                auto& transform = g_Engine->GetRenderer()->GetCamera()->m_Transform;
                 ImGui::InputFloat3("Position", glm::value_ptr(transform.Position) );
 
 				auto rot = glm::degrees(glm::eulerAngles(transform.Rotation));

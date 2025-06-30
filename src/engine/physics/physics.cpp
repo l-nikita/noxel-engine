@@ -19,8 +19,8 @@
 #include <thread>
 
 #include "engine.hpp"
-#include "cmd.hpp"
-#include "gizmos.hpp"
+#include "cmd/cmd.hpp"
+#include "renderer/gizmos.hpp"
 #include "utils.hpp"
 
 using namespace JPH;
@@ -106,7 +106,13 @@ bool Physics::Init()
 	Physics::CreateShapeBox(
 		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
 		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
-		RVec3(10.0f, 1.0f, 10.0f), 
+		new JPH::BoxShapeSettings(JPH::RVec3(40.0f, 1.0f, 40.0f)),
+		EActivation::Activate, EMotionType::Static);
+
+	Physics::CreateShapeBox(
+		RVec3(5.0f, 2.0f, 0.0f), Quat::sIdentity(),
+		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+		new JPH::BoxShapeSettings(JPH::RVec3(3.0f, 1.0f, 3.0f)),
 		EActivation::Activate, EMotionType::Static);
 
 	m_system->OptimizeBroadPhase();
@@ -125,11 +131,12 @@ void Physics::Update()
 
 	m_updateProfiler->Start();
 
-	const float cDeltaTime = 1.0f / 144.0f;
+	const float cDeltaTime = 1.0f / 60.0f;
 	const int cCollisionSteps = 1;
 
 	// Step the world
 	m_system->Update(cDeltaTime, 1, m_tempAllocator, m_jobSystem);
+	FlushPendingDestructions();
 
 	m_updateProfiler->End();
 }
@@ -152,17 +159,45 @@ void Physics::Draw()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
+void Physics::MarkBodyForDestruction(JPH::BodyID bodyID)
+{
+	for (auto& bodyToDestoryID : m_bodiesToDestroy)
+		if (bodyToDestoryID == bodyID)
+			return;
+
+	m_bodiesToDestroy.push_back(bodyID);
+}
+
+void Physics::FlushPendingDestructions()
+{
+	auto& iBody = m_system->GetBodyInterface();
+	for (auto& bodyID : m_bodiesToDestroy)
+	{
+		iBody.RemoveBody(bodyID);
+		iBody.DestroyBody(bodyID);
+
+		auto it = std::remove(m_bodiesIDs.begin(), m_bodiesIDs.end(), bodyID);
+		if (it != m_bodiesIDs.end())
+			m_bodiesIDs.erase(it, m_bodiesIDs.end());
+	}
+	m_bodiesToDestroy.clear();
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void Physics::Shutdown()
 {
 	if (!IsRunning()) return;
 	m_IsRunning = false;
 
-	BodyInterface& body_interface = m_system->GetBodyInterface();
+	FlushPendingDestructions();
 
+	auto& iBody = m_system->GetBodyInterface();
 	for (auto& bodyID : m_bodiesIDs)
 	{
-		body_interface.RemoveBody(bodyID);
-		body_interface.DestroyBody(bodyID);
+		iBody.RemoveBody(bodyID);
+		iBody.DestroyBody(bodyID);
 	}
 
 	m_bodiesIDs.clear();

@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "panel.hpp"
+#include "gui/panel.hpp"
 
 constexpr auto INPUT_SIZE = 128;
 

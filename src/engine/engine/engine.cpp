@@ -6,20 +6,26 @@
 #include <chrono>
 
 #include "engine.hpp"
-#include "assets_system.hpp"
-#include "physics.hpp"
+#include "gui/gui.hpp"
+#include "assetsystem/assets_system.hpp"
+#include "physics/physics.hpp"
 #include "input.hpp"
-#include "renderer.hpp"
-#include "networking.hpp"
-#include "entities.hpp"
-#include "gizmos.hpp"
 
-#include "panel.hpp"
-#include "profiler.hpp"
+#include "renderer/renderer.hpp"
+#include "renderer/gizmos.hpp"
+#include "renderer/render_camera.hpp"
+
+#include "entities/entities.hpp"
+#include "gui/imgui/debug_menu/debug_menu.hpp"
+#include "gui/panel.hpp"
+#include "common/profiler.hpp"
 #include "event_handler.hpp"
-#include "cmd.hpp"
-#include "server.hpp"
-#include "client.hpp"
+#include "cmd/cmd.hpp"
+#include "networking.hpp"
+#include "server/server.hpp"
+#include "client/client.hpp"
+
+IEngine* g_Engine = nullptr;
 
 //-----------------------------------------------------------------------------
 //
@@ -28,19 +34,20 @@ void Engine::Update()
 {
     EventHandler::GetInstance().HandleEvents();
 
-    Physics::GetInstance().Update();
     Entities::GetInstance().Update();
+    Physics::GetInstance().Update();
 
-    if(Renderer::GetInstance().m_Camera)
-        Renderer::GetInstance().m_Camera->Update();
+    auto camera = m_renderer->GetCamera();
+    if (camera)
+        camera->Update();
 
     bool isGrave = Input::GetInstance().IsKeyPressed(SDL_SCANCODE_GRAVE);
     bool isF3 = Input::GetInstance().IsKeyPressed(SDL_SCANCODE_F3);
     bool isF11 = Input::GetInstance().IsKeyPressed(SDL_SCANCODE_F11);
 
-    if (isGrave)
-        m_DebugMenu->m_IsVisible = !m_DebugMenu->m_IsVisible;
-    else if (isF3)
+    //if (isGrave)
+    //    m_DebugMenu->m_IsVisible = !m_DebugMenu->m_IsVisible;
+    if (isF3)
         Input::GetInstance().SetRelativeMouseMode(!Input::GetInstance().GetRelativeMouseMode());
     else if (isF11)
         ToggleFullscreen();
@@ -50,7 +57,7 @@ void Engine::Update()
 
 void Engine::Render()
 {
-    Renderer::GetInstance().Draw();
+    m_renderer->Render();
 }
 
 //-----------------------------------------------------------------------------
@@ -86,18 +93,19 @@ void Engine::Run()
         Render();
         renderProfiler.End();
 
+        //move to renderer
         swapBuffers.Start();
-        SDL_GL_SwapWindow(m_Window);
+        SDL_GL_SwapWindow(m_window);
         swapBuffers.End();
     }
 
-    Stop();
+    Shutdown();
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Engine::Stop()
+void Engine::Shutdown()
 {
     if (!m_isRunning) return;
 
@@ -107,24 +115,17 @@ void Engine::Stop()
     Physics::GetInstance().Shutdown();
     Networking::GetInstance().Shutdown();
 
-    if(m_Window)
-        SDL_DestroyWindow(m_Window);
-    if(m_Context)
-        SDL_GL_DestroyContext(m_Context);
+    m_renderer->Shutdown();
+    m_gui->Shutdown();
+
+    delete m_renderer;
+    delete m_gui;
+
+    if(m_window)
+        SDL_DestroyWindow(m_window);
 
     SDL_Quit();
     CMD_LOG_INFO("Engine stopped.");
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-bool Engine::InitGUI()
-{
-    m_DebugMenu = std::make_unique<DebugMenu>();
-    m_panels.push_back(dynamic_cast<Panel*>(m_DebugMenu.get()));
-
-    return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -136,36 +137,11 @@ bool Engine::CreateWindow()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    m_Window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_OPENGL);
-    if (!m_Window)
+    m_window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_OPENGL);
+    if (!m_window)
     {
         CMD_LOG("SDL_CreateWindow Error: " + std::string(SDL_GetError()), ERROR);
-        Stop();
-        return false;
-    }
-
-    return true;
-}
-
-bool Engine::CreateContext()
-{
-    m_Context = SDL_GL_CreateContext(m_Window);
-    if (!m_Context)
-    {
-        CMD_LOG("SDL_GL_CreateContext Error: " + std::string(SDL_GetError()), ERROR);
-        Stop();
-        return false;
-    }
-
-    return true;
-}
-
-bool Engine::LoadGLAD()
-{
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
-    {
-        CMD_LOG("Failed to initialize GLAD!", ERROR);
-        Stop();
+        Shutdown();
         return false;
     }
 
@@ -192,14 +168,17 @@ bool Engine::Init()
     }
 
     if (!CreateWindow()) return false;
-    if (!CreateContext()) return false;
-    if (!LoadGLAD()) return false;
-    if (!InitGUI()) return false;
 
     if (!AssetsSystem::GetInstance().Init()) return false;
-    if (!Input::GetInstance().Init(m_Window)) return false;
+    if (!Input::GetInstance().Init(m_window)) return false;
     if (!Physics::GetInstance().Init()) return false;
-    if (!Renderer::GetInstance().Init(m_Window)) return false;
+
+    m_renderer = new Renderer();
+    if (!m_renderer->Init(m_window, this)) return false;
+
+    m_gui = new Gui();
+    if (!m_gui->Init(m_window, this)) return false;
+       
     if (!Gizmos::GetInstance().Init()) return false;
     if (!Networking::GetInstance().Init()) return false;
     if (!Entities::GetInstance().Init()) return false;
@@ -213,9 +192,18 @@ bool Engine::Init()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
+void* Engine::GetNativeWindowHandle()
+{
+#ifdef SDL_PLATFORM_WIN32
+    return SDL_GetPointerProperty(SDL_GetWindowProperties(m_window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+#else
+    return nullptr;
+#endif
+}
+
 void Engine::SetFullscreen(bool fullscreen)
 {
-    SDL_SetWindowFullscreen(m_Window, fullscreen);
+    SDL_SetWindowFullscreen(m_window, fullscreen);
 }
 
 void Engine::ToggleFullscreen()
@@ -225,13 +213,13 @@ void Engine::ToggleFullscreen()
 
 bool Engine::IsInFullscreen()
 {
-    Uint32 flags = SDL_GetWindowFlags(m_Window);
+    Uint32 flags = SDL_GetWindowFlags(m_window);
     return (flags & SDL_WINDOW_FULLSCREEN);
 }
 
 void Engine::OnWindowResize()
 {
     int width, height;
-    SDL_GetWindowSizeInPixels(m_Window, &width, &height);
-    Renderer::GetInstance().OnWindowResize(width, height);
+    SDL_GetWindowSizeInPixels(m_window, &width, &height);
+    m_renderer->OnWindowResize(width, height);
 }

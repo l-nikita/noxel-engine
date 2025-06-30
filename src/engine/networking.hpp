@@ -1,6 +1,6 @@
 #pragma once
 
-#include "singleton.hpp"
+#include "common/singleton.hpp"
 
 class Networking : public Singleton<Networking>
 {

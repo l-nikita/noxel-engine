@@ -5,6 +5,7 @@
 #include <optional>
 #include <stdexcept>
 
+#include "iengine.hpp"
 #include "renderer.hpp"
 #include "mesh_data.hpp"
 #include "ebo.hpp"
@@ -44,8 +45,9 @@ public:
 	{
 		m_VAO.Bind();
 		glDrawElements(m_data.PrimitiveType, m_indicesCount, GL_UNSIGNED_INT, 0);
+		m_VAO.Unbind();
 #ifdef _DEBUG
-		Renderer::GetInstance().m_DrawCallCount++;
+		g_Engine->GetRenderer()->AddDrawCallCount();
 #endif
 	}
 

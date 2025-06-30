@@ -1,4 +1,6 @@
+#include "iengine.hpp"
 #include "model.hpp"
+#include "render_camera.hpp"
 
 Model::Model(const std::vector<std::shared_ptr<Mesh>>& meshes, const std::vector<std::shared_ptr<Material>>& materials)
 {
@@ -42,8 +44,8 @@ void Model::Draw()
         if (shader.IsValid())
         {
             shader.SetMatrix4("model", GetTransformMatrix());
-            shader.SetMatrix4("view", Renderer::GetInstance().m_Camera->GetViewMatrix());
-            shader.SetMatrix4("projection", Renderer::GetInstance().m_Camera->GetProjectionMatrix());
+            shader.SetMatrix4("view", g_Engine->GetRenderer()->GetCamera()->GetViewMatrix());
+            shader.SetMatrix4("projection", g_Engine->GetRenderer()->GetCamera()->GetProjectionMatrix());
         }
 
         m_meshes[i]->Draw();

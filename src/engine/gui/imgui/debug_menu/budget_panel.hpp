@@ -1,7 +1,7 @@
 #pragma once
 
-#include "panel.hpp"
-#include "profiler.hpp"
+#include "gui/panel.hpp"
+#include "common/profiler.hpp"
 
 constexpr auto FPS_HISTORY_SIZE = 60;
 

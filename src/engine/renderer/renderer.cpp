@@ -1,16 +1,14 @@
 #include <glad/glad.h>
 #include <SDL3/SDL.h>
-#include <imgui.h>
-#include <imgui_impl_sdl3.h>
-#include <imgui_impl_opengl3.h>
 
 #include "engine.hpp"
-#include "assets_system.hpp"
-#include "entities.hpp"
+#include "gui/gui.hpp"
+#include "assetsystem/assets_system.hpp"
+#include "entities/entities.hpp"
 #include "renderer.hpp"
-#include "singleton.hpp"
-#include "cmd.hpp"
-#include "physics.hpp"
+#include "cmd/cmd.hpp"
+#include "physics/physics.hpp"
+#include "render_camera.hpp"
 
 #include "mesh.hpp"
 #include "model.hpp"
@@ -21,18 +19,18 @@ static std::unique_ptr<Model> TestModel;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Renderer::Init(SDL_Window* window)
+bool Renderer::Init(SDL_Window* window, IEngine* engine)
 {
     m_window = window;
+    m_engine = engine;
+
+    if (!InitAPI()) return false;
 
     int width, height;
     SDL_GetWindowSizeInPixels(m_window, &width, &height);
     OnWindowResize(width, height);
 
-    m_Camera = std::make_unique<RenderCamera>(width, height);
-
-    InitAPI();
-    InitGUI();
+    m_camera = new RenderCamera(width, height);
 
     std::vector<float> vertices =
     {
@@ -137,22 +135,27 @@ bool Renderer::Init(SDL_Window* window)
     auto mesh = std::make_shared<Mesh>(data);
     auto mat = Material::Get("dirt");
     TestModel = std::make_unique<Model>(mesh, mat);
-
-    //auto grid = Gizmo::Grid::Create(16, 5.0f, glm::vec3(1.0f));
-    //grid->m_Transform.Position = glm::vec3(-2.5f, -1.0f, -2.5f);
-
-    //Gizmo::WorldCoords::Create(Transform{});
-
-    //glm::vec3 min(-0.5f, -0.5f, -0.5f);
-    //glm::vec3 max(0.5f, 0.8f, 0.5f);
-    //Gismo::Box::Create(min, max, glm::vec3(1.0f));
+    TestModel->m_Transform.Scale = glm::vec3();
 
     CMD_LOG("] Renderer initialized", INFO);
     return true;
 }
 
-void Renderer::InitAPI()
+bool Renderer::InitAPI()
 {
+    m_Context = SDL_GL_CreateContext(m_window);
+    if (!m_Context)
+    {
+        CMD_LOG("SDL_GL_CreateContext Error: " + std::string(SDL_GetError()), ERROR);
+        return false;
+    }
+
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+    {
+        CMD_LOG("Failed to initialize GLAD!", ERROR);
+        return false;
+    }
+
     CMD_LOG("//----------------------------------", DEFAULT);
     const char* vendor = (const char*)glGetString(GL_VENDOR);
     const char* renderer = (const char*)glGetString(GL_RENDERER);
@@ -171,23 +174,14 @@ void Renderer::InitAPI()
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
 
-void Renderer::InitGUI()
-{
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplSDL3_InitForOpenGL(m_window, Engine::GetInstance().m_Context);
-    ImGui_ImplOpenGL3_Init("#version 330");
+    return true;
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Renderer::Draw()
+void Renderer::Render()
 {
 #ifdef _DEBUG
     m_DrawCallCount = 0;
@@ -196,37 +190,22 @@ void Renderer::Draw()
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    Gizmo::DrawWorldCoords(glm::vec3());
+    Gizmo::DrawGrid(glm::vec3(0.0f, -1.0f, 0.0f), glm::quat(), 20, 10);
+
     if (TestModel)
-    {
         TestModel->Draw();
-        //auto deltaTime = Engine::GetInstance().DeltaTime() / 1000;
-        //test += deltaTime * 10.0f;
-        //TestModel->m_Transform.Rotation = Angles(0, test, 0);
-    }
 
     Entities::GetInstance().DrawAll();
     Physics::GetInstance().Draw(); // for debug purposes
 
-    DrawGUI();
+    m_engine->GetGui()->Render();
 }
 
-void Renderer::DrawGUI()
+void Renderer::Shutdown()
 {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-
-    ImGui::NewFrame();
-
-    auto panels = Engine::GetInstance().GetPanels();
-    for (auto panel : panels)
-    {
-        if (panel && panel->m_IsVisible)
-            panel->Draw();
-    }
-
-    ImGui::Render();
-
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    delete m_camera;
+    SDL_GL_DestroyContext(m_Context);
 }
 
 //-----------------------------------------------------------------------------
@@ -235,9 +214,4 @@ void Renderer::DrawGUI()
 void Renderer::OnWindowResize(int width, int height)
 {
     glViewport(0, 0, width, height);
-}
-
-void Renderer::OnWindowClose()
-{
-
 }

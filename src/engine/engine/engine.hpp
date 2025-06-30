@@ -1,0 +1,56 @@
+#pragma once
+
+#include "SDL3/SDL.h"
+#include <chrono>
+
+#include "iengine.hpp"
+#include "common.hpp"
+
+class ENGINE_API Engine : public IEngine
+{
+public:
+    ~Engine() { Shutdown(); }
+
+    bool Init() override;
+    bool CreateWindow();
+
+    void Run() override;
+    void Shutdown() override;
+    bool IsRunning() override { return m_isRunning; }
+
+    void Update() override;
+    void Render() override;
+
+    int GetWindowWidth() override { return 0; }
+    int GetWindowHeight() override { return 0; }
+    void* GetNativeWindowHandle() override;
+    void OnWindowResize() override;
+
+    void SetFullscreen(bool fullscreen);
+    void ToggleFullscreen();
+    bool IsInFullscreen();
+
+    // -------------------------------------------------
+    std::chrono::duration<float, std::milli> DeltaDuration() const { return m_deltaTime; }
+    // Delta time (ms)
+    float DeltaTime() override { return m_deltaTime.count(); }
+    
+    std::chrono::duration<float, std::milli> ElapsedDuration() const { return m_elapsedTime; }
+    // Elapsed time since engine loop ran (ms)
+    float ElapsedTime() override { return m_elapsedTime.count(); }
+    // -------------------------------------------------
+
+    IRenderer* GetRenderer() override { return m_renderer; }
+    IGui* GetGui() override { return m_gui; }
+
+private:
+    SDL_Window* m_window = nullptr;
+
+    IRenderer* m_renderer;
+    IGui* m_gui;
+
+    bool m_isRunning;
+
+    std::chrono::duration<float, std::milli> m_deltaTime;
+    std::chrono::duration<float, std::milli> m_elapsedTime;
+};

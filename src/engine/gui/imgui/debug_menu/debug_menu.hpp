@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "panel.hpp"
+#include "gui/panel.hpp"
 #include "budget_panel.hpp"
 #include "console_panel.hpp"
 #include "dev_menu.hpp"

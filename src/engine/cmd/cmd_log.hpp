@@ -3,10 +3,6 @@
 #include <string>
 #include <ctime>
 
-#ifdef ERROR
-#undef ERROR
-#endif
-
 enum CMDLogType
 {
 	DEFAULT, // White
@@ -17,10 +13,10 @@ enum CMDLogType
 
 struct CMDLog
 {
-	const std::string m_Text;
-	const time_t m_Time;
-	const CMDLogType m_Type;
+	const std::string Text;
+	const time_t Time;
+	const CMDLogType Type;
 
 	CMDLog(const std::string& text, time_t time, CMDLogType type)
-		: m_Text(text), m_Time(time), m_Type(type) {}
+		: Text(text), Time(time), Type(type) {}
 };

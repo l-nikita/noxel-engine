@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "assets.hpp"
+#include "assetsystem/assets.hpp"
 #include "texture.hpp"
 #include "shader_program.hpp"
 

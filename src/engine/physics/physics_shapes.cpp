@@ -14,15 +14,10 @@ BodyID Physics::CreateShapeBox(
     const Quat& quat, 
     const RVec3& offset, 
     const Quat& quatOffset, 
-    const RVec3& halfExtent, 
+    JPH::BoxShapeSettings* settings,
     EActivation activation,
-    EMotionType motionType,
-    float convexRadius,
-    const PhysicsMaterial* material)
+    EMotionType motionType)
 {
-    auto settings = new BoxShapeSettings(halfExtent, convexRadius, material);
-    settings->mDensity = 10.0f; 
-
     RotatedTranslatedShapeSettings offsetShapeSettings(offset, quat, settings);
     ShapeSettings::ShapeResult result = offsetShapeSettings.Create();
 
@@ -39,15 +34,10 @@ BodyID Physics::CreateShapeSphere(
     const Quat& quat, 
     const RVec3& offset, 
     const Quat& quatOffset, 
-    float radius,
+    JPH::SphereShapeSettings* settings,
     EActivation activation,
-    EMotionType motionType,
-    float convexRadius,
-    const PhysicsMaterial* material)
+    EMotionType motionType)
 {
-    auto settings = new SphereShapeSettings(radius, material);
-    settings->mDensity = 10.0f; 
-
     RotatedTranslatedShapeSettings offsetShapeSettings(offset, quat, settings);
     ShapeSettings::ShapeResult result = offsetShapeSettings.Create();
 

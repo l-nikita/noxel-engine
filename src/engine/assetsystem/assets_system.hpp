@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include "singleton.hpp"
+#include "common/singleton.hpp"
 #include "asset_type.hpp"
 #include "base_asset.hpp"
 

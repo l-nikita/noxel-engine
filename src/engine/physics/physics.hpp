@@ -5,19 +5,16 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/PhysicsSettings.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
 
-#include "singleton.hpp"
-#include "profiler.hpp"
-#include "entities.hpp"
+#include "common/singleton.hpp"
+#include "common/profiler.hpp"
+#include "entities/entities.hpp"
 
 #include "physics_layers.hpp"
 #include "physics_listeners.hpp"
 #include "physics_renderer.hpp"
-
-struct EPhysicsBody
-{
-	JPH::BodyID BodyID;
-};
 
 class Physics : public Singleton<Physics>
 {
@@ -37,6 +34,9 @@ public:
 
 	static void UpdateEntityPhysics(entt::registry& registry);
 
+	void MarkBodyForDestruction(JPH::BodyID bodyID);
+	void FlushPendingDestructions();
+
 	// Shapes
 
 	static JPH::BodyID CreateShapeBox(
@@ -44,22 +44,20 @@ public:
 		const JPH::Quat& quat,
 		const JPH::RVec3& offset,
 		const JPH::Quat& quatOffset,
-		const JPH::RVec3& halfExtent,
+		JPH::BoxShapeSettings* settings,
 		JPH::EActivation activation = JPH::EActivation::Activate,
-		JPH::EMotionType motionType = JPH::EMotionType::Dynamic,
-		float convexRadius = 0.05f,
-		const JPH::PhysicsMaterial* material = nullptr);
+		JPH::EMotionType motionType = JPH::EMotionType::Dynamic);
 
 	static JPH::BodyID CreateShapeSphere(
 		const JPH::RVec3& pos,
 		const JPH::Quat& quat,
 		const JPH::RVec3& offset,
 		const JPH::Quat& quatOffset,
-		float radius,
+		JPH::SphereShapeSettings* settings,
 		JPH::EActivation activation = JPH::EActivation::Activate,
-		JPH::EMotionType motionType = JPH::EMotionType::Dynamic,
-		float convexRadius = 0.05f,
-		const JPH::PhysicsMaterial* material = nullptr);
+		JPH::EMotionType motionType = JPH::EMotionType::Dynamic);
+
+	std::vector<JPH::BodyID> GetBodiesIDs() { return m_bodiesIDs; }
 
 private:
 	bool m_IsRunning;
@@ -67,6 +65,7 @@ private:
 	PhysicsDebugRenderer* m_debugRenderer;
 
 	std::vector<JPH::BodyID> m_bodiesIDs;
+	std::vector<JPH::BodyID> m_bodiesToDestroy;
 
 	JPH::PhysicsSystem* m_system;
 	JPH::TempAllocatorImpl* m_tempAllocator;
@@ -78,4 +77,16 @@ private:
 
 	MyBodyActivationListener* body_activation_listener;
 	MyContactListener* contact_listener;
+};
+
+struct EPhysicsBody
+{
+	JPH::BodyID BodyID;
+
+	EPhysicsBody(JPH::BodyID id) : BodyID(id) {}
+
+	~EPhysicsBody() // Calls 2 times ?
+	{
+		Physics::GetInstance().MarkBodyForDestruction(BodyID);
+	}
 };

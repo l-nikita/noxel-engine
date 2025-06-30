@@ -6,7 +6,7 @@
 #include <GameNetworkingSockets/steam/steamnetworkingtypes.h>
 #include <GameNetworkingSockets/steam/isteamnetworkingsockets.h>
 
-#include "singleton.hpp"
+#include "common/singleton.hpp"
 
 class Server : public Singleton<Server>
 {

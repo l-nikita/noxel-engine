@@ -1,6 +1,6 @@
 #include "engine.hpp"
 #include "input.hpp"
-#include "cmd.hpp"
+#include "cmd/cmd.hpp"
 
 //-----------------------------------------------------------------------------
 //

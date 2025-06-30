@@ -5,8 +5,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
 
-#include "cmd.hpp"
-#include "assets.hpp"
+#include "cmd/cmd.hpp"
+#include "assetsystem/assets.hpp"
 
 static GLuint CompileShader(GLenum type, const char* src)
 {

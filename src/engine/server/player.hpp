@@ -1,7 +1,7 @@
 #pragma once
 
 #include "entities.hpp"
-#include "physics.hpp"
+#include "physics/physics.hpp"
 
 struct PlayerInput 
 {
@@ -10,19 +10,36 @@ struct PlayerInput
     bool Jump;
 };
 
-static Entity CreatePlayer(entt::registry& registry) 
+static Entity CreatePlayer(int shape = 0) 
 {
-    auto entity = registry.create();
-    auto& transform = registry.emplace<Transform>(entity);
+    auto entity = Entities::GetInstance().CreateEntity();
+    auto& transform = entity.Add<Transform>();
     transform.Position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-    auto body = Physics::CreateShapeBox(
-        Utils::JPH_Vec3_GLM(transform.Position), Utils::JPH_Quat_GLM(transform.Rotation),
-        JPH::RVec3(0.0f, 0.0f, 0.0f), JPH::Quat::sIdentity(),
-        JPH::RVec3(1.0f, 1.0f, 1.0f));
+    if (shape == 1)
+    {
+        auto settings = new JPH::SphereShapeSettings(1.0f);
+        settings->mDensity = 20;
 
-    registry.emplace<EPhysicsBody>(entity, body);
-    registry.emplace<PlayerInput>(entity);
+        auto body = Physics::CreateShapeSphere(
+            Utils::JPH_Vec3_GLM(transform.Position), Utils::JPH_Quat_GLM(transform.Rotation),
+            JPH::RVec3(0.0f, 0.0f, 0.0f), JPH::Quat::sIdentity(), settings);
 
-    return Entity(registry, entity);
+        entity.Add<EPhysicsBody>(body);
+    }
+    else
+    {
+        auto settings = new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f));
+        settings->mDensity = 20;
+
+        auto body = Physics::CreateShapeBox(
+            Utils::JPH_Vec3_GLM(transform.Position), Utils::JPH_Quat_GLM(transform.Rotation),
+            JPH::RVec3(0.0f, 0.0f, 0.0f), JPH::Quat::sIdentity(), settings);
+
+        entity.Add<EPhysicsBody>(body);
+    }
+
+    entity.Add<PlayerInput>();
+
+    return entity;
 }

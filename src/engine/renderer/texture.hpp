@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <string>
 
-#include "cmd.hpp"
+#include "cmd/cmd.hpp"
 
 class Texture 
 {
