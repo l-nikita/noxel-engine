@@ -20,9 +20,7 @@ void DebugMenu::Draw()
 		if (ImGui::BeginMenu("Engine"))
 		{
 			if (ImGui::MenuItem("Toggle Fullscreen"))
-			{
-				//Engine::GetInstance().ToggleFullscreen();
-			}
+				g_Engine->ToggleFullscreen();
 
 			ImGui::Separator();
 

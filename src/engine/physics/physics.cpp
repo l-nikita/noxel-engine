@@ -141,7 +141,7 @@ void Physics::Update()
 	m_updateProfiler->End();
 }
 
-void Physics::Draw()
+void Physics::Render()
 {
 	if (!IsRunning()) return;
 

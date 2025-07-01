@@ -18,7 +18,7 @@ void BudgetPanel::Draw()
 		m_fps = io.Framerate;
 		ImGui::Text("FPS: %f", m_fps);
 #ifdef _DEBUG
-		ImGui::Text("DrawCalls: %i", g_Engine->GetRenderer()->GetDrawCallCount());
+		ImGui::Text("DrawCalls: %i", g_Renderer->GetDrawCallCount());
 #endif
 		ImGui::Separator();
 

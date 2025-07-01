@@ -47,7 +47,7 @@ public:
 		glDrawElements(m_data.PrimitiveType, m_indicesCount, GL_UNSIGNED_INT, 0);
 		m_VAO.Unbind();
 #ifdef _DEBUG
-		g_Engine->GetRenderer()->AddDrawCallCount();
+		g_Renderer->AddDrawCallCount();
 #endif
 	}
 

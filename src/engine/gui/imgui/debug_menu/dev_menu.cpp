@@ -16,7 +16,7 @@ void DevPanel::Draw()
 			{
                 ImGui::SeparatorText("Camera");
 
-                auto& transform = g_Engine->GetRenderer()->GetCamera()->m_Transform;
+                auto& transform = g_Renderer->GetCamera()->m_Transform;
                 ImGui::InputFloat3("Position", glm::value_ptr(transform.Position) );
 
 				auto rot = glm::degrees(glm::eulerAngles(transform.Rotation));

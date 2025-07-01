@@ -1,4 +1,3 @@
-#include <glad/glad.h>
 #include <SDL3/SDL.h>
 
 #include <iostream>
@@ -6,18 +5,16 @@
 #include <chrono>
 
 #include "engine.hpp"
-#include "gui/gui.hpp"
 #include "assetsystem/assets_system.hpp"
 #include "physics/physics.hpp"
 #include "input/input.hpp"
-
 #include "renderer/renderer.hpp"
 #include "renderer/gizmos.hpp"
 #include "renderer/render_camera.hpp"
-
 #include "entities/entities.hpp"
-#include "gui/imgui/debug_menu/debug_menu.hpp"
+#include "gui/gui.hpp"
 #include "gui/panel.hpp"
+#include "gui/imgui/debug_menu/debug_menu.hpp"
 #include "common/profiler.hpp"
 #include "event_handler.hpp"
 #include "cmd/cmd.hpp"
@@ -27,6 +24,10 @@
 
 IEngine* g_Engine = nullptr;
 IInput* g_Input = nullptr;
+IAssetsSystem* g_Assets = nullptr;
+IPhysics* g_Physics = nullptr;
+IRenderer* g_Renderer = nullptr;
+IGui* g_Gui = nullptr;
 
 //-----------------------------------------------------------------------------
 //
@@ -36,9 +37,9 @@ void Engine::Update()
     EventHandler::GetInstance().HandleEvents();
 
     Entities::GetInstance().Update();
-    Physics::GetInstance().Update();
+    g_Physics->Update();
 
-    auto camera = m_renderer->GetCamera();
+    auto camera = g_Renderer->GetCamera();
     if (camera)
         camera->Update();
 
@@ -46,8 +47,9 @@ void Engine::Update()
     bool isF3 = g_Input->IsKeyPressed(SDL_SCANCODE_F3);
     bool isF11 = g_Input->IsKeyPressed(SDL_SCANCODE_F11);
 
-    //if (isGrave)
-    //    m_DebugMenu->m_IsVisible = !m_DebugMenu->m_IsVisible;
+    auto gui = static_cast<Gui*>(g_Gui);
+    if (isGrave)
+        gui->m_DebugMenu->m_IsVisible = !gui->m_DebugMenu->m_IsVisible;
     if (isF3)
         g_Input->SetRelativeMouseMode(!g_Input->GetRelativeMouseMode());
     else if (isF11)
@@ -58,7 +60,7 @@ void Engine::Update()
 
 void Engine::Render()
 {
-    m_renderer->Render();
+    g_Renderer->Render();
 }
 
 //-----------------------------------------------------------------------------
@@ -113,15 +115,17 @@ void Engine::Shutdown()
     m_isRunning = false;
 
     Entities::GetInstance().Shutdown();
-    Physics::GetInstance().Shutdown();
+    g_Physics->Shutdown();
     Networking::GetInstance().Shutdown();
 
-    m_renderer->Shutdown();
-    m_gui->Shutdown();
+    g_Renderer->Shutdown();
+    g_Gui->Shutdown();
 
+    delete g_Assets;
     delete g_Input;
-    delete m_renderer;
-    delete m_gui;
+    delete g_Physics;
+    delete g_Renderer;
+    delete g_Gui;
 
     if(GetWindow())
         SDL_DestroyWindow(GetWindow());
@@ -171,18 +175,20 @@ bool Engine::Init()
 
     if (!CreateWindow()) return false;
 
-    if (!AssetsSystem::GetInstance().Init()) return false;
+    g_Assets = new AssetsSystem();
+    if (!g_Assets->Init()) return false;
 
     g_Input = new Input();
     if (!g_Input->Init()) return false;
 
-    if (!Physics::GetInstance().Init()) return false;
+    g_Physics = new Physics();
+    if(!g_Physics->Init()) return false;
 
-    m_renderer = new Renderer();
-    if (!m_renderer->Init()) return false;
+    g_Renderer = new Renderer();
+    if (!g_Renderer->Init()) return false;
 
-    m_gui = new Gui();
-    if (!m_gui->Init()) return false;
+    g_Gui = new Gui();
+    if (!g_Gui->Init()) return false;
        
     if (!Gizmos::GetInstance().Init()) return false;
     if (!Networking::GetInstance().Init()) return false;
@@ -226,5 +232,5 @@ void Engine::OnWindowResize()
 {
     int width, height;
     SDL_GetWindowSizeInPixels(GetWindow(), &width, &height);
-    m_renderer->OnWindowResize(width, height);
+    g_Renderer->OnWindowResize(width, height);
 }

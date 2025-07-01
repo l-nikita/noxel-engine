@@ -21,11 +21,11 @@ BodyID Physics::CreateShapeBox(
     RotatedTranslatedShapeSettings offsetShapeSettings(offset, quat, settings);
     ShapeSettings::ShapeResult result = offsetShapeSettings.Create();
 
-    BodyInterface& body_interface = GetInstance().GetSystem()->GetBodyInterface();
+    BodyInterface& body_interface = GetPhysics()->GetSystem()->GetBodyInterface();
     BodyCreationSettings bodySettings(result.Get(), pos, quatOffset, motionType, Layers::MOVING);
 
     auto bodyID = body_interface.CreateAndAddBody(bodySettings, activation);
-    GetInstance().m_bodiesIDs.push_back(bodyID);
+    GetPhysics()->m_bodiesIDs.push_back(bodyID);
     return bodyID;
 }
 
@@ -41,10 +41,10 @@ BodyID Physics::CreateShapeSphere(
     RotatedTranslatedShapeSettings offsetShapeSettings(offset, quat, settings);
     ShapeSettings::ShapeResult result = offsetShapeSettings.Create();
 
-    BodyInterface& body_interface = GetInstance().GetSystem()->GetBodyInterface();
+    BodyInterface& body_interface = GetPhysics()->GetSystem()->GetBodyInterface();
     BodyCreationSettings bodySettings(result.Get(), pos, quatOffset, motionType, Layers::MOVING);
 
     auto bodyID = body_interface.CreateAndAddBody(bodySettings, activation);
-    GetInstance().m_bodiesIDs.push_back(bodyID);
+    GetPhysics()->m_bodiesIDs.push_back(bodyID);
     return bodyID;
 }

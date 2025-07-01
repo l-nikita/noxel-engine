@@ -16,7 +16,7 @@ bool Gui::Init()
 
     ImGui::StyleColorsDark();
 
-    auto renderer = static_cast<Renderer*>(g_Engine->GetRenderer());
+    auto renderer = static_cast<Renderer*>(g_Renderer);
     ImGui_ImplSDL3_InitForOpenGL(g_Engine->GetWindow(), renderer->m_Context);
     ImGui_ImplOpenGL3_Init("#version 330");
 

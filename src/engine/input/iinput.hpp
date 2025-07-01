@@ -14,6 +14,8 @@ struct SDL_MouseWheelEvent;
 class IInput
 {
 public:
+	virtual ~IInput() = default;
+
 	virtual bool Init() = 0;
 
 	virtual bool IsKeyDown(SDL_Scancode key) = 0;

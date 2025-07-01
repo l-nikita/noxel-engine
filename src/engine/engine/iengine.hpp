@@ -29,8 +29,9 @@ public:
 	virtual void* GetNativeWindowHandle() = 0;
 	virtual void OnWindowResize() = 0;
 
-	virtual IRenderer* GetRenderer() = 0;
-	virtual IGui* GetGui() = 0;
+	virtual void ToggleFullscreen() = 0;
+	virtual bool IsInFullscreen() = 0;
+	virtual void SetFullscreen(bool fullscreen) = 0;
 };
 
 extern ENGINE_API IEngine* g_Engine;

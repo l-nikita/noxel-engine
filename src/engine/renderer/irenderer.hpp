@@ -19,3 +19,5 @@ public:
 	virtual int GetDrawCallCount() = 0;
 #endif
 };
+
+extern IRenderer* g_Renderer;

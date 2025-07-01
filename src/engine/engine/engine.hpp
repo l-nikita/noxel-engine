@@ -27,9 +27,9 @@ public:
     void* GetNativeWindowHandle() override;
     void OnWindowResize() override;
 
-    void SetFullscreen(bool fullscreen);
-    void ToggleFullscreen();
-    bool IsInFullscreen();
+    void ToggleFullscreen() override;
+    void SetFullscreen(bool fullscreen) override;
+    bool IsInFullscreen() override;
 
     // -------------------------------------------------
     std::chrono::duration<float, std::milli> DeltaDuration() const { return m_deltaTime; }
@@ -41,14 +41,8 @@ public:
     float ElapsedTime() override { return m_elapsedTime.count(); }
     // -------------------------------------------------
 
-    IRenderer* GetRenderer() override { return m_renderer; }
-    IGui* GetGui() override { return m_gui; }
-
 private:
     SDL_Window* m_window = nullptr;
-
-    IRenderer* m_renderer;
-    IGui* m_gui;
 
     bool m_isRunning;
 

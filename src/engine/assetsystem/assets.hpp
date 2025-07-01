@@ -83,20 +83,19 @@ public:
     static std::shared_ptr<ShaderAsset> CreateNew(const std::string& name, const std::string& assetPath)
     {
         auto asset = std::make_shared<ShaderAsset>(name, assetPath);
-        AssetsSystem::GetInstance().RegisterAsset(asset);
+        g_Assets->RegisterAsset(asset);
         return asset;
     }
 
     static std::shared_ptr<ShaderAsset> Get(const std::string& name)
     {
-        auto assets = AssetsSystem::GetInstance().GetAssets<ShaderAsset>();
+        auto assets = g_Assets->GetAssets(Type);
         auto it = assets.find(name);
 
         if (it == assets.end())
             return nullptr;
 
-        auto casted = std::dynamic_pointer_cast<ShaderAsset>(it->second);
-        return casted;
+        return std::dynamic_pointer_cast<ShaderAsset>(it->second);
     }
 #pragma endregion
 };
@@ -166,24 +165,24 @@ public:
     static std::shared_ptr<TextureAsset> CreateNew(const std::string& name, const std::string& assetPath)
     {
         auto asset = std::make_shared<TextureAsset>(name, assetPath);
-        AssetsSystem::GetInstance().RegisterAsset(asset);
+        g_Assets->RegisterAsset(asset);
         return asset;
     }
 
     static std::shared_ptr<TextureAsset> CreateOrGet(const std::string& name, const std::string& assetPath)
     {
-        auto asset = AssetsSystem::GetInstance().HasAsset(Type, name);
+        auto asset = g_Assets->HasAsset(Type, name);
         if (asset)
             return std::dynamic_pointer_cast<TextureAsset>(asset);
 
         auto texAsset = std::make_shared<TextureAsset>(name, assetPath);
-        AssetsSystem::GetInstance().RegisterAsset(texAsset);
+        g_Assets->RegisterAsset(texAsset);
         return texAsset;
     }
 
     static std::shared_ptr<TextureAsset> Get(const std::string& name)
     {
-        auto assets = AssetsSystem::GetInstance().GetAssets<TextureAsset>();
+        auto assets = g_Assets->GetAssets(Type);
         auto it = assets.find(name);
 
         if (it == assets.end())
@@ -268,7 +267,7 @@ public:
         {
             std::filesystem::path baseTexturePath(data.BaseTexture);
 
-            auto fullTexturePath = AssetsSystem::GetMaterialsPath() / baseTexturePath;
+            auto fullTexturePath = g_Assets->GetMaterialsPath() / baseTexturePath;
 
             if (std::filesystem::exists(fullTexturePath))
                 m_textureAsset = TextureAsset::CreateOrGet(fullTexturePath.stem().string(), fullTexturePath.string());
@@ -289,13 +288,13 @@ public:
     static std::shared_ptr<MaterialAsset> CreateNew(const std::string& name, const std::string& assetPath)
     {
         auto asset = std::make_shared<MaterialAsset>(name, assetPath);
-        AssetsSystem::GetInstance().RegisterAsset(asset);
+        g_Assets->RegisterAsset(asset);
         return asset;
     }
 
     static std::shared_ptr<MaterialAsset> Get(const std::string& name)
     {
-        auto assets = AssetsSystem::GetInstance().GetAssets<MaterialAsset>();
+        auto assets = g_Assets->GetAssets(Type);
         auto it = assets.find(name);
 
         if (it == assets.end())

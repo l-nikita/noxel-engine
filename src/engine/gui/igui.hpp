@@ -15,3 +15,5 @@ public:
 
 	virtual std::vector<Panel*>& GetPanels() = 0;
 };
+
+extern IGui* g_Gui;

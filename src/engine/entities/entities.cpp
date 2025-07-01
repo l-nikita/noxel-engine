@@ -211,7 +211,7 @@ void Entities::DrawAll()
 void Entities::DestroyAll()
 {
     m_registry.clear();
-    Physics::GetInstance().FlushPendingDestructions();
+    g_Physics->FlushPendingDestructions();
 }
 
 void Entities::Shutdown()

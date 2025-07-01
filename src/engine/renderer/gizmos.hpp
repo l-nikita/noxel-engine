@@ -112,8 +112,8 @@ namespace Gizmo
         shader.Bind();
         shader.SetVec4("color", color);
         shader.SetMatrix4("model", model);
-        shader.SetMatrix4("view", g_Engine->GetRenderer()->GetCamera()->GetViewMatrix());
-        shader.SetMatrix4("projection", g_Engine->GetRenderer()->GetCamera()->GetProjectionMatrix());
+        shader.SetMatrix4("view", g_Renderer->GetCamera()->GetViewMatrix());
+        shader.SetMatrix4("projection", g_Renderer->GetCamera()->GetProjectionMatrix());
 
         gizmos.m_BoxMesh->Draw();
         shader.Unbind();
@@ -138,8 +138,8 @@ namespace Gizmo
         shader.Bind();
         shader.SetVec4("color", color);
         shader.SetMatrix4("model", model);
-        shader.SetMatrix4("view", g_Engine->GetRenderer()->GetCamera()->GetViewMatrix());
-        shader.SetMatrix4("projection", g_Engine->GetRenderer()->GetCamera()->GetProjectionMatrix());
+        shader.SetMatrix4("view", g_Renderer->GetCamera()->GetViewMatrix());
+        shader.SetMatrix4("projection", g_Renderer->GetCamera()->GetProjectionMatrix());
 
         gizmos.m_LineMesh->Draw();
         shader.Unbind();
@@ -167,8 +167,8 @@ namespace Gizmo
         shader.Bind();
         shader.SetVec4("color", color);
         shader.SetMatrix4("model", model);
-        shader.SetMatrix4("view", g_Engine->GetRenderer()->GetCamera()->GetViewMatrix());
-        shader.SetMatrix4("projection", g_Engine->GetRenderer()->GetCamera()->GetProjectionMatrix());
+        shader.SetMatrix4("view", g_Renderer->GetCamera()->GetViewMatrix());
+        shader.SetMatrix4("projection", g_Renderer->GetCamera()->GetProjectionMatrix());
 
         gizmos.m_TriangleMesh->Draw();
         shader.Unbind();
@@ -226,8 +226,8 @@ namespace Gizmo
         shader.Bind();
         shader.SetVec4("color", color);
         shader.SetMatrix4("model", model);
-        shader.SetMatrix4("view", g_Engine->GetRenderer()->GetCamera()->GetViewMatrix());
-        shader.SetMatrix4("projection", g_Engine->GetRenderer()->GetCamera()->GetProjectionMatrix());
+        shader.SetMatrix4("view", g_Renderer->GetCamera()->GetViewMatrix());
+        shader.SetMatrix4("projection", g_Renderer->GetCamera()->GetProjectionMatrix());
 
         cachedMesh->Draw();
         shader.Unbind();
@@ -301,8 +301,8 @@ namespace Gizmo
         shader.Bind();
         shader.SetVec4("color", color);
         shader.SetMatrix4("model", model);
-        shader.SetMatrix4("view", g_Engine->GetRenderer()->GetCamera()->GetViewMatrix());
-        shader.SetMatrix4("projection", g_Engine->GetRenderer()->GetCamera()->GetProjectionMatrix());
+        shader.SetMatrix4("view", g_Renderer->GetCamera()->GetViewMatrix());
+        shader.SetMatrix4("projection", g_Renderer->GetCamera()->GetProjectionMatrix());
 
         sphereMesh->Draw();
         shader.Unbind();

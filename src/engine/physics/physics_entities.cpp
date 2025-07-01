@@ -4,7 +4,7 @@
 
 void Physics::UpdateEntityPhysics(entt::registry& registry)
 {
-    JPH::BodyInterface& body_interface = GetInstance().GetSystem()->GetBodyInterface();
+    JPH::BodyInterface& body_interface = GetPhysics()->GetSystem()->GetBodyInterface();
 
     auto view = registry.view<EPhysicsBody, Transform>();
     for (auto [entity, physics, transform] : view.each())

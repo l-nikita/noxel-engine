@@ -194,9 +194,8 @@ void Renderer::Render()
         TestModel->Draw();
 
     Entities::GetInstance().DrawAll();
-    Physics::GetInstance().Draw(); // for debug purposes
-
-    g_Engine->GetGui()->Render();
+    g_Physics->Render(); // for debug purposes
+    g_Gui->Render();
 }
 
 void Renderer::Shutdown()

@@ -12,21 +12,22 @@
 #include "common/profiler.hpp"
 #include "entities/entities.hpp"
 
+#include "iphysics.hpp"
 #include "physics_layers.hpp"
 #include "physics_listeners.hpp"
 #include "physics_renderer.hpp"
 
-class Physics : public Singleton<Physics>
+class Physics : public IPhysics
 {
 public:
 	~Physics() { Shutdown(); }
 
-	bool Init();
-	void Update();
-	void Draw();
-	void Shutdown();
+	bool Init() override;
+	void Update() override;
+	void Render() override;
+	void Shutdown() override;
 
-	bool IsRunning() { return m_IsRunning; }
+	bool IsRunning() override { return m_IsRunning; }
 	Profiler* m_updateProfiler;
 	Profiler* m_drawProfiler;
 
@@ -35,7 +36,7 @@ public:
 	static void UpdateEntityPhysics(entt::registry& registry);
 
 	void MarkBodyForDestruction(JPH::BodyID bodyID);
-	void FlushPendingDestructions();
+	void FlushPendingDestructions() override;
 
 	// Shapes
 
@@ -79,6 +80,12 @@ private:
 	MyContactListener* contact_listener;
 };
 
+// not good
+static Physics* GetPhysics()
+{
+	return static_cast<Physics*>(g_Physics);
+}
+
 struct EPhysicsBody
 {
 	JPH::BodyID BodyID;
@@ -87,6 +94,6 @@ struct EPhysicsBody
 
 	~EPhysicsBody() // Calls 2 times ?
 	{
-		Physics::GetInstance().MarkBodyForDestruction(BodyID);
+		GetPhysics()->MarkBodyForDestruction(BodyID);
 	}
 };

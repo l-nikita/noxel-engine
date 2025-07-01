@@ -25,5 +25,7 @@ int main()
     else 
         std::cerr << "Error: Couldn't init engine!!!" << std::endl;
 
+    delete g_Engine;
+
     return 0;
 }

@@ -44,8 +44,8 @@ void Model::Draw()
         if (shader.IsValid())
         {
             shader.SetMatrix4("model", GetTransformMatrix());
-            shader.SetMatrix4("view", g_Engine->GetRenderer()->GetCamera()->GetViewMatrix());
-            shader.SetMatrix4("projection", g_Engine->GetRenderer()->GetCamera()->GetProjectionMatrix());
+            shader.SetMatrix4("view", g_Renderer->GetCamera()->GetViewMatrix());
+            shader.SetMatrix4("projection", g_Renderer->GetCamera()->GetProjectionMatrix());
         }
 
         m_meshes[i]->Draw();
