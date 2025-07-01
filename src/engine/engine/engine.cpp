@@ -28,6 +28,7 @@ IAssetsSystem* g_Assets = nullptr;
 IPhysics* g_Physics = nullptr;
 IRenderer* g_Renderer = nullptr;
 IGui* g_Gui = nullptr;
+IEntities* g_Entities = nullptr;
 
 //-----------------------------------------------------------------------------
 //
@@ -36,7 +37,7 @@ void Engine::Update()
 {
     EventHandler::GetInstance().HandleEvents();
 
-    Entities::GetInstance().Update();
+    g_Entities->Update();
     g_Physics->Update();
 
     auto camera = g_Renderer->GetCamera();
@@ -89,9 +90,6 @@ void Engine::Run()
         Update();
         updateProfiler.End();
 
-        if (!m_isRunning)
-            break;
-
         renderProfiler.Start();
         Render();
         renderProfiler.End();
@@ -108,13 +106,21 @@ void Engine::Run()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
+void Engine::Stop()
+{
+    if (!m_isRunning) return;
+    m_isRunning = false;
+}
+
+//-----------------------------------------------------------------------------
+// Immediately stops engine
+//-----------------------------------------------------------------------------
 void Engine::Shutdown()
 {
     if (!m_isRunning) return;
+    Stop();
 
-    m_isRunning = false;
-
-    Entities::GetInstance().Shutdown();
+    g_Entities->Shutdown();
     g_Physics->Shutdown();
     Networking::GetInstance().Shutdown();
 
@@ -126,6 +132,7 @@ void Engine::Shutdown()
     delete g_Physics;
     delete g_Renderer;
     delete g_Gui;
+    delete g_Entities;
 
     if(GetWindow())
         SDL_DestroyWindow(GetWindow());
@@ -192,7 +199,9 @@ bool Engine::Init()
        
     if (!Gizmos::GetInstance().Init()) return false;
     if (!Networking::GetInstance().Init()) return false;
-    if (!Entities::GetInstance().Init()) return false;
+
+    g_Entities = new Entities();
+    if (!g_Entities->Init()) return false;
 
     CMD::GetInstance().Setup();
     CMD_LOG("Engine initialized successfully.", INFO);

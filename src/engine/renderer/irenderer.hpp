@@ -2,6 +2,12 @@
 
 class RenderCamera;
 
+enum GraphicsAPI
+{
+	OPENGL,
+	VULKAN,
+};
+
 class IRenderer
 {
 public:

@@ -3,13 +3,12 @@
 #include <entt/entt.hpp>
 #include <boost/uuid.hpp>
 
+#include "ientities.hpp"
 #include "common/singleton.hpp"
 #include "common/transform.hpp"
 #include "renderer/model.hpp"
 
 //-----------------------------------------------------------------------------
-typedef boost::uuids::uuid UUID;
-
 struct EEntityID
 {
     UUID ID;
@@ -65,22 +64,21 @@ protected:
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class Entities : public Singleton<Entities>
+class Entities : public IEntities
 {
 public:
-
-    bool Init();
-    void Update();
-    void DrawAll();
-    void Shutdown();
+    bool Init() override;
+    void Update() override;
+    void Render() override;
+    void Shutdown() override;
     void DestroyAll();
 
-    static Entity CreateEntity();
-    std::optional<Entity> GetEntityByUUID(const UUID& uuid);
+    Entity CreateEntity() override;
+    std::optional<Entity> GetEntityByUUID(const UUID& uuid) override;
 
-    entt::registry& GetRegistry() { return m_registry; }
+    entt::registry& GetRegistry() override { return m_registry; }
 
-    bool IsRunning() { return m_isRunning; }
+    bool IsRunning() override { return m_isRunning; }
 
 private:
     bool m_isRunning;

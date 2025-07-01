@@ -22,6 +22,7 @@ find_package(GameNetworkingSockets REQUIRED CONFIG)
 find_package(imgui REQUIRED CONFIG)
 find_package(Stb REQUIRED)
 find_package(Boost REQUIRED)
+find_package(Vulkan REQUIRED)
 
 add_subdirectory(src/libs/glad)
 

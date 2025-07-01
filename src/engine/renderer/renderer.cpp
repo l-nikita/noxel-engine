@@ -193,7 +193,7 @@ void Renderer::Render()
     if (TestModel)
         TestModel->Draw();
 
-    Entities::GetInstance().DrawAll();
+    g_Entities->Render();
     g_Physics->Render(); // for debug purposes
     g_Gui->Render();
 }

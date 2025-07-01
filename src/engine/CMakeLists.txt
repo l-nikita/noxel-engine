@@ -60,6 +60,7 @@ target_link_libraries(engine PUBLIC
 	protobuf::libprotobuf
 	GameNetworkingSockets::GameNetworkingSockets
 	imgui::imgui
+	Vulkan
 )
 
 target_include_directories(engine PUBLIC ${Stb_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})

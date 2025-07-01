@@ -25,7 +25,7 @@ void DebugMenu::Draw()
 			ImGui::Separator();
 
 			if (ImGui::MenuItem("Exit"))
-				g_Engine->Shutdown();
+				g_Engine->Stop();
 
             ImGui::EndMenu();
 		}

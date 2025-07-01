@@ -21,7 +21,7 @@ void EventHandler::OnEvent(SDL_Event& event)
 	switch (type)
 	{
 		case SDL_EVENT_QUIT:
-			g_Engine->Shutdown();
+			g_Engine->Stop();
 			break;
 		case SDL_EVENT_WINDOW_RESIZED:
 			g_Engine->OnWindowResize();

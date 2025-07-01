@@ -12,7 +12,7 @@ struct PlayerInput
 
 static Entity CreatePlayer(int shape = 0) 
 {
-    auto entity = Entities::GetInstance().CreateEntity();
+    auto entity = g_Entities->CreateEntity();
     auto& transform = entity.Add<Transform>();
     transform.Position = glm::vec3(0.0f, 5.0f, 0.0f);
 

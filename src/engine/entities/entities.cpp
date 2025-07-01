@@ -173,7 +173,7 @@ void Entities::Update()
     }
 }
 
-void Entities::DrawAll()
+void Entities::Render()
 {
     if (!IsRunning()) return;
 
@@ -227,22 +227,20 @@ void Entities::Shutdown()
 //-----------------------------------------------------------------------------
 Entity Entities::CreateEntity()
 {
-    auto& registry = GetInstance().m_registry;
-    auto entity = registry.create();
+    auto entity = m_registry.create();
     auto uuid = boost::uuids::random_generator()();
 
-    registry.emplace<EEntityID>(entity, EEntityID{ uuid });
-    GetInstance().m_UUIDs[uuid] = entity;
-    return Entity(registry, entity);
+    m_registry.emplace<EEntityID>(entity, EEntityID{ uuid });
+    m_UUIDs[uuid] = entity;
+    return Entity(m_registry, entity);
 }
 
 std::optional<Entity> Entities::GetEntityByUUID(const UUID& uuid)
 {
-    auto& self = GetInstance();
-    auto it = self.m_UUIDs.find(uuid);
+    auto it = m_UUIDs.find(uuid);
 
-    if (it != self.m_UUIDs.end())
-        return Entity(self.m_registry, it->second);
+    if (it != m_UUIDs.end())
+        return Entity(m_registry, it->second);
 
     return std::nullopt;
 }

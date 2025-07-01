@@ -15,6 +15,7 @@ public:
     bool CreateWindow();
 
     void Run() override;
+    void Stop() override;
     void Shutdown() override;
     bool IsRunning() override { return m_isRunning; }
 
