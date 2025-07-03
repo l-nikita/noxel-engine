@@ -45,7 +45,7 @@ public:
 private:
     SDL_Window* m_window = nullptr;
 
-    bool m_isRunning;
+    bool m_isRunning = false;
 
     std::chrono::duration<float, std::milli> m_deltaTime;
     std::chrono::duration<float, std::milli> m_elapsedTime;

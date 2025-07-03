@@ -14,7 +14,7 @@ int main()
 {
     if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) 
     {
-        std::cerr << "Error: Couldn't set control handler!" << std::endl;
+        std::cerr << "Error: Couldn't set control handler for console!" << std::endl;
         return 1;
     }
 

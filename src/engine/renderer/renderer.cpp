@@ -196,6 +196,8 @@ void Renderer::Render()
     g_Entities->Render();
     g_Physics->Render(); // for debug purposes
     g_Gui->Render();
+
+    SDL_GL_SwapWindow(g_Engine->GetWindow());
 }
 
 void Renderer::Shutdown()

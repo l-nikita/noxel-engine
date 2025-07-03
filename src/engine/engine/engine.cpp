@@ -75,7 +75,6 @@ void Engine::Run()
 
     Profiler updateProfiler("Update");
     Profiler renderProfiler("Render");
-    Profiler swapBuffers("SwapBuffers");
 
     m_isRunning = true;
 
@@ -93,11 +92,6 @@ void Engine::Run()
         renderProfiler.Start();
         Render();
         renderProfiler.End();
-
-        //move to renderer
-        swapBuffers.Start();
-        SDL_GL_SwapWindow(GetWindow());
-        swapBuffers.End();
     }
 
     Shutdown();
