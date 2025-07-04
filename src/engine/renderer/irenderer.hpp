@@ -5,7 +5,7 @@ class RenderCamera;
 enum GraphicsAPI
 {
 	OPENGL,
-	VULKAN,
+	DIRECTX11,
 };
 
 class IRenderer

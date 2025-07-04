@@ -10,6 +10,8 @@ BOOL WINAPI ConsoleHandler(DWORD signal)
     return FALSE;
 }
 
+// TODO: make args (command line)
+
 int main()
 {
     if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE)) 

@@ -9,6 +9,7 @@
 #include <nlohmann/json.hpp>
 #include <stb_image.h>
 
+#include "renderer/ishader.hpp"
 #include "base_asset.hpp"
 #include "assets_system.hpp"
 #include "cmd/cmd.hpp"
@@ -67,14 +68,14 @@ public:
         m_shaderVertSource = LoadShaderSource("VertexShader", assetPath);
     }
 
-    std::string GetShaderSource(GLenum type) const
+    std::string GetShaderSource(ShaderType type) const
     {
-        if (type == GL_VERTEX_SHADER)
+        if (type == VERTEX)
             return m_shaderVertSource;
-        else if (type == GL_FRAGMENT_SHADER)
+        else if (type == PIXEL)
             return m_shaderFragSource;
         else
-            CMD_LOG("Unsupported shader type.", CMDLogType::ERROR);
+            CMD_LOG("Unsupported shader type.", ERROR);
 
         return "";
     }
@@ -108,7 +109,9 @@ struct TextureData
     unsigned char* Image = nullptr;
     int Width;
     int Height;
-    GLenum Format;
+    int Channels = 0;
+
+    ~TextureData() { if (Image) stbi_image_free(Image); }
 };
 
 class TextureAsset : public BaseAsset
@@ -127,7 +130,7 @@ public:
     {
         if (m_assetPath.empty())
         {
-            CMD_LOG("Asset path is null or empty!!!", CMDLogType::ERROR);
+            CMD_LOG("Asset path is null or empty!!!", ERROR);
             return {};
         }
 
@@ -141,22 +144,10 @@ public:
             return {};
         }
 
-        GLenum glFormat = GL_RGB;
-
-        if (channels == 3)
-            glFormat = GL_RGB;
-        else if (channels == 4)
-            glFormat = GL_RGBA;
-        else
-        {
-            CMD_LOG("Couln't load texture [" + m_assetPath.string() + "] due to unsupported number of channels!", ERROR);
-            return {};
-        }
-
         data.Image = image;
-        data.Format = glFormat;
         data.Width = width;
         data.Height = height;
+        data.Channels = channels;
 
         return data;
     }

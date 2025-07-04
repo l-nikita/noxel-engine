@@ -8,8 +8,7 @@
 #include "assetsystem/assets_system.hpp"
 #include "physics/physics.hpp"
 #include "input/input.hpp"
-#include "renderer/renderer.hpp"
-#include "renderer/gizmos.hpp"
+#include "renderer/directx11/d3d11renderer.hpp"
 #include "renderer/render_camera.hpp"
 #include "entities/entities.hpp"
 #include "gui/gui.hpp"
@@ -140,11 +139,15 @@ void Engine::Shutdown()
 //-----------------------------------------------------------------------------
 bool Engine::CreateWindow()
 {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    m_window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_OPENGL);
+    if (GetGraphicsAPI() == DIRECTX11)
+        m_window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_RESIZABLE);
+    else
+        throw std::runtime_error("Unknown graphics API!");
+
     if (!GetWindow())
     {
         CMD_LOG("SDL_CreateWindow Error: " + std::string(SDL_GetError()), ERROR);
@@ -185,13 +188,18 @@ bool Engine::Init()
     g_Physics = new Physics();
     if(!g_Physics->Init()) return false;
 
-    g_Renderer = new Renderer();
-    if (!g_Renderer->Init()) return false;
+    if (GetGraphicsAPI() == DIRECTX11)
+    {
+        g_Renderer = new D3D11Renderer();
+        if (!g_Renderer->Init()) return false;
+    }
+    else
+        throw std::runtime_error("Unknown graphics API!");
 
     g_Gui = new Gui();
     if (!g_Gui->Init()) return false;
        
-    if (!Gizmos::GetInstance().Init()) return false;
+    //if (!Gizmos::GetInstance().Init()) return false;
     if (!Networking::GetInstance().Init()) return false;
 
     g_Entities = new Entities();

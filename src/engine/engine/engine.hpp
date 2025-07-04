@@ -4,6 +4,7 @@
 #include <chrono>
 
 #include "iengine.hpp"
+#include "renderer/irenderer.hpp"
 #include "common.hpp"
 
 class ENGINE_API Engine : public IEngine
@@ -41,6 +42,8 @@ public:
     // Elapsed time since engine loop ran (ms)
     float ElapsedTime() override { return m_elapsedTime.count(); }
     // -------------------------------------------------
+
+    virtual GraphicsAPI GetGraphicsAPI() { return DIRECTX11; }
 
 private:
     SDL_Window* m_window = nullptr;

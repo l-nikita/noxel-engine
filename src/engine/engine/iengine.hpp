@@ -33,6 +33,8 @@ public:
 	virtual void ToggleFullscreen() = 0;
 	virtual bool IsInFullscreen() = 0;
 	virtual void SetFullscreen(bool fullscreen) = 0;
+
+	virtual GraphicsAPI GetGraphicsAPI() = 0;
 };
 
 extern ENGINE_API IEngine* g_Engine;

@@ -1,17 +1,11 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-#include <memory>
+#include "renderer/irenderer.hpp"
 
-#include "irenderer.hpp"
-
-class RenderCamera;
-
-class Renderer : public IRenderer
+class D3D11Renderer : public IRenderer
 {
 public:
 	bool Init() override;
-	bool InitAPI();
 
 	void Render() override;
 	void Shutdown() override;
@@ -26,8 +20,13 @@ public:
 	int GetDrawCallCount() override { return m_DrawCallCount; }
 #endif
 
-	SDL_GLContext m_Context = nullptr;
-
 private:
+	ID3D11Device* m_device = nullptr;
+	ID3D11DeviceContext* m_context = nullptr;
+	IDXGISwapChain* m_swapChain = nullptr;
+	ID3D11RenderTargetView* m_rtv = nullptr; // Render target view
+
 	RenderCamera* m_camera;
+	uint16_t m_width = 0;
+	uint16_t m_height = 0;
 };

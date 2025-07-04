@@ -51,7 +51,6 @@ add_custom_command(TARGET engine POST_BUILD
 # ------------------
 target_link_libraries(engine PUBLIC 
 	proto
-	glad
 	SDL3::SDL3
 	EnTT::EnTT	
 	glm::glm
@@ -60,7 +59,11 @@ target_link_libraries(engine PUBLIC
 	protobuf::libprotobuf
 	GameNetworkingSockets::GameNetworkingSockets
 	imgui::imgui
-	Vulkan::Vulkan
+	
+	glad
+    d3d11
+    dxgi
+    d3dcompiler
 )
 
 target_include_directories(engine PUBLIC ${Stb_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
