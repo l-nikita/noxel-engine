@@ -5,6 +5,8 @@
 #include <glm/gtc/quaternion.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#include <iostream>
+#include <sstream>
 
 struct Transform
 {
@@ -34,12 +36,12 @@ struct Transform
         return T * R * S;
     }
 
-    glm::vec3 Forward() const { return Rotation * glm::vec3(0.0f, 0.0f, -1.0f); }
-    glm::vec3 Backward() const { return Rotation * glm::vec3(0.0f, 0.0f, 1.0f); }
-    glm::vec3 Right() const { return Rotation * glm::vec3(1.0f, 0.0f, 0.0f); }
-    glm::vec3 Left() const { return Rotation * glm::vec3(-1.0f, 0.0f, 0.0f); }
-    glm::vec3 Up() const { return Rotation * glm::vec3(0.0f, 1.0f, 0.0f); }
-    glm::vec3 Down() const { return Rotation * glm::vec3(0.0f, -1.0f, 0.0f); }
+    glm::vec3 Forward()  const { return Rotation * glm::vec3(0.0f, 0.0f, 1.0f); }  // +Z
+    glm::vec3 Backward() const { return Rotation * glm::vec3(0.0f, 0.0f, -1.0f); } // -Z
+    glm::vec3 Right()    const { return Rotation * glm::vec3(1.0f, 0.0f, 0.0f); }  // +X
+    glm::vec3 Left()     const { return Rotation * glm::vec3(-1.0f, 0.0f, 0.0f); } // -X
+    glm::vec3 Up()       const { return Rotation * glm::vec3(0.0f, 1.0f, 0.0f); }  // +Y
+    glm::vec3 Down()     const { return Rotation * glm::vec3(0.0f, -1.0f, 0.0f); } // -Y
 
     bool operator==(const Transform& other) const
     {
@@ -71,5 +73,14 @@ struct Transform
     Transform WithScale(const glm::vec3& scale) const
     {
         return Transform(Position, Rotation, scale);
+    }
+
+    std::string ToString() const
+    {
+        std::ostringstream ss;
+        ss << "Position: (" << Position.x << ", " << Position.y << ", " << Position.z << "), ";
+        ss << "Rotation: (" << Rotation.w << ", " << Rotation.x << ", " << Rotation.y << ", " << Rotation.z << "), ";
+        ss << "Scale: (" << Scale.x << ", " << Scale.y << ", " << Scale.z << ")";
+        return ss.str();
     }
 };

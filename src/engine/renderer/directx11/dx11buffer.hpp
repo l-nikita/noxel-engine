@@ -1,32 +1,32 @@
 #pragma once
 
-#include "renderer/igpubuffer.hpp"
+#include <d3d11.h>
 #include <cstdint>
+#include "renderer/igpubuffer.hpp"
 
-struct ID3D11Device;
-struct ID3D11DeviceContext;
-struct ID3D11Buffer;
-
-class D3D11Buffer : public IGPUBuffer 
+class DX11Buffer : public IGPUBuffer
 {
 public:
-    D3D11Buffer(
+    DX11Buffer(
         ID3D11Device* device,
         ID3D11DeviceContext* context,
         GPUBufferType type,
         size_t size,
-        const void* initialData = nullptr);
+        const void* initialData = nullptr, 
+        std::uint32_t stride = 0);
 
-    void Bind(uint32_t slot = 0) override;
-    void Unbind(uint32_t slot = 0) override;
+    void Bind(std::uint32_t slot = 0) override;
+    void Unbind(std::uint32_t slot = 0) override;
     void Update(const void* data, size_t size) override;
     void Destroy() override;
 
 private:
     ID3D11Device* m_device = nullptr;
     ID3D11DeviceContext* m_context = nullptr;
+
+    UINT m_stride = 0;
     ID3D11Buffer* m_buffer = nullptr;
     GPUBufferType m_type;
 
-    uint32_t GetBindFlags(GPUBufferType type);
+    std::uint32_t GetBindFlags(GPUBufferType type);
 };

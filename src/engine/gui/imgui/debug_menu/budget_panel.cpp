@@ -1,7 +1,7 @@
 #include <imgui.h>
 
 #include "engine.hpp"
-#include "renderer/renderer.hpp"
+#include "renderer/irenderer.hpp"
 #include "budget_panel.hpp"
 #include "common/profiler.hpp"
 

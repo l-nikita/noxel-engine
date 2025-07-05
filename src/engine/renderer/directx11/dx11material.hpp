@@ -1,17 +1,16 @@
 #pragma once
 
+#include <d3d11.h>
 #include "renderer/imaterial.hpp"
 #include "renderer/ishader.hpp"
 #include "renderer/itexture.hpp"
 #include "assetsystem/assets.hpp"
 
-struct ID3D11DeviceContext;
-
-class D3D11Material : public IMaterial 
+class DX11Material : public IMaterial 
 {
 public:
-    D3D11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset);
-    ~D3D11Material() { Destroy(); }
+    DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset);
+    ~DX11Material() { Destroy(); }
 
     void Bind() override;
     void Unbind() override;

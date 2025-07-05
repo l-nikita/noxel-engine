@@ -1,8 +1,11 @@
 #pragma once
 
+#include <d3d11.h>
+#include <cstdint>
+#include <initguid.h>
 #include "renderer/irenderer.hpp"
 
-class D3D11Renderer : public IRenderer
+class DX11Renderer : public IRenderer
 {
 public:
 	bool Init() override;
@@ -13,6 +16,8 @@ public:
 	void OnWindowResize(int width, int height) override;
 
 	RenderCamera* GetCamera() { return m_camera; };
+	bool IsVSyncEnabled() override { return m_vsyncEnabled; }
+	void SetVSync(bool value) override { m_vsyncEnabled = value; }
 
 #ifdef _DEBUG
 	int m_DrawCallCount;
@@ -20,13 +25,20 @@ public:
 	int GetDrawCallCount() override { return m_DrawCallCount; }
 #endif
 
+	ID3D11Device* GetDevice() { return m_device; }
+	ID3D11DeviceContext* GetContext() { return m_context; }
+
 private:
 	ID3D11Device* m_device = nullptr;
 	ID3D11DeviceContext* m_context = nullptr;
 	IDXGISwapChain* m_swapChain = nullptr;
 	ID3D11RenderTargetView* m_rtv = nullptr; // Render target view
 
+	ID3D11Texture2D* m_depthStencil = nullptr;
+	ID3D11DepthStencilView* m_dsv = nullptr;
+
 	RenderCamera* m_camera;
+	bool m_vsyncEnabled = true;
 	uint16_t m_width = 0;
 	uint16_t m_height = 0;
 };

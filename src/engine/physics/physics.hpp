@@ -10,7 +10,6 @@
 
 #include "common/singleton.hpp"
 #include "common/profiler.hpp"
-#include "entities/entities.hpp"
 
 #include "iphysics.hpp"
 #include "physics_layers.hpp"
@@ -33,7 +32,7 @@ public:
 
 	JPH::PhysicsSystem* GetSystem() { return m_system; }
 
-	static void UpdateEntityPhysics(entt::registry& registry);
+	//static void UpdateEntityPhysics(entt::registry& registry);
 
 	void MarkBodyForDestruction(JPH::BodyID bodyID);
 	void FlushPendingDestructions() override;

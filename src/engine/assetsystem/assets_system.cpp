@@ -14,8 +14,8 @@ bool AssetsSystem::Init()
 	m_binPath = std::filesystem::current_path().parent_path() / "bin";
 	m_assetsPath = std::filesystem::current_path().parent_path() / "assets";
 
-	ShaderAsset::CreateNew("default", "E:/DEV/Sources/NoxelEngine/build/assets/shaders/default.glsl");
-	ShaderAsset::CreateNew("gizmos", "E:/DEV/Sources/NoxelEngine/build/assets/shaders/gizmos.glsl");
+	ShaderAsset::CreateNew("default", "E:/DEV/Sources/NoxelEngine/build/assets/shaders/default.hlsl");
+	ShaderAsset::CreateNew("gizmos", "E:/DEV/Sources/NoxelEngine/build/assets/shaders/gizmos.hlsl");
 	MaterialAsset::CreateNew("error", "E:/DEV/Sources/NoxelEngine/build/assets/materials/engine/error.nmt");
 	MaterialAsset::CreateNew("gizmos", "E:/DEV/Sources/NoxelEngine/build/assets/materials/engine/gizmos.nmt");
 

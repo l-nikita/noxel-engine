@@ -3,7 +3,7 @@
 
 #include "iengine.hpp"
 #include "dev_menu.hpp"
-#include "renderer/renderer.hpp"
+#include "renderer/irenderer.hpp"
 #include "renderer/render_camera.hpp"
 
 void DevPanel::Draw()
@@ -30,6 +30,11 @@ void DevPanel::Draw()
                 }
 
                 ImGui::SeparatorText("Render");
+
+				if(ImGui::Checkbox("VSync", &m_vsyncEnabled))
+				{
+					g_Renderer->SetVSync(m_vsyncEnabled);
+				}
 
                 //if (ImGui.Checkbox("Wireframe", ref _wireframeEnabled))
                 //{

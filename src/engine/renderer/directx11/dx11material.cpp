@@ -1,21 +1,21 @@
-#include "d3d11texture.hpp"
-#include "d3d11shader.hpp"
-#include "d3d11material.hpp"
+#include "dx11texture.hpp"
+#include "dx11shader.hpp"
+#include "dx11material.hpp"
 #include <d3d11.h>
 
-D3D11Material::D3D11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset)
+DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset)
     : m_context(context), m_asset(asset)
 {
     auto texAsset = m_asset->TextureAsset();
     if (texAsset != nullptr)
-        m_textures[0] = new D3D11Texture(device, context, texAsset.get());
+        m_textures[0] = new DX11Texture(device, context, texAsset.get()); // TODO
 
     auto shaderAsset = m_asset->ShaderAsset();
     if (shaderAsset != nullptr)
-        m_shader = new D3D11Shader(device, context, shaderAsset.get());
+        m_shader = new DX11Shader(device, context, shaderAsset.get());
 }
 
-void D3D11Material::Bind()
+void DX11Material::Bind()
 {
     if (m_shader)
         m_shader->Bind();
@@ -27,7 +27,7 @@ void D3D11Material::Bind()
     }
 }
 
-void D3D11Material::Unbind()
+void DX11Material::Unbind()
 {
     if (m_shader)
         m_shader->Unbind();
@@ -39,7 +39,7 @@ void D3D11Material::Unbind()
     }
 }
 
-void D3D11Material::Destroy()
+void DX11Material::Destroy()
 {
     delete m_shader;
 
@@ -50,23 +50,23 @@ void D3D11Material::Destroy()
     }
 }
 
-void D3D11Material::SetShader(IShader* shader)
+void DX11Material::SetShader(IShader* shader)
 {
     m_shader = shader;
 }
 
-void D3D11Material::SetTexture(unsigned int slot, ITexture* texture)
+void DX11Material::SetTexture(unsigned int slot, ITexture* texture)
 {
     if (slot < MATERIAL_TEXTURES_SLOTS)
         m_textures[slot] = texture;
 }
 
-IShader* D3D11Material::GetShader() const
+IShader* DX11Material::GetShader() const
 {
     return m_shader;
 }
 
-ITexture* D3D11Material::GetTexture(unsigned int slot) const
+ITexture* DX11Material::GetTexture(unsigned int slot) const
 {
     if (slot < MATERIAL_TEXTURES_SLOTS)
         return m_textures[slot];

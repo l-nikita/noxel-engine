@@ -4,13 +4,12 @@
 #include <string>
 #include <chrono>
 
+#include "renderer/directx11/dx11renderer.hpp"
+#include "renderer/render_camera.hpp"
 #include "engine.hpp"
 #include "assetsystem/assets_system.hpp"
 #include "physics/physics.hpp"
 #include "input/input.hpp"
-#include "renderer/directx11/d3d11renderer.hpp"
-#include "renderer/render_camera.hpp"
-#include "entities/entities.hpp"
 #include "gui/gui.hpp"
 #include "gui/panel.hpp"
 #include "gui/imgui/debug_menu/debug_menu.hpp"
@@ -27,7 +26,7 @@ IAssetsSystem* g_Assets = nullptr;
 IPhysics* g_Physics = nullptr;
 IRenderer* g_Renderer = nullptr;
 IGui* g_Gui = nullptr;
-IEntities* g_Entities = nullptr;
+//IEntities* g_Entities = nullptr;
 
 //-----------------------------------------------------------------------------
 //
@@ -36,9 +35,9 @@ void Engine::Update()
 {
     EventHandler::GetInstance().HandleEvents();
 
-    g_Entities->Update();
+    //g_Entities->Update();
     g_Physics->Update();
-
+    
     auto camera = g_Renderer->GetCamera();
     if (camera)
         camera->Update();
@@ -60,6 +59,10 @@ void Engine::Update()
 
 void Engine::Render()
 {
+    Uint32 flags = SDL_GetWindowFlags(m_window);
+    if (flags & SDL_WINDOW_MINIMIZED)
+        return;
+
     g_Renderer->Render();
 }
 
@@ -113,7 +116,7 @@ void Engine::Shutdown()
     if (!m_isRunning) return;
     Stop();
 
-    g_Entities->Shutdown();
+    //g_Entities->Shutdown();
     g_Physics->Shutdown();
     Networking::GetInstance().Shutdown();
 
@@ -125,7 +128,7 @@ void Engine::Shutdown()
     delete g_Physics;
     delete g_Renderer;
     delete g_Gui;
-    delete g_Entities;
+    //delete g_Entities;
 
     if(GetWindow())
         SDL_DestroyWindow(GetWindow());
@@ -137,7 +140,7 @@ void Engine::Shutdown()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Engine::CreateWindow()
+bool Engine::InitWindow()
 {
     //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -177,7 +180,7 @@ bool Engine::Init()
         return false;
     }
 
-    if (!CreateWindow()) return false;
+    if (!InitWindow()) return false;
 
     g_Assets = new AssetsSystem();
     if (!g_Assets->Init()) return false;
@@ -190,20 +193,20 @@ bool Engine::Init()
 
     if (GetGraphicsAPI() == DIRECTX11)
     {
-        g_Renderer = new D3D11Renderer();
+        g_Renderer = new DX11Renderer();
         if (!g_Renderer->Init()) return false;
     }
     else
         throw std::runtime_error("Unknown graphics API!");
 
-    g_Gui = new Gui();
-    if (!g_Gui->Init()) return false;
+    //g_Gui = new Gui();
+    //if (!g_Gui->Init()) return false;
        
     //if (!Gizmos::GetInstance().Init()) return false;
     if (!Networking::GetInstance().Init()) return false;
 
-    g_Entities = new Entities();
-    if (!g_Entities->Init()) return false;
+    //g_Entities = new Entities();
+    //if (!g_Entities->Init()) return false;
 
     CMD::GetInstance().Setup();
     CMD_LOG("Engine initialized successfully.", INFO);

@@ -25,7 +25,7 @@ static std::string LoadShaderSource(const std::string& shaderType, const std::st
 
     if (!file)
     {
-        CMD_LOG("Failed to load shader source file: " + assetPath, CMDLogType::ERROR);
+        CMD_LOG("Failed to load shader source file: " + assetPath, ERROR);
         return "";
     }
 
@@ -111,7 +111,41 @@ struct TextureData
     int Height;
     int Channels = 0;
 
+    TextureData() = default;
     ~TextureData() { if (Image) stbi_image_free(Image); }
+
+    // disable copying
+    TextureData(const TextureData&) = delete;
+    TextureData& operator=(const TextureData&) = delete;
+
+    // move constructor to transfer ownership
+    TextureData(TextureData&& other) noexcept
+        : Image(other.Image), Width(other.Width), Height(other.Height), Channels(other.Channels)
+    {
+        other.Image = nullptr;
+        other.Width = 0;
+        other.Height = 0;
+        other.Channels = 0;
+    }
+
+    TextureData& operator=(TextureData&& other) noexcept
+    {
+        if (this != &other)
+        {
+            if (Image) stbi_image_free(Image);
+
+            Image = other.Image;
+            Width = other.Width;
+            Height = other.Height;
+            Channels = other.Channels;
+
+            other.Image = nullptr;
+            other.Width = 0;
+            other.Height = 0;
+            other.Channels = 0;
+        }
+        return *this;
+    }
 };
 
 class TextureAsset : public BaseAsset
@@ -134,8 +168,6 @@ public:
             return {};
         }
 
-        TextureData data{};
-
         int width, height, channels;
         unsigned char* image = stbi_load(m_assetPath.string().c_str(), &width, &height, &channels, 0);
         if (!image)
@@ -144,6 +176,7 @@ public:
             return {};
         }
 
+        TextureData data{};
         data.Image = image;
         data.Width = width;
         data.Height = height;
@@ -234,7 +267,7 @@ public:
 
         if (!inFile.is_open()) 
         {
-            CMD_LOG("Couldn't open file [" + m_assetPath.string() + "].", CMDLogType::ERROR);
+            CMD_LOG("Couldn't open file [" + m_assetPath.string() + "].", ERROR);
             return;
         }
 
@@ -250,7 +283,7 @@ public:
         }
         catch (const json::exception& e) 
         {
-            CMD_LOG(std::string("JSON parse error: ") + e.what(), CMDLogType::ERROR);
+            CMD_LOG(std::string("JSON parse error: ") + e.what(), ERROR);
             return;
         }
 

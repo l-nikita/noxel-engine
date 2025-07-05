@@ -1,12 +1,12 @@
 #pragma once
 
-class RenderCamera;
-
 enum GraphicsAPI
 {
 	OPENGL,
 	DIRECTX11,
 };
+
+class RenderCamera;
 
 class IRenderer
 {
@@ -19,6 +19,9 @@ public:
 	virtual void OnWindowResize(int width, int height) = 0;
 
 	virtual RenderCamera* GetCamera() = 0;
+
+	virtual bool IsVSyncEnabled() = 0;
+	virtual void SetVSync(bool value) = 0;
 
 #ifdef _DEBUG
 	virtual void AddDrawCallCount() = 0;

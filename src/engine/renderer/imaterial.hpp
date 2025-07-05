@@ -18,3 +18,5 @@ public:
     virtual IShader* GetShader() const = 0;
     virtual ITexture* GetTexture(unsigned int slot) const = 0;
 };
+
+static IMaterial* g_ErrorMaterial = nullptr;

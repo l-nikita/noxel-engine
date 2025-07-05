@@ -1,17 +1,14 @@
-
 #include <d3d11.h>
-
-#include "d3d11buffer.hpp"
+#include "dx11buffer.hpp"
 #include "renderer/vertex.hpp"
 
-D3D11Buffer::D3D11Buffer(ID3D11Device* device, ID3D11DeviceContext* context, GPUBufferType type, size_t size, const void* initialData)
-    : m_device(device), m_context(context), m_type(type)
+DX11Buffer::DX11Buffer(ID3D11Device* device, ID3D11DeviceContext* context, GPUBufferType type, size_t size, const void* initialData, std::uint32_t stride)
+    : m_device(device), m_context(context), m_type(type), m_stride(stride)
 {
     D3D11_BUFFER_DESC desc = {};
     desc.ByteWidth = static_cast<UINT>(size);
-    desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.BindFlags = GetBindFlags(type);
-    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    desc.Usage = D3D11_USAGE_DEFAULT;
 
     D3D11_SUBRESOURCE_DATA data = {};
     data.pSysMem = initialData;
@@ -19,30 +16,35 @@ D3D11Buffer::D3D11Buffer(ID3D11Device* device, ID3D11DeviceContext* context, GPU
     device->CreateBuffer(&desc, initialData ? &data : nullptr, &m_buffer);
 }
 
-void D3D11Buffer::Bind(unsigned int slot = 0) 
+void DX11Buffer::Bind(std::uint32_t slot)
 {
-    switch (m_type) 
+    switch (m_type)
     {
         case GPUBufferType::VERTEX:
         {
-            UINT stride = sizeof(Vertex);
             UINT offset = 0;
-            m_context->IASetVertexBuffers(slot, 1, &m_buffer, &stride, &offset);
+            m_context->IASetVertexBuffers(slot, 1, &m_buffer, &m_stride, &offset);
             break;
         }
         case GPUBufferType::INDEX:
+        {
             m_context->IASetIndexBuffer(m_buffer, DXGI_FORMAT_R32_UINT, 0);
             break;
+        }
         case GPUBufferType::VS_CONSTANT:
+        {
             m_context->VSSetConstantBuffers(slot, 1, &m_buffer);
             break;
+        }
         case GPUBufferType::PS_CONSTANT:
+        {
             m_context->PSSetConstantBuffers(slot, 1, &m_buffer);
             break;
+        }
     }
 }
 
-void D3D11Buffer::Unbind(unsigned int slot = 0)
+void DX11Buffer::Unbind(std::uint32_t slot)
 {
     switch (m_type)
     {
@@ -55,20 +57,26 @@ void D3D11Buffer::Unbind(unsigned int slot = 0)
             break;
         }
         case GPUBufferType::INDEX:
+        {
             m_context->IASetIndexBuffer(nullptr, DXGI_FORMAT_R32_UINT, 0);
             break;
+        }
         case GPUBufferType::VS_CONSTANT:
+        {
             ID3D11Buffer* nullBuffer[1] = { nullptr };
             m_context->VSSetConstantBuffers(slot, 1, nullBuffer);
             break;
+        }
         case GPUBufferType::PS_CONSTANT:
+        {
             ID3D11Buffer* nullBuffer[1] = { nullptr };
             m_context->PSSetConstantBuffers(slot, 1, nullBuffer);
             break;
+        }
     }
 }
 
-void D3D11Buffer::Update(const void* data, size_t size)
+void DX11Buffer::Update(const void* data, size_t size)
 {
     D3D11_MAPPED_SUBRESOURCE mapped;
     m_context->Map(m_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
@@ -76,17 +84,17 @@ void D3D11Buffer::Update(const void* data, size_t size)
     m_context->Unmap(m_buffer, 0);
 }
 
-void D3D11Buffer::Destroy()
+void DX11Buffer::Destroy()
 {
-    if (m_buffer) 
+    if (m_buffer)
         m_buffer->Release();
 
     m_buffer = nullptr;
 }
 
-unsigned int D3D11Buffer::GetBindFlags(GPUBufferType type)
+uint32_t DX11Buffer::GetBindFlags(GPUBufferType type)
 {
-    switch (type) 
+    switch (type)
     {
         case GPUBufferType::VERTEX: return D3D11_BIND_VERTEX_BUFFER;
         case GPUBufferType::INDEX: return D3D11_BIND_INDEX_BUFFER;

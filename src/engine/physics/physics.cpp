@@ -20,7 +20,6 @@
 
 #include "engine.hpp"
 #include "cmd/cmd.hpp"
-#include "renderer/gizmos.hpp"
 #include "utils.hpp"
 
 using namespace JPH;

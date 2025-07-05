@@ -64,6 +64,7 @@ target_link_libraries(engine PUBLIC
     d3d11
     dxgi
     d3dcompiler
+	dxguid
 )
 
 target_include_directories(engine PUBLIC ${Stb_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})

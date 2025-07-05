@@ -13,7 +13,7 @@ public:
     ~Engine() { Shutdown(); }
 
     bool Init() override;
-    bool CreateWindow();
+    bool InitWindow() override;
 
     void Run() override;
     void Stop() override;
@@ -43,7 +43,7 @@ public:
     float ElapsedTime() override { return m_elapsedTime.count(); }
     // -------------------------------------------------
 
-    virtual GraphicsAPI GetGraphicsAPI() { return DIRECTX11; }
+    GraphicsAPI GetGraphicsAPI() { return DIRECTX11; }
 
 private:
     SDL_Window* m_window = nullptr;

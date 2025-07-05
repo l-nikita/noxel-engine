@@ -5,7 +5,6 @@
 #include "cmd/cmd.hpp"
 #include "input/input.hpp"
 #include "iengine.hpp"
-#include "entities/entities.hpp"
 
 constexpr auto CAMERA_FOV = 95.0f;
 constexpr auto DEPTH_NEAR = 0.1f;
@@ -26,8 +25,9 @@ void RenderCamera::OnFrameBufferResize(int& width, int& height)
 
 void RenderCamera::Update()
 {
-	auto delta = g_Input->GetMouseDelta();
+	//std::cout << m_Transform.ToString() << std::endl;
 
+	auto delta = g_Input->GetMouseDelta();
 	if (g_Input->GetRelativeMouseMode() == false)
 		return;
 
@@ -66,7 +66,7 @@ void RenderCamera::Move(glm::vec3 direction, float distance)
 
 glm::mat4 RenderCamera::GetViewMatrix() const
 {
-	return glm::lookAt(m_Transform.Position, 
+	return glm::lookAt(m_Transform.Position,
 		m_Transform.Position + m_Transform.Forward(), 
 		m_Transform.Up());
 }
