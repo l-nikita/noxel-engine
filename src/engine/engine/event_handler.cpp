@@ -17,7 +17,7 @@ void EventHandler::HandleEvents()
 
 void EventHandler::OnEvent(SDL_Event& event)
 {
-	//ImGui_ImplSDL3_ProcessEvent(&event);
+	ImGui_ImplSDL3_ProcessEvent(&event);
 
 	auto type = event.type;
 	switch (type)

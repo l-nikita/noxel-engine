@@ -12,7 +12,7 @@ class DX11Mesh : public IMesh
 public:
     DX11Mesh(ID3D11Device* device, ID3D11DeviceContext* context,
         const void* vertices, uint32_t vertexSize, uint32_t vertexCount,
-        const uint32_t* indices, uint32_t indexCount);
+        const void* indices, uint32_t indexCount);
 
     ~DX11Mesh() { Destroy(); }
 

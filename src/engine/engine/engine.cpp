@@ -4,21 +4,23 @@
 #include <string>
 #include <chrono>
 
+
 #include "renderer/directx11/dx11renderer.hpp"
 #include "renderer/render_camera.hpp"
-#include "engine.hpp"
-#include "assetsystem/assets_system.hpp"
-#include "physics/physics.hpp"
+#include "common/profiler.hpp"
+#include "event_handler.hpp"
 #include "input/input.hpp"
+#include "renderer/gizmos.hpp"
 #include "gui/gui.hpp"
 #include "gui/panel.hpp"
 #include "gui/imgui/debug_menu/debug_menu.hpp"
-#include "common/profiler.hpp"
-#include "event_handler.hpp"
-#include "cmd/cmd.hpp"
+#include "assetsystem/assets_system.hpp"
+#include "physics/physics.hpp"
 #include "networking/networking.hpp"
 #include "server/server.hpp"
 #include "client/client.hpp"
+#include "cmd/cmd.hpp"
+#include "engine.hpp"
 
 IEngine* g_Engine = nullptr;
 IInput* g_Input = nullptr;
@@ -130,6 +132,8 @@ void Engine::Shutdown()
     delete g_Gui;
     //delete g_Entities;
 
+    Gizmos::Shutdown();
+
     if(GetWindow())
         SDL_DestroyWindow(GetWindow());
 
@@ -142,12 +146,16 @@ void Engine::Shutdown()
 //-----------------------------------------------------------------------------
 bool Engine::InitWindow()
 {
-    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
     if (GetGraphicsAPI() == DIRECTX11)
         m_window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_RESIZABLE);
+    else if (GetGraphicsAPI() == OPENGL)
+    {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+        m_window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+    }
     else
         throw std::runtime_error("Unknown graphics API!");
 
@@ -196,21 +204,23 @@ bool Engine::Init()
         g_Renderer = new DX11Renderer();
         if (!g_Renderer->Init()) return false;
     }
-    else
-        throw std::runtime_error("Unknown graphics API!");
+    else if (GetGraphicsAPI() == OPENGL)
+    {
 
-    //g_Gui = new Gui();
-    //if (!g_Gui->Init()) return false;
-       
-    //if (!Gizmos::GetInstance().Init()) return false;
+    }
+
+    g_Gui = new Gui();
+    if (!g_Gui->Init()) return false;
+
     if (!Networking::GetInstance().Init()) return false;
 
     //g_Entities = new Entities();
     //if (!g_Entities->Init()) return false;
 
+    Gizmos::Init();
     CMD::GetInstance().Setup();
-    CMD_LOG("Engine initialized successfully.", INFO);
 
+    CMD_LOG("Engine initialized successfully.", INFO);
     return true;
 }
 

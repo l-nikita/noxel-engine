@@ -1,6 +1,6 @@
 FragmentShader
 [
-	cbuffer ColorBuffer : register(b1)
+	cbuffer ColorBuffer : register(b0)
 	{
 		float4 color;
 	};
@@ -13,31 +13,35 @@ FragmentShader
 
 VertexShader
 [
-	cbuffer Matrices : register(b0)
+	cbuffer ConstantBuffer : register(b0) 
 	{
 		matrix model;
 		matrix view;
 		matrix projection;
-	}
-
-	struct VS_INPUT
-	{
-		float3 aPosition : POSITION;
 	};
 
-	struct VS_OUTPUT
+	struct VSInput 
 	{
-		float4 Position : SV_POSITION;
+		float3 pos : POSITION;
+		float4 col : COLOR;
+		float2 uv  : TEXCOORD0;
 	};
 
-	VS_OUTPUT main(VS_INPUT input)
+	struct VSOutput 
 	{
-		VS_OUTPUT output;
+		float4 pos : SV_POSITION;
+		float4 col : COLOR;
+		float2 uv  : TEXCOORD0;
+	};
 
-		float4 worldPos = mul(float4(input.aPosition, 1.0f), model);
-		float4 viewPos = mul(worldPos, view);
-		output.Position = mul(viewPos, projection);
-
+	VSOutput main(VSInput input) 
+	{
+		VSOutput output;
+		
+		output.pos = mul(mul(mul(float4(input.pos, 1.0f), model), view), projection);
+		
+		output.col = input.col;
+		output.uv = input.uv;
 		return output;
 	}
 ]

@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "imesh.hpp"
+#include "ishader.hpp"
 #include "imaterial.hpp"
 #include "common/transformable.hpp"
 
@@ -20,9 +21,13 @@ public:
 
     void SetMaterial(IMaterial* material, size_t index = 0);
 
-    IMaterial* GetMaterial(size_t index) const;
     IMaterial* GetMaterial() const;
+    IMaterial* GetMaterial(size_t index) const;
+    std::vector<IMaterial*> GetMaterials() const;
+
+    IMesh* GetMesh() const;
     IMesh* GetMesh(size_t index) const;
+    std::vector<IMesh*> GetMeshes() const;
 
     void Draw();
     void Destory();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <d3d11.h>
 #include "renderer/imaterial.hpp"
 #include "renderer/ishader.hpp"
@@ -16,15 +17,15 @@ public:
     void Unbind() override;
     void Destroy() override;
 
-    void SetShader(IShader* shader) override;
-    void SetTexture(unsigned int slot, ITexture* texture) override;
+    void SetShader(IShaderProgram* shader) override;
+    void SetTexture(std::uint32_t slot = 0, ITexture* texture = nullptr) override;
 
-    IShader* GetShader() const override;
-    ITexture* GetTexture(unsigned int slot) const override;
+    IShaderProgram* GetShader() const override;
+    ITexture* GetTexture(std::uint32_t slot = 0) const override;
 
 private:
     MaterialAsset* m_asset;
     ID3D11DeviceContext* m_context;
-    IShader* m_shader = nullptr;
+    IShaderProgram* m_shader = nullptr;
     ITexture* m_textures[MATERIAL_TEXTURES_SLOTS] = { nullptr }; // 8 slots by default
 };

@@ -31,8 +31,8 @@ void RenderCamera::Update()
 	if (g_Input->GetRelativeMouseMode() == false)
 		return;
 
-	m_yaw -= delta.x * SENSITIVITY;
-	m_pitch -= delta.y * SENSITIVITY;
+	m_yaw += delta.x * SENSITIVITY;
+	m_pitch += delta.y * SENSITIVITY;
 	m_pitch = std::clamp(m_pitch, -85.0f, 85.0f);
 
 	glm::quat qPitch = glm::angleAxis(glm::radians(m_pitch), glm::vec3(1, 0, 0));
@@ -66,12 +66,13 @@ void RenderCamera::Move(glm::vec3 direction, float distance)
 
 glm::mat4 RenderCamera::GetViewMatrix() const
 {
-	return glm::lookAt(m_Transform.Position,
-		m_Transform.Position + m_Transform.Forward(), 
+	return glm::lookAtLH(m_Transform.Position,
+		m_Transform.Position + m_Transform.Forward(),
 		m_Transform.Up());
 }
 
 glm::mat4 RenderCamera::GetProjectionMatrix() const
 {
-	return glm::perspective(glm::radians(CAMERA_FOV), m_screenAspect, DEPTH_NEAR, DEPTH_FAR);
+	auto proj = glm::perspectiveLH(glm::radians(CAMERA_FOV), m_screenAspect, DEPTH_NEAR, DEPTH_FAR);
+	return glm::perspectiveLH(glm::radians(CAMERA_FOV), m_screenAspect, DEPTH_NEAR, DEPTH_FAR);
 }

@@ -68,3 +68,8 @@ target_link_libraries(engine PUBLIC
 )
 
 target_include_directories(engine PUBLIC ${Stb_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+
+
+set(SLANG_ROOT "E:/DEV/Programs/slang")
+include_directories(${SLANG_ROOT}/include)
+target_link_libraries(engine PUBLIC "${SLANG_ROOT}/lib/slang.lib")

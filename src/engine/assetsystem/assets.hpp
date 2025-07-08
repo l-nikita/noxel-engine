@@ -9,10 +9,14 @@
 #include <nlohmann/json.hpp>
 #include <stb_image.h>
 
-#include "renderer/ishader.hpp"
+#include "renderer/ishaderprogram.hpp"
 #include "base_asset.hpp"
 #include "assets_system.hpp"
 #include "cmd/cmd.hpp"
+
+#include <slang.h>
+#include <slang-com-ptr.h>
+#include <slang-com-helper.h>
 
 //-----------------------------------------------------------------------------
 //
@@ -64,6 +68,7 @@ public:
     {
         m_name = name;
         m_assetPath = assetPath;
+
         m_shaderFragSource = LoadShaderSource("FragmentShader", assetPath);
         m_shaderVertSource = LoadShaderSource("VertexShader", assetPath);
     }
@@ -169,7 +174,7 @@ public:
         }
 
         int width, height, channels;
-        unsigned char* image = stbi_load(m_assetPath.string().c_str(), &width, &height, &channels, 0);
+        unsigned char* image = stbi_load(m_assetPath.string().c_str(), &width, &height, &channels, 4);
         if (!image)
         {
             CMD_LOG("Couln't load texture ["+ m_assetPath.string()+"]!", ERROR);

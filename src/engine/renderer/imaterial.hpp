@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 constexpr auto MATERIAL_TEXTURES_SLOTS = 8;
 
 class IMaterial
@@ -12,11 +14,11 @@ public:
     virtual void Destroy() = 0;
 
     // Set a texture to a slot (e.g. diffuse, normal map, etc.)
-    virtual void SetTexture(unsigned int slot, class ITexture* texture) = 0;
-    virtual void SetShader(class IShader* shader) = 0;
+    virtual void SetTexture(std::uint32_t slot = 0, class ITexture* texture = nullptr) = 0;
+    virtual void SetShader(class IShaderProgram* shader) = 0;
 
-    virtual IShader* GetShader() const = 0;
-    virtual ITexture* GetTexture(unsigned int slot) const = 0;
+    virtual IShaderProgram* GetShader() const = 0;
+    virtual ITexture* GetTexture(std::uint32_t slot = 0) const = 0;
 };
 
-static IMaterial* g_ErrorMaterial = nullptr;
+extern IMaterial* g_ErrorMaterial;

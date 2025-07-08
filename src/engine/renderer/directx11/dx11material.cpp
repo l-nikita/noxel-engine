@@ -1,6 +1,8 @@
 #include "dx11texture.hpp"
-#include "dx11shader.hpp"
+#include "dx11shaderprogram.hpp"
 #include "dx11material.hpp"
+#include "dx11factory.hpp"
+#include "dx11renderer.hpp"
 #include <d3d11.h>
 
 DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset)
@@ -12,19 +14,22 @@ DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, M
 
     auto shaderAsset = m_asset->ShaderAsset();
     if (shaderAsset != nullptr)
-        m_shader = new DX11Shader(device, context, shaderAsset.get());
+        m_shader = g_Renderer->GetFactory()->CreateShaderProgram(shaderAsset.get());
 }
 
 void DX11Material::Bind()
 {
-    if (m_shader)
-        m_shader->Bind();
-
-    for (unsigned int i = 0; i < MATERIAL_TEXTURES_SLOTS; ++i)
+    for (std::uint32_t i = 0; i < MATERIAL_TEXTURES_SLOTS; ++i)
     {
-        if (m_textures[i])
-            m_textures[i]->Bind(i);
+        auto* tex = m_textures[i];
+        if (tex)
+        {
+            if (m_shader)
+                m_shader->SetPSParameter("basetexture", tex);
+        }
     }
+
+    if (m_shader) m_shader->Bind();
 }
 
 void DX11Material::Unbind()
@@ -43,30 +48,30 @@ void DX11Material::Destroy()
 {
     delete m_shader;
 
-    for (unsigned int i = 0; i < MATERIAL_TEXTURES_SLOTS; ++i)
+    for (std::uint32_t i = 0; i < MATERIAL_TEXTURES_SLOTS; ++i)
     {
         if (m_textures[i])
             delete m_textures[i];
     }
 }
 
-void DX11Material::SetShader(IShader* shader)
+void DX11Material::SetShader(IShaderProgram* shader)
 {
     m_shader = shader;
 }
 
-void DX11Material::SetTexture(unsigned int slot, ITexture* texture)
+void DX11Material::SetTexture(std::uint32_t slot, ITexture* texture)
 {
     if (slot < MATERIAL_TEXTURES_SLOTS)
         m_textures[slot] = texture;
 }
 
-IShader* DX11Material::GetShader() const
+IShaderProgram* DX11Material::GetShader() const
 {
     return m_shader;
 }
 
-ITexture* DX11Material::GetTexture(unsigned int slot) const
+ITexture* DX11Material::GetTexture(std::uint32_t slot) const
 {
     if (slot < MATERIAL_TEXTURES_SLOTS)
         return m_textures[slot];

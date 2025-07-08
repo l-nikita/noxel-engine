@@ -16,6 +16,9 @@ bool AssetsSystem::Init()
 
 	ShaderAsset::CreateNew("default", "E:/DEV/Sources/NoxelEngine/build/assets/shaders/default.hlsl");
 	ShaderAsset::CreateNew("gizmos", "E:/DEV/Sources/NoxelEngine/build/assets/shaders/gizmos.hlsl");
+
+	TextureAsset::CreateNew("error", "E:/DEV/Sources/NoxelEngine/build/assets/materials/engine/error.png");
+
 	MaterialAsset::CreateNew("error", "E:/DEV/Sources/NoxelEngine/build/assets/materials/engine/error.nmt");
 	MaterialAsset::CreateNew("gizmos", "E:/DEV/Sources/NoxelEngine/build/assets/materials/engine/gizmos.nmt");
 

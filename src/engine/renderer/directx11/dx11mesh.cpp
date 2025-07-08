@@ -1,5 +1,6 @@
 #include "dx11buffer.hpp"
 #include "dx11mesh.hpp"
+#include "renderer/irenderer.hpp"
 #include <stdexcept>
 #include <cstdint>
 #include <iostream>
@@ -7,7 +8,7 @@
 
 DX11Mesh::DX11Mesh(ID3D11Device* device, ID3D11DeviceContext* context,
     const void* vertices, uint32_t vertexSize, uint32_t vertexCount,
-    const uint32_t* indices, uint32_t indexCount)
+    const void* indices, uint32_t indexCount)
     : m_context(context), m_vertexCount(vertexCount), m_indexCount(indexCount), m_vertexStride(vertexSize)
 {
     m_vertexBuffer = new DX11Buffer(
@@ -48,5 +49,8 @@ void DX11Mesh::Draw()
 {
     Bind();
     m_context->DrawIndexed(m_indexCount, 0, 0);
+#ifdef _DEBUG
+    g_Renderer->AddDrawCallCount();
+#endif
     Unbind();
 }

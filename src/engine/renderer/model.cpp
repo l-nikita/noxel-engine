@@ -1,8 +1,12 @@
 #include "iengine.hpp"
+#include "ishaderprogram.hpp"
 #include "model.hpp"
 #include "render_camera.hpp"
 #include "cmd/cmd.hpp"
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 Model::Model(const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials)
 {
     m_meshes = meshes;
@@ -28,6 +32,9 @@ Model::Model(IMesh* mesh, IMaterial* material)
     m_materials.push_back(std::move(material));
 }
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void Model::Draw()
 {
     for (auto i = 0; i < m_meshes.size(); ++i)
@@ -39,12 +46,17 @@ void Model::Draw()
             continue;
         }
 
+        mat->GetShader()->SetVSParameter("model", m_Transform.GetTransformMatrix());
         mat->Bind();
+        g_Renderer->SetPrimitiveTopology(TRIANGLES);
         m_meshes[i]->Draw();
         mat->Unbind();
     }
 }
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void Model::SetMaterial(IMaterial* material, size_t index)
 {
     if (!material)
@@ -61,14 +73,28 @@ void Model::SetMaterial(IMaterial* material, size_t index)
     m_materials[index] = material;
 }
 
+//-----------------------------------------------------------------------------
+IMaterial* Model::GetMaterial() const
+{
+    return !m_materials.empty() ? m_materials[0] : nullptr;
+}
+
 IMaterial* Model::GetMaterial(size_t index) const
 {
     return (index < m_materials.size()) ? m_materials[index] : nullptr;
 }
 
-IMaterial* Model::GetMaterial() const
+std::vector<IMaterial*> Model::GetMaterials() const
 {
-    return !m_materials.empty() ? m_materials[0] : nullptr;
+    return m_materials;
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+IMesh* Model::GetMesh() const
+{
+    return !m_meshes.empty() ? m_meshes[0] : nullptr;
 }
 
 IMesh* Model::GetMesh(size_t index) const
@@ -76,6 +102,14 @@ IMesh* Model::GetMesh(size_t index) const
     return (index < m_meshes.size()) ? m_meshes[index] : nullptr;
 }
 
+std::vector<IMesh*> Model::GetMeshes() const
+{
+    return m_meshes;
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void Model::Destory()
 {
     for (auto& mesh : m_meshes)

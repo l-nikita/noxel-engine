@@ -1,7 +1,9 @@
 #include <SDL3/SDL.h>
+#include <glm/gtc/type_ptr.hpp>
 #include "dx11renderer.hpp"
 #include "dx11material.hpp"
 #include "dx11mesh.hpp"
+#include "dx11texture.hpp"
 #include "iengine.hpp"
 #include "renderer/imaterial.hpp"
 #include "renderer/model.hpp"
@@ -12,18 +14,9 @@
 
 #define INITGUID
 #include <d3d11.h>
-#include <DirectXMath.h>
 
-static Model* TestModel;
-static Model* TestModel2;
-static ID3D11Buffer* ConstantBuffer;
-
-struct MatricesCB
-{
-    DirectX::XMMATRIX model;
-    DirectX::XMMATRIX view;
-    DirectX::XMMATRIX projection;
-};
+ITexture* g_ErrorTexture = nullptr;
+IMaterial* g_ErrorMaterial = nullptr;
 
 //-----------------------------------------------------------------------------
 //
@@ -87,10 +80,16 @@ bool DX11Renderer::Init()
 
     OnWindowResize(width, height);
 
+    //-------------------------------------------
+    m_factory = new DX11Factory(m_device, m_context);
     m_camera = new RenderCamera(width, height);
-    g_ErrorMaterial = new DX11Material(m_device, m_context, MaterialAsset::GetError().get());
 
-    Vertex cubeVertices[] = {
+    //-------------------------------------------
+    g_ErrorTexture = new DX11Texture(m_device, m_context, TextureAsset::GetError().get());
+    g_ErrorMaterial = m_factory->CreateMaterial(MaterialAsset::GetError().get());
+
+    std::vector<Vertex> cubeVertices
+    {
         // Front
         {{-1, -1,  1}, {1,1,1,1}, {0,1}},
         {{ 1, -1,  1}, {1,1,1,1}, {1,1}},
@@ -128,7 +127,8 @@ bool DX11Renderer::Init()
         {{-1,  1, -1}, {1,1,1,1}, {0,0}},
     };
 
-    UINT cubeIndices[] = {
+    std::vector<uint32_t> cubeIndices
+    {
         // Front
         0, 1, 2,  2, 3, 0,
         // Back
@@ -143,28 +143,21 @@ bool DX11Renderer::Init()
         20,21,22, 22,23,20
     };
 
-    auto mesh = new DX11Mesh(
-        m_device,
-        m_context,
-        cubeVertices,
-        sizeof(Vertex),
-        static_cast<uint32_t>(std::size(cubeVertices)),
-        cubeIndices,
-        static_cast<uint32_t>(std::size(cubeIndices))
-    );
+    auto* mat = m_factory->CreateMaterial("dirt");
+    auto* mesh = m_factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
 
-    auto mat = new DX11Material(m_device, m_context, MaterialAsset::Get("dirt").get());
-    TestModel = new Model(mesh, mat);
-    TestModel2 = new Model(mesh, mat);
-    TestModel2->m_Transform.Position = glm::vec3(0, 2, 5);
-
-    D3D11_BUFFER_DESC cbDesc = {};
-    cbDesc.ByteWidth = sizeof(MatricesCB);
-    cbDesc.Usage = D3D11_USAGE_DEFAULT;
-    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbDesc.CPUAccessFlags = 0;
-
-    m_device->CreateBuffer(&cbDesc, nullptr, &ConstantBuffer);
+    for (size_t i = 0; i < 45; i++)
+    {
+        for (size_t j = 0; j < 45; j++)
+        {
+            if (mat && mesh)
+            {
+                auto model = new Model(mesh, mat);
+                model->m_Transform.Position = glm::vec3(j*3, 0, i * 3);
+                m_Models.push_back(model);
+            }
+        }
+    }
 
 	CMD_LOG("] Renderer initialized", INFO);
 	return true;
@@ -175,46 +168,36 @@ bool DX11Renderer::Init()
 //-----------------------------------------------------------------------------
 void DX11Renderer::Render()
 {
-    float clearColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
+    float clearColor[4] = { 0.1f, 0.2f, 0.3f, 1.0f };
 
     m_context->OMSetRenderTargets(1, &m_rtv, m_dsv);
     m_context->ClearRenderTargetView(m_rtv, clearColor);
     m_context->ClearDepthStencilView(m_dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
     //-------------------------------------------
-    glm::mat4 model = TestModel->GetTransformMatrix();
-    glm::mat4 view = m_camera->GetViewMatrix();
-    glm::mat4 projection = m_camera->GetProjectionMatrix();
-
-    //MatricesCB matricesCB{ model, view, projection };
-
-    DirectX::XMMATRIX dxModel = DirectX::XMLoadFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&model));
-    DirectX::XMMATRIX dxView = DirectX::XMLoadFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&view));
-    DirectX::XMMATRIX dxProj = DirectX::XMLoadFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(&projection));
-
-    MatricesCB matricesCB{ DirectX::XMMatrixTranspose(dxModel), DirectX::XMMatrixTranspose(dxView), DirectX::XMMatrixTranspose(dxProj) };
-
-    m_context->UpdateSubresource(ConstantBuffer, 0, nullptr, &matricesCB, 0, 0);
-    m_context->VSSetConstantBuffers(0, 1, &ConstantBuffer);
-
-    TestModel->Draw();
-
-
-    //modelT = TestModel2->GetTransformMatrix();
-    //viewT = m_camera->GetViewMatrix();
-    //projectionT = m_camera->GetProjectionMatrix();
-
-    //matricesCB = { modelT, viewT, projectionT };
-
-    //m_context->UpdateSubresource(ConstantBuffer, 0, nullptr, &matricesCB, 0, 0);
-    //m_context->VSSetConstantBuffers(0, 1, &ConstantBuffer);
-
-    //TestModel2->Draw();
+    for (auto model : m_Models)
+    {
+        model->Draw();
+    }
 
     //-------------------------------------------
-    //g_Gui->Render();
+    g_Gui->Render();
 
     m_swapChain->Present(m_vsyncEnabled ? 1 : 0, 0);
+#ifdef _DEBUG
+    m_DrawCallCount = 0;
+#endif
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+void DX11Renderer::SetPrimitiveTopology(PrimitiveTopology topology)
+{
+    if (topology == LINES)
+        m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    else if (topology == TRIANGLES)
+        m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 //-----------------------------------------------------------------------------
@@ -222,6 +205,12 @@ void DX11Renderer::Render()
 //-----------------------------------------------------------------------------
 void DX11Renderer::Shutdown()
 {
+    for (auto model : m_Models)
+    {
+        delete model;
+        model = nullptr;
+    }
+
 	delete m_camera;
     m_rtv->Release();
     m_swapChain->Release();

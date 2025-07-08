@@ -17,16 +17,16 @@ struct Transform
     Transform() = default;
 
     Transform(const glm::vec3& pos)
-        : Position(pos), Rotation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f)), Scale(1.0f) {
-    }
+        : Position(pos), Rotation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f)), Scale(1.0f) 
+    {}
 
     Transform(const glm::vec3& position, const glm::quat& rotation, float scale = 1.0f)
-        : Position(position), Rotation(rotation), Scale(scale) {
-    }
+        : Position(position), Rotation(rotation), Scale(scale) 
+    {}
 
     Transform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
-        : Position(position), Rotation(rotation), Scale(scale) {
-    }
+        : Position(position), Rotation(rotation), Scale(scale) 
+    {}
 
     glm::mat4 GetTransformMatrix() const
     {

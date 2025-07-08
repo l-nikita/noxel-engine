@@ -25,7 +25,6 @@ private:
     ID3D11ShaderResourceView* m_srv = nullptr;
     ID3D11Resource* m_resource = nullptr;
     ID3D11Texture2D* m_texture = nullptr;
-    ID3D11SamplerState* m_samplerState = nullptr;
 
     std::uint32_t m_width = 0;
     std::uint32_t m_height = 0;

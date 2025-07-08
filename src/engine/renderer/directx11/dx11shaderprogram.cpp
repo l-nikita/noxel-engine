@@ -1,9 +1,11 @@
-#include "dx11shader.hpp"
+#include "dx11shaderprogram.hpp"
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <string>
 #include "renderer/vertex.hpp"
+#include "shaders/default.hpp"
 
-DX11Shader::DX11Shader(ID3D11Device* device, ID3D11DeviceContext* context, ShaderAsset* asset)
+DX11ShaderProgram::DX11ShaderProgram(ID3D11Device* device, ID3D11DeviceContext* context, ShaderAsset* asset)
     : m_device(device), m_context(context), m_vs(nullptr), m_ps(nullptr), m_vsBlob(nullptr), m_psBlob(nullptr)
 {
     Compile(asset, VERTEX);
@@ -14,37 +16,30 @@ DX11Shader::DX11Shader(ID3D11Device* device, ID3D11DeviceContext* context, Shade
         nullptr, &m_vs);
 
     if (FAILED(hr)) 
-        throw std::runtime_error("Failed to create vertex shader");
+        throw std::runtime_error("Failed to create vertex dx11 shader");
 
     hr = m_device->CreatePixelShader(
         m_psBlob->GetBufferPointer(), m_psBlob->GetBufferSize(),
         nullptr, &m_ps);
 
     if (FAILED(hr)) 
+        throw std::runtime_error("Failed to create pixel dx11 shader");
+
+    m_vShader = ShaderRegistry::Create(asset->GetName() + "VS", this);
+    if (!m_vShader)
         throw std::runtime_error("Failed to create pixel shader");
 
-    D3D11_INPUT_ELEMENT_DESC layout[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,     0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, offsetof(Vertex, Color),    D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,        0, offsetof(Vertex, UV),       D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-
-    hr = m_device->CreateInputLayout(
-        layout, ARRAYSIZE(layout),
-        m_vsBlob->GetBufferPointer(),
-        m_vsBlob->GetBufferSize(),
-        &m_inputLayout);
-
-    if (FAILED(hr))
-        throw std::runtime_error("Failed to create input layout");
+    m_pShader = ShaderRegistry::Create(asset->GetName()+"PS", this);
+    if(!m_pShader)
+        throw std::runtime_error("Failed to create pixel shader");
 }
 
-void DX11Shader::Compile(ShaderAsset* asset, ShaderType type)
+void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
 {
     ID3D10Blob* errorBlob = nullptr;
     HRESULT hr;
 
-    UINT compileFlags = 0;
+    UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
     compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
@@ -65,6 +60,7 @@ void DX11Shader::Compile(ShaderAsset* asset, ShaderType type)
         if (errorBlob)
         {
             OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+            CMD_LOG("Shader compilation error: \n" + std::string((char*)errorBlob->GetBufferPointer()), ERROR);
             errorBlob->Release();
         }
 
@@ -72,35 +68,38 @@ void DX11Shader::Compile(ShaderAsset* asset, ShaderType type)
     }
 }
 
-void DX11Shader::Bind()
+void DX11ShaderProgram::Bind()
 {
-    m_context->IASetInputLayout(m_inputLayout);
+    if (m_vShader) m_vShader->Bind();
+    if (m_pShader) m_pShader->Bind();
     m_context->VSSetShader(m_vs, nullptr, 0);
     m_context->PSSetShader(m_ps, nullptr, 0);
 }
 
-void DX11Shader::Unbind()
+void DX11ShaderProgram::Unbind()
 {
-    m_context->IASetInputLayout(nullptr);
+    if (m_vShader) m_vShader->Unbind();
+    if (m_pShader) m_pShader->Unbind();
     m_context->VSSetShader(nullptr, nullptr, 0);
     m_context->PSSetShader(nullptr, nullptr, 0);
 }
 
-void DX11Shader::Destroy()
+void DX11ShaderProgram::Destroy()
 {
+    if (m_vShader) m_vShader->Destroy();
+    if (m_pShader) m_pShader->Destroy();
     if (m_vs) m_vs->Release();
     if (m_ps) m_ps->Release();
     if (m_vsBlob) m_vsBlob->Release();
     if (m_psBlob) m_psBlob->Release();
-    if (m_inputLayout) m_inputLayout->Release();
 }
 
-ID3DBlob* DX11Shader::GetVSBlob() const
+ID3DBlob* DX11ShaderProgram::GetVSBlob() const
 { 
     return m_vsBlob; 
 }
 
-ID3DBlob* DX11Shader::GetPSBlob() const
+ID3DBlob* DX11ShaderProgram::GetPSBlob() const
 { 
     return m_psBlob; 
 }
