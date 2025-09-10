@@ -10,11 +10,11 @@ DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, M
 {
     auto texAsset = m_asset->TextureAsset();
     if (texAsset != nullptr)
-        m_textures[0] = new DX11Texture(device, context, texAsset.get()); // TODO
+        m_textures[0] = new DX11Texture(device, context, texAsset); // TODO
 
     auto shaderAsset = m_asset->ShaderAsset();
     if (shaderAsset != nullptr)
-        m_shader = g_Renderer->GetFactory()->CreateShaderProgram(shaderAsset.get());
+        m_shader = g_Renderer->GetFactory()->CreateShaderProgram(shaderAsset);
 }
 
 void DX11Material::Bind()
@@ -68,6 +68,7 @@ void DX11Material::SetTexture(std::uint32_t slot, ITexture* texture)
 
 IShaderProgram* DX11Material::GetShader() const
 {
+    assert(m_shader != nullptr);
     return m_shader;
 }
 

@@ -6,14 +6,14 @@
 #include <memory>
 
 #include "common/singleton.hpp"
-#include "iassets_system.hpp"
+#include "iasset_system.hpp"
 #include "asset_type.hpp"
 #include "base_asset.hpp"
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class AssetsSystem : public IAssetsSystem
+class AssetSystem : public IAssetSystem
 {
 private:
 	std::unordered_map<AssetType, AssetsMap> m_assets;
@@ -30,18 +30,18 @@ public:
 
     std::filesystem::path GetMaterialsPath() override { return GetAssetsPath() / "materials"; }
 
-	void RegisterAsset(AssetPtr asset);
+	void RegisterAsset(BaseAsset* asset);
 
-    AssetsMap GetAssets(AssetType type) override
+    const AssetsMap& GetAssets(AssetType type) override
     {
         auto it = m_assets.find(type);
         if (it == m_assets.end())
-            return {};
+            return m_assets[type];
 
         return it->second;
     }
 
-    AssetPtr HasAsset(AssetType type, const std::string& name) override
+    BaseAsset* GetAsset(AssetType type, const std::string& name) override
     {
         auto typeIt = m_assets.find(type);
         if (typeIt == m_assets.end())

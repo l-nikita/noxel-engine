@@ -43,7 +43,7 @@ IMaterial* DX11Factory::CreateMaterial(std::string assetName)
     if (assetName.empty())
         return nullptr;
 
-    auto* asset = MaterialAsset::Get(assetName).get();
+    auto asset = MaterialAsset::Get(assetName);
     if (!asset)
         return nullptr;
 

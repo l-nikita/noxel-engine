@@ -38,6 +38,7 @@ public:
 	void FlushPendingDestructions() override;
 
 	// Shapes
+	// TODO: Make structs instead of arguments
 
 	static JPH::BodyID CreateShapeBox(
 		const JPH::RVec3& pos,

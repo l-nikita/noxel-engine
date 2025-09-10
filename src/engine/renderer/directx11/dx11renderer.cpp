@@ -85,8 +85,8 @@ bool DX11Renderer::Init()
     m_camera = new RenderCamera(width, height);
 
     //-------------------------------------------
-    g_ErrorTexture = new DX11Texture(m_device, m_context, TextureAsset::GetError().get());
-    g_ErrorMaterial = m_factory->CreateMaterial(MaterialAsset::GetError().get());
+    g_ErrorTexture = new DX11Texture(m_device, m_context, TextureAsset::GetError());
+    g_ErrorMaterial = m_factory->CreateMaterial(MaterialAsset::GetError());
 
     std::vector<Vertex> cubeVertices
     {
@@ -143,9 +143,11 @@ bool DX11Renderer::Init()
         20,21,22, 22,23,20
     };
 
+    // Memory leak, make resource manager
     auto* mat = m_factory->CreateMaterial("dirt");
     auto* mesh = m_factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
 
+    /*
     for (size_t i = 0; i < 45; i++)
     {
         for (size_t j = 0; j < 45; j++)
@@ -158,6 +160,11 @@ bool DX11Renderer::Init()
             }
         }
     }
+    */
+
+    auto model = new Model(mesh, mat);
+    model->m_Transform.Position = glm::vec3(0, 0, 5);
+    m_Models.push_back(model);
 
 	CMD_LOG("] Renderer initialized", INFO);
 	return true;

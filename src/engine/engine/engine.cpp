@@ -14,7 +14,7 @@
 #include "gui/gui.hpp"
 #include "gui/panel.hpp"
 #include "gui/imgui/debug_menu/debug_menu.hpp"
-#include "assetsystem/assets_system.hpp"
+#include "assetsystem/asset_system.hpp"
 #include "physics/physics.hpp"
 #include "networking/networking.hpp"
 #include "server/server.hpp"
@@ -24,7 +24,7 @@
 
 IEngine* g_Engine = nullptr;
 IInput* g_Input = nullptr;
-IAssetsSystem* g_Assets = nullptr;
+IAssetSystem* g_Assets = nullptr;
 IPhysics* g_Physics = nullptr;
 IRenderer* g_Renderer = nullptr;
 IGui* g_Gui = nullptr;
@@ -190,7 +190,7 @@ bool Engine::Init()
 
     if (!InitWindow()) return false;
 
-    g_Assets = new AssetsSystem();
+    g_Assets = new AssetSystem();
     if (!g_Assets->Init()) return false;
 
     g_Input = new Input();
