@@ -9,8 +9,13 @@
 #include "renderer/model.hpp"
 #include "renderer/render_camera.hpp"
 #include "renderer/vertex.hpp"
+#include "renderer/gizmos.hpp"
 #include "gui/igui.hpp"
 #include "cmd/cmd.hpp"
+
+// Shaders should be included here (somewhere). Compiler issue.
+#include "shaders/dx11shader_default.hpp"
+#include "shaders/dx11shader_gizmos.hpp"
 
 #define INITGUID
 #include <d3d11.h>
@@ -186,6 +191,8 @@ void DX11Renderer::Render()
     {
         model->Draw();
     }
+
+    Gizmos::Line(glm::vec3(0, 0, 0), glm::vec3(0, 0, 5), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
     //-------------------------------------------
     g_Gui->Render();

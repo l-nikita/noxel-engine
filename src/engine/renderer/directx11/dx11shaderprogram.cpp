@@ -3,11 +3,17 @@
 #include <d3dcompiler.h>
 #include <string>
 #include "renderer/vertex.hpp"
-#include "shaders/default.hpp"
+#include "renderer/shaderregistry.hpp"
 
 DX11ShaderProgram::DX11ShaderProgram(ID3D11Device* device, ID3D11DeviceContext* context, ShaderAsset* asset)
     : m_device(device), m_context(context), m_vs(nullptr), m_ps(nullptr), m_vsBlob(nullptr), m_psBlob(nullptr)
 {
+    if (!ShaderRegistry::IsShaderExist(asset->GetName()))
+    {
+        CMD_LOG("Shader [" + asset->GetName() + "] not found in registry.", ERROR);
+        throw std::runtime_error("Shader [" + asset->GetName() + "] not found in registry.");
+    }
+
     Compile(asset, VERTEX);
     Compile(asset, PIXEL);
 

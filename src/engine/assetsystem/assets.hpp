@@ -91,7 +91,7 @@ public:
 
     static ShaderAsset* Get(const std::string& name)
     {
-        auto assets = g_Assets->GetAssets(Type);
+        auto& assets = g_Assets->GetAssets(Type);
         auto it = assets.find(name);
 
         if (it == assets.end())
@@ -207,7 +207,7 @@ public:
 
     static TextureAsset* Get(const std::string& name)
     {
-        auto assets = g_Assets->GetAssets(Type);
+        auto& assets = g_Assets->GetAssets(Type);
         auto it = assets.find(name);
 
         if (it == assets.end())
@@ -257,8 +257,8 @@ inline void from_json(const json& j, MaterialData& data)
 class MaterialAsset : public BaseAsset
 {
 private:
-    TextureAsset* m_textureAsset;
-    ShaderAsset* m_shaderAsset;
+    TextureAsset* m_textureAsset = nullptr;
+    ShaderAsset* m_shaderAsset = nullptr;
 
 public:
     AssetType GetType() const override { return Type; }
@@ -316,7 +316,12 @@ public:
     }
 
     TextureAsset* TextureAsset() const { return m_textureAsset; }
-    ShaderAsset* ShaderAsset() const { return m_shaderAsset; }
+
+    ShaderAsset* ShaderAsset() const 
+    { 
+        assert(m_shaderAsset != nullptr); // Shader required always
+        return m_shaderAsset; 
+    }
 
 #pragma region CreateNew/Get
     static MaterialAsset* CreateNew(const std::string& name, const std::string& assetPath)
@@ -328,7 +333,7 @@ public:
 
     static MaterialAsset* Get(const std::string& name)
     {
-        auto assets = g_Assets->GetAssets(Type);
+        auto& assets = g_Assets->GetAssets(Type);
         auto it = assets.find(name);
 
         if (it == assets.end())

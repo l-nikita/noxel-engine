@@ -17,16 +17,17 @@ bool AssetSystem::Init()
 	m_binPath = std::filesystem::current_path().parent_path() / "bin";
 	m_assetsPath = std::filesystem::current_path().parent_path() / "assets";
 
-	ShaderAsset::CreateNew("default", (m_assetsPath / "shaders/default.hlsl").string());
-	ShaderAsset::CreateNew("gizmos", (m_assetsPath / "shaders/gizmos.hlsl").string());
+	//TODO: Automatic assets searing
+	ShaderAsset::CreateNew("default", (m_assetsPath / "shaders\\default.hlsl").string());
+	ShaderAsset::CreateNew("gizmos", (m_assetsPath / "shaders\\gizmos.hlsl").string());
 
-	TextureAsset::m_error = TextureAsset::CreateNew("error", (m_assetsPath / "materials/engine/error.png").string());
-	MaterialAsset::m_error = MaterialAsset::CreateNew("error", (m_assetsPath / "materials/engine/error.nmt").string());
+	TextureAsset::m_error = TextureAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.png").string());
+	MaterialAsset::m_error = MaterialAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.nmt").string());
 
-	MaterialAsset::CreateNew("gizmos", (m_assetsPath / "materials/engine/gizmos.nmt").string());
+	MaterialAsset::CreateNew("gizmos", (m_assetsPath / "materials\\engine\\gizmos.nmt").string());
 
-	MaterialAsset::CreateNew("dirt", (m_assetsPath / "materials/dirt.nmt").string());
-	MaterialAsset::CreateNew("atlas", (m_assetsPath / "materials/atlas.nmt").string());
+	MaterialAsset::CreateNew("dirt", (m_assetsPath / "materials\\dirt.nmt").string());
+	MaterialAsset::CreateNew("atlas", (m_assetsPath / "materials\\atlas.nmt").string());
 
 	CMD_LOG("] Asset system initialized", INFO);
 	return true;

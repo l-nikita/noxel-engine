@@ -3,99 +3,85 @@
 #include <stdexcept>
 #include <DirectXMath.h>
 #include "dx11shader.hpp"
-#include "dx11texture.hpp"
-#include "dx11renderer.hpp"
+#include "dx11cbuffers.hpp"
 #include "renderer/vertex.hpp"
 #include "renderer/irenderer.hpp"
 #include "renderer/render_camera.hpp"
 #include "renderer/shaderregistry.hpp"
 
-struct CBMatrices
-{
-    glm::mat4 Model;
-    glm::mat4 View;
-    glm::mat4 Projection;
-};
-
 //-----------------------------------------------------------------------------
-class DefaultPS : public DX11Shader
+class GizmosPS : public DX11Shader
 {
 public:
-    DefaultPS(IShaderProgram* program)
+    GizmosPS(IShaderProgram* program)
         : DX11Shader(program)
     { Init(); }
 
-    ~DefaultPS() { Destroy(); }
+    ~GizmosPS() { Destroy(); }
 
     void Init()
     {
         // parameters, buffers, resources...
         SetParameter("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-        //D3D11_FILTER_MIN_MAG_MIP_LINEAR
-        D3D11_SAMPLER_DESC sampDesc = {};
-        sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-        sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-        sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-        sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-        sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-        sampDesc.MinLOD = 0;
-        sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+        D3D11_BUFFER_DESC cbd = {};
+        cbd.Usage = D3D11_USAGE_DEFAULT;
+        cbd.ByteWidth = sizeof(CBColor);
+        cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        cbd.CPUAccessFlags = 0;
+        cbd.MiscFlags = 0;
+        cbd.StructureByteStride = 0;
 
-        HRESULT hr = m_device->CreateSamplerState(&sampDesc, &m_samplerState);
+        HRESULT hr = m_device->CreateBuffer(&cbd, nullptr, &m_CBColor);
         if (FAILED(hr))
-            throw std::runtime_error("Failed to create sampler state");
-
-        m_texture = g_ErrorTexture;
+            throw std::runtime_error("Failed to create constant buffer");
     }
 
     ShaderType GetType() { return PIXEL; }
 
     void Bind() 
     {
-        MaterialValue* texVal = GetParameterValue("basetexture");
-        if (auto texPtr = std::get_if<ITexture*>(texVal))
-            m_texture = *texPtr;
+        glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        MaterialValue* colorVal = GetParameterValue("color");
 
-        if (m_texture) 
-            m_texture->Bind();
-        else
-            g_ErrorTexture->Bind();
+        if (auto colorPtr = std::get_if<glm::vec4>(colorVal))
+            color = *colorPtr;
 
-        m_context->PSSetSamplers(0, 1, &m_samplerState);
+        CBColor colorCB 
+        { 
+            color 
+        };
+
+        m_context->UpdateSubresource(m_CBColor, 0, nullptr, &colorCB, 0, 0);
+        m_context->PSSetConstantBuffers(0, 1, &m_CBColor);
     }
 
     void Unbind() 
     {
-        ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-        m_context->PSSetShaderResources(0, 1, nullSRV);
-
-        ID3D11SamplerState* nullSampler[1] = { nullptr };
-        m_context->PSSetSamplers(0, 1, nullSampler);
+        ID3D11Buffer* nullBuffer = nullptr;
+        m_context->PSSetConstantBuffers(0, 1, &nullBuffer);
     }
 
     void Destroy() 
     {
-        if (m_samplerState) m_samplerState->Release();
-        if (m_texture && m_texture != g_ErrorTexture) delete m_texture;
+        if (m_CBColor) { m_CBColor->Release(); }
     }
 
 private:
-    ID3D11SamplerState* m_samplerState = nullptr;
-    ITexture* m_texture = nullptr;
+    ID3D11Buffer* m_CBColor;
 };
 
-REGISTER_SHADER("defaultPS", DefaultPS);
+REGISTER_SHADER("gizmosPS", GizmosPS);
 
 //-----------------------------------------------------------------------------
-class DefaultVS : public DX11Shader
+class GizmosVS : public DX11Shader
 {
 public:
-    DefaultVS(IShaderProgram* program)
+    GizmosVS(IShaderProgram* program)
         : DX11Shader(program)
     { Init(); }
 
-    ~DefaultVS() { Destroy(); }
+    ~GizmosVS() { Destroy(); }
 
     void Init()
     {
@@ -148,7 +134,7 @@ public:
             glm::transpose(camera->GetViewMatrix()),
             glm::transpose(camera->GetProjectionMatrix()),
         };
-        
+
         m_context->UpdateSubresource(m_constantBuffer, 0, nullptr, &matricesCB, 0, 0);
         m_context->VSSetConstantBuffers(0, 1, &m_constantBuffer);
     }
@@ -170,4 +156,4 @@ private:
     ID3D11Buffer* m_constantBuffer;
 };
 
-REGISTER_SHADER("defaultVS", DefaultVS);
+REGISTER_SHADER("gizmosVS", GizmosVS);

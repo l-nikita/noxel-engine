@@ -31,9 +31,9 @@ namespace Gizmos
             0, 1
         };
 
-        //auto* factory = g_Renderer->GetFactory();
-        //g_LineMesh = factory->CreateMesh(MeshData{ vertices, indices });
-        //g_Material = factory->CreateMaterial("gizmos");
+        auto* factory = g_Renderer->GetFactory();
+        g_LineMesh = factory->CreateMesh(MeshData{ vertices, indices });
+        g_Material = factory->CreateMaterial("gizmos");
 	}
 
     void Line(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color)
@@ -51,8 +51,10 @@ namespace Gizmos
             glm::scale(glm::mat4(1.0f), glm::vec3(length, 1.0f, 1.0f));
 
         auto* shader = g_Material->GetShader();
+        g_Renderer->SetPrimitiveTopology(LINES);
         shader->Bind();
         shader->SetVSParameter("model", model);
+        shader->SetPSParameter("color", color);
 
         g_LineMesh->Draw();
 

@@ -27,25 +27,18 @@ IMesh* DX11Factory::CreateMesh(const MeshData& data)
 
 IShaderProgram* DX11Factory::CreateShaderProgram(ShaderAsset* asset)
 {
+    assert(asset != nullptr);
     return new DX11ShaderProgram(m_device, m_context, asset);
 }
 
 IMaterial* DX11Factory::CreateMaterial(MaterialAsset* asset)
 {
-    if (!asset) 
-        return nullptr;
-
+    assert(asset != nullptr);
     return new DX11Material(m_device, m_context, asset);
 }
 
 IMaterial* DX11Factory::CreateMaterial(std::string assetName)
 {
-    if (assetName.empty())
-        return nullptr;
-
-    auto asset = MaterialAsset::Get(assetName);
-    if (!asset)
-        return nullptr;
-
-    return new DX11Material(m_device, m_context, asset);
+    assert(!assetName.empty());
+    return new DX11Material(m_device, m_context, MaterialAsset::Get(assetName));
 }

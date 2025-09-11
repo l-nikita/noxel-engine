@@ -19,6 +19,7 @@ public:
 
     static void Register(const std::string& type, ShaderCreator creator)
     {
+        std::cout << type;
         Registry()[type] = creator;
     }
 
@@ -29,6 +30,17 @@ public:
             return it->second(shaderProg);
 
         return nullptr;
+    }
+
+    static bool IsShaderExist(std::string name)
+    {
+        //TODO: Make shader types enum/list etc.
+        auto it = Registry().find(name + "PS");
+        auto it2 = Registry().find(name + "VS");
+        if (it != Registry().end() && it2 != Registry().end())
+            return true;
+
+        return false;
     }
 };
 
