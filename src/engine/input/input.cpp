@@ -1,13 +1,13 @@
 #include "engine.hpp"
 #include "input.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/debug.hpp"
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 bool Input::Init()
 {
-    CMD_LOG("] Input initialized", INFO);
+    CMD_INFO("] Input initialized", CMD::INPUT);
     return true;
 }
 

@@ -12,7 +12,7 @@
 #include "renderer/ishaderprogram.hpp"
 #include "base_asset.hpp"
 #include "asset_system.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/debug.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -25,7 +25,7 @@ static std::string LoadShaderSource(const std::string& shaderType, const std::st
 
     if (!file)
     {
-        CMD_LOG("Failed to load shader source file: " + assetPath, ERROR);
+        CMD_ERROR("Failed to load shader source file: " + assetPath, CMD::ASSETSYSTEM);
         return "";
     }
 
@@ -76,7 +76,7 @@ public:
         else if (type == PIXEL)
             return m_shaderFragSource;
         else
-            CMD_LOG("Unsupported shader type.", ERROR);
+            CMD_ERROR("Unsupported shader type.", CMD::ASSETSYSTEM);
 
         return "";
     }
@@ -165,7 +165,7 @@ public:
     {
         if (m_assetPath.empty())
         {
-            CMD_LOG("Asset path is null or empty!!!", ERROR);
+            CMD_ERROR("Asset path is null or empty!!!", CMD::ASSETSYSTEM);
             return {};
         }
 
@@ -173,7 +173,7 @@ public:
         unsigned char* image = stbi_load(m_assetPath.string().c_str(), &width, &height, &channels, 4);
         if (!image)
         {
-            CMD_LOG("Couldn't load texture ["+ m_assetPath.string()+"]!", ERROR);
+            CMD_ERROR("Couldn't load texture ["+ m_assetPath.string()+"]!", CMD::ASSETSYSTEM);
             return {};
         }
 
@@ -212,7 +212,7 @@ public:
 
         if (it == assets.end())
         {
-            CMD_LOG("Couldn't find texture [" + name + "].", ERROR);
+            CMD_ERROR("Couldn't find texture [" + name + "].", CMD::ASSETSYSTEM);
             return GetError();
         }
 
@@ -273,7 +273,7 @@ public:
 
         if (!inFile.is_open()) 
         {
-            CMD_LOG("Couldn't open file [" + m_assetPath.string() + "].", ERROR);
+            CMD_ERROR("Couldn't open file [" + m_assetPath.string() + "].", CMD::ASSETSYSTEM);
             return;
         }
 
@@ -289,7 +289,7 @@ public:
         }
         catch (const json::exception& e) 
         {
-            CMD_LOG(std::string("JSON parse error: ") + e.what(), ERROR);
+            CMD_ERROR(std::string("JSON parse error: ") + e.what(), CMD::ASSETSYSTEM);
             return;
         }
 
@@ -303,7 +303,7 @@ public:
                 m_textureAsset = TextureAsset::CreateOrGet(fullTexturePath.stem().string(), fullTexturePath.string());
             else
             {
-                CMD_LOG("Texture not found: " + fullTexturePath.string(), ERROR);
+                CMD_ERROR("Texture not found: " + fullTexturePath.string(), CMD::ASSETSYSTEM);
                 m_textureAsset = TextureAsset::GetError();
             }
         }
@@ -338,7 +338,7 @@ public:
 
         if (it == assets.end())
         {
-            CMD_LOG("Couldn't find material [" + name + "].", ERROR);
+            CMD_ERROR("Couldn't find material [" + name + "].", CMD::ASSETSYSTEM);
             return GetError();
         }
 

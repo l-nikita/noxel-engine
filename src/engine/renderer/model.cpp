@@ -2,7 +2,7 @@
 #include "ishaderprogram.hpp"
 #include "model.hpp"
 #include "render_camera.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/debug.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -42,7 +42,7 @@ void Model::Draw()
         auto mat = GetMaterial(i);
         if (!mat)
         {
-            CMD_LOG("Material is invalid!", ERROR);
+            CMD_ERROR("Material is invalid!", CMD::RENDERING);
             continue;
         }
 

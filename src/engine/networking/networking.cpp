@@ -4,16 +4,16 @@
 #include "networking.hpp"
 #include "server/server.hpp"
 #include "client/client.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/debug.hpp"
 
 static void SteamNetDebugOutput(ESteamNetworkingSocketsDebugOutputType eType, const char* pszMsg)
 {
     if (eType == k_ESteamNetworkingSocketsDebugOutputType_Bug || eType == k_ESteamNetworkingSocketsDebugOutputType_Error)
-        CMD_LOG(pszMsg, ERROR);
+        CMD_ERROR(pszMsg, CMD::NETWORKING);
     else if (eType == k_ESteamNetworkingSocketsDebugOutputType_Warning || eType == k_ESteamNetworkingSocketsDebugOutputType_Important)
-        CMD_LOG(pszMsg, WARNING);
+        CMD_WARNING(pszMsg, CMD::NETWORKING);
     else
-        CMD_LOG(pszMsg, INFO);
+        CMD_INFO(pszMsg, CMD::NETWORKING);
 }
 
 bool Networking::Init()
@@ -21,27 +21,27 @@ bool Networking::Init()
     SteamDatagramErrMsg errorMsg;
     if (!GameNetworkingSockets_Init(nullptr, errorMsg)) 
     {
-        CMD_LOG("GNS Init failed: " + std::string(errorMsg), ERROR);
+        CMD_ERROR("GNS Init failed: " + std::string(errorMsg), CMD::NETWORKING);
         return false;
     }
 
     SteamNetworkingUtils()->SetDebugOutputFunction(k_ESteamNetworkingSocketsDebugOutputType_Msg, SteamNetDebugOutput);
 
-    CMD::GetInstance().RegisterCommand("net_start", "", [this]() {
+    CMD::RegisterCommand("net_start", "", [this]() {
         Start();
     });
 
-    CMD::GetInstance().RegisterCommand("net_connect_local", "", [this]() {
+    CMD::RegisterCommand("net_connect_local", "", [this]() {
         if (!m_isRunning && !Client::GetInstance().IsConnected()) return;
         Client::GetInstance().Connect("127.0.0.1", 27015);
     });
 
-    CMD::GetInstance().RegisterCommand("cl_test_msg", "", [this]() {
+    CMD::RegisterCommand("cl_test_msg", "", [this]() {
         if (!m_isRunning && !Client::GetInstance().IsConnected()) return;
         Client::GetInstance().Send();
     });
 
-    CMD_LOG("] Networking initialized", INFO);
+    CMD_INFO("] Networking initialized", CMD::NETWORKING);
     return true;
 }
 
@@ -49,9 +49,9 @@ bool Networking::Start()
 {
     if (m_isRunning) return false;
 
-    CMD_LOG("//------------------------------------------", DEFAULT);
-    CMD_LOG("] Starting networking...", INFO);
-    CMD_LOG("//------------------------------------------", DEFAULT);
+    CMD_DMSG("//------------------------------------------");
+    CMD_INFO("] Starting networking...", CMD::NETWORKING);
+    CMD_DMSG("//------------------------------------------");
 
     if (!Server::GetInstance().Start()) 
         return false;

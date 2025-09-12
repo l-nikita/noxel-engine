@@ -7,7 +7,6 @@
 
 #include "renderer/directx11/dx11renderer.hpp"
 #include "renderer/render_camera.hpp"
-#include "common/profiler.hpp"
 #include "event_handler.hpp"
 #include "input/input.hpp"
 #include "renderer/gizmos.hpp"
@@ -19,7 +18,8 @@
 #include "networking/networking.hpp"
 #include "server/server.hpp"
 #include "client/client.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/profiler.hpp"
+#include "dbg/cmd/cmd.hpp"
 #include "engine.hpp"
 
 IEngine* g_Engine = nullptr;
@@ -85,9 +85,9 @@ void Engine::Run()
     while (m_isRunning)
     {
         auto currentTime = high_resolution_clock::now();
-        m_deltaTime = duration<float, std::milli>(currentTime - lastTime);
+        m_deltaTime = duration<float>(currentTime - lastTime);
         lastTime = currentTime;
-        m_elapsedTime = duration<float, std::milli>(currentTime - startTime);
+        m_elapsedTime = duration<float>(currentTime - startTime);
 
         updateProfiler.Start();
         Update();
@@ -138,7 +138,7 @@ void Engine::Shutdown()
         SDL_DestroyWindow(GetWindow());
 
     SDL_Quit();
-    CMD_LOG_INFO("Engine stopped.");
+    CMD_INFO("Engine stopped.", CMD::ENGINE);
 }
 
 //-----------------------------------------------------------------------------
@@ -161,7 +161,7 @@ bool Engine::InitWindow()
 
     if (!GetWindow())
     {
-        CMD_LOG("SDL_CreateWindow Error: " + std::string(SDL_GetError()), ERROR);
+        CMD_ERROR("SDL_CreateWindow Error: " + std::string(SDL_GetError()), CMD::ENGINE);
         Shutdown();
         return false;
     }
@@ -174,17 +174,17 @@ bool Engine::InitWindow()
 //-----------------------------------------------------------------------------
 bool Engine::Init()
 {
-    CMD_LOG("Hello! I am engine!", INFO);
+    CMD_INFO("Hello! I am engine!", CMD::ENGINE);
 
 #ifdef _DEBUG
-    CMD_LOG("Built in DEBUG mode.", INFO);
+    CMD_INFO("Built in DEBUG mode.", CMD::ENGINE);
 #else
-    CMD_LOG("Built in RELEASE mode.", INFO);
+    CMD_INFO("Built in RELEASE mode.", CMD::ENGINE);
 #endif
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
     {
-        CMD_LOG("SDL_Init Error: " + std::string(SDL_GetError()), ERROR);
+        CMD_ERROR("SDL_Init Error: " + std::string(SDL_GetError()), CMD::ENGINE);
         return false;
     }
 
@@ -218,9 +218,9 @@ bool Engine::Init()
     //if (!g_Entities->Init()) return false;
 
     Gizmos::Init();
-    CMD::GetInstance().Setup();
+    CMD::CMD::GetInstance().Setup();
 
-    CMD_LOG("Engine initialized successfully.", INFO);
+    CMD_INFO("Engine initialized successfully.", CMD::ENGINE);
     return true;
 }
 

@@ -3,7 +3,7 @@
 #include "engine.hpp"
 #include "renderer/irenderer.hpp"
 #include "budget_panel.hpp"
-#include "common/profiler.hpp"
+#include "dbg/profiler.hpp"
 
 static ImGuiTableFlags table_flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH
 	| ImGuiTableFlags_Resizable

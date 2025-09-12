@@ -8,8 +8,8 @@
 #include <thread>
 
 #include "server.hpp"
-#include "cmd/cmd.hpp"
-#include "common/profiler.hpp"
+#include "dbg/debug.hpp"
+#include "dbg/profiler.hpp"
 
 //proto
 #include "test.pb.h"
@@ -24,7 +24,7 @@ static void Server_OnConnectionStatusChanged(SteamNetConnectionStatusChangedCall
 //-----------------------------------------------------------------------------
 bool Server::Start()
 {
-    CMD_LOG_INFO("[Server] Starting...");
+    CMD_INFO("Starting...", CMD::SERVER);
 
     if (!StartNet()) 
         return false;
@@ -79,11 +79,11 @@ bool Server::StartNet()
     m_listenSock = SteamNetworkingSockets()->CreateListenSocketIP(serverAddr, 1, &opt);
     if (m_listenSock == k_HSteamListenSocket_Invalid)
     {
-        CMD_LOG("[Server] Failed to create listen socket", ERROR);
+        CMD_ERROR("Failed to create listen socket", CMD::SERVER);
         return false;
     }
 
-    CMD_LOG_INFO("[Server] Start listening on port 27015");
+    CMD_INFO("Start listening on port 27015", CMD::SERVER);
 
     m_pollGroup = m_interface->CreatePollGroup();
 
@@ -120,7 +120,7 @@ void Server::ProcessMessage(ISteamNetworkingMessage* msg)
     NetworkMessage netMsg;
     if (!netMsg.ParseFromArray(msg->m_pData, msg->m_cbSize)) 
     {
-        CMD_LOG("[Server] Error when parsing net message", WARNING);
+        CMD_ERROR("Error when parsing net message", CMD::SERVER);
         return;
     }
 
@@ -129,30 +129,30 @@ void Server::ProcessMessage(ISteamNetworkingMessage* msg)
         case NetworkMessage::kChat:
         {
             const auto& chat = netMsg.chat();
-            CMD_LOG("[Server] username " + chat.username(), DEFAULT);
-            CMD_LOG("[Server] message " + chat.message(), DEFAULT);
-            CMD_LOG("[Server] timestamp " + std::to_string(chat.timestamp()), DEFAULT);
+            CMD_MSG("username " + chat.username(), CMD::SERVER);
+            CMD_MSG("message " + chat.message(), CMD::SERVER);
+            CMD_MSG("timestamp " + std::to_string(chat.timestamp()), CMD::SERVER);
             break;
         }
         case NetworkMessage::kPosition:
         {
             const auto& pos = netMsg.position();
-            CMD_LOG("[Server] username " + pos.username(), DEFAULT);
-            CMD_LOG("[Server] x " + std::to_string(pos.x()), DEFAULT);
-            CMD_LOG("[Server] y " + std::to_string(pos.y()), DEFAULT);
-            CMD_LOG("[Server] z " + std::to_string(pos.z()), DEFAULT);
+            CMD_MSG("username " + pos.username(), CMD::SERVER);
+            CMD_MSG("x " + std::to_string(pos.x()), CMD::SERVER);
+            CMD_MSG("y " + std::to_string(pos.y()), CMD::SERVER);
+            CMD_MSG("z " + std::to_string(pos.z()), CMD::SERVER);
             break;
         }
         case NetworkMessage::kEvent:
         {
             const auto& event = netMsg.event();
-            CMD_LOG("[Server] description " + event.description(), DEFAULT);
-            CMD_LOG("[Server] event_id " + std::to_string(event.event_id()), DEFAULT);
+            CMD_MSG("description " + event.description(), CMD::SERVER);
+            CMD_MSG("event_id " + std::to_string(event.event_id()), CMD::SERVER);
             break;
         }
         default:
         {
-            CMD_LOG("[Server] Unknown message type", WARNING);
+            CMD_WARNING("Unknown message type", CMD::SERVER);
             break;
         }
     }
@@ -166,7 +166,7 @@ void Server::OnConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t
             SteamNetworkingSockets()->AcceptConnection(pInfo->m_hConn);
             SteamNetworkingSockets()->SetConnectionPollGroup(pInfo->m_hConn, m_pollGroup);
             m_clients.emplace(pInfo->m_hConn, Client("Unknown"));
-            CMD_LOG("[Server] New client connected", INFO);
+            CMD_INFO("New client connected", CMD::SERVER);
             break;
 
         case k_ESteamNetworkingConnectionState_Connected:
@@ -176,7 +176,7 @@ void Server::OnConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t
         case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
             m_clients.erase(pInfo->m_hConn);
             SteamNetworkingSockets()->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
-            CMD_LOG("[Server] Client disconnected", INFO);
+            CMD_INFO("Client disconnected", CMD::SERVER);
             break;
 
         default:
@@ -205,5 +205,5 @@ void Server::Shutdown()
     m_interface->CloseListenSocket(m_listenSock);
     m_interface->DestroyPollGroup(m_pollGroup);
 
-    CMD_LOG_INFO("[Server] Shutdown complete");
+    CMD_INFO("Shutdown complete", CMD::SERVER);
 }

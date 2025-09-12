@@ -1,6 +1,6 @@
 #include "client.hpp"
-#include "cmd/cmd.hpp"
-#include "common/profiler.hpp"
+#include "dbg/debug.hpp"
+#include "dbg/profiler.hpp"
 
 //proto
 #include "test.pb.h"
@@ -23,7 +23,7 @@ bool Client::Connect(const std::string& ip, uint16_t port)
     serverAddr.ParseString(ip.c_str());
     serverAddr.m_port = port;
 
-    CMD_LOG_INFO("[Client] Connecting to server at " + ip + ":" + std::to_string(port));
+    CMD_INFO("Connecting to server at " + ip + ":" + std::to_string(port), CMD::CLIENT);
 
     SteamNetworkingConfigValue_t opt;
     opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)Client_OnConnectionStatusChanged);
@@ -31,7 +31,7 @@ bool Client::Connect(const std::string& ip, uint16_t port)
     m_connection = m_interface->ConnectByIPAddress(serverAddr, 1, &opt);
     if (m_connection == k_HSteamNetConnection_Invalid)
     {
-        CMD_LOG("[Client] Failed to connect", WARNING);
+        CMD_ERROR("Failed to connect", CMD::CLIENT);
         return false;
     }
 
@@ -52,7 +52,7 @@ void Client::PollMessages()
         for (int i = 0; i < numMsgs; ++i)
         {
             std::string msg((char*)pIncomingMsg[i]->m_pData, pIncomingMsg[i]->m_cbSize);
-            CMD_LOG_INFO("[Client] Received: " + msg);
+            CMD_INFO("Received: " + msg, CMD::CLIENT);
             pIncomingMsg[i]->Release();
         }
 
@@ -93,14 +93,14 @@ void Client::OnConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t
     switch (pInfo->m_info.m_eState)
     {
         case k_ESteamNetworkingConnectionState_Connecting:
-            CMD_LOG_INFO("[Client] Connecting...");
+            CMD_INFO("Connecting...", CMD::CLIENT);
             break;
         case k_ESteamNetworkingConnectionState_Connected:
-            CMD_LOG_INFO("[Client] Connected!\n");
+            CMD_INFO("Connected!\n", CMD::CLIENT);
             break;
         case k_ESteamNetworkingConnectionState_ClosedByPeer:
         case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
-            CMD_LOG_INFO("[Client] Connection closed\n");
+            CMD_INFO("Connection closed\n", CMD::CLIENT);
             m_isRunning = false;
             break;
         default:
@@ -120,5 +120,5 @@ void Client::Shutdown()
         m_connection = k_HSteamNetConnection_Invalid;
     }
 
-    CMD_LOG_INFO("[Client] Shutdown complete");
+    CMD_INFO("Shutdown complete", CMD::CLIENT);
 }

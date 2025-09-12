@@ -10,8 +10,7 @@ DX11ShaderProgram::DX11ShaderProgram(ID3D11Device* device, ID3D11DeviceContext* 
 {
     if (!ShaderRegistry::IsShaderExist(asset->GetName()))
     {
-        CMD_LOG("Shader [" + asset->GetName() + "] not found in registry.", ERROR);
-        throw std::runtime_error("Shader [" + asset->GetName() + "] not found in registry.");
+        FATAL_ERROR("Shader [" + asset->GetName() + "] not found in registry.", CMD::RENDERING);
     }
 
     Compile(asset, VERTEX);
@@ -66,7 +65,7 @@ void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
         if (errorBlob)
         {
             OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-            CMD_LOG("Shader compilation error: \n" + std::string((char*)errorBlob->GetBufferPointer()), ERROR);
+            CMD_ERROR("Shader compilation error: " + std::string((char*)errorBlob->GetBufferPointer()), CMD::RENDERING);
             errorBlob->Release();
         }
 

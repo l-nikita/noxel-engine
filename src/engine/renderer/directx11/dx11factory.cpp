@@ -17,9 +17,9 @@ IMesh* DX11Factory::CreateMesh(const MeshData& data)
         m_context,
         data.Vertices.data(),
         sizeof(Vertex),
-        static_cast<uint32_t>(std::size(data.Vertices)),
+        static_cast<std::uint32_t>(std::size(data.Vertices)),
         data.Indices.data(),
-        static_cast<uint32_t>(std::size(data.Indices))
+        static_cast<std::uint32_t>(std::size(data.Indices))
     );
 
     return mesh;

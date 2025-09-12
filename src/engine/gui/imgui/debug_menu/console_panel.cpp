@@ -1,6 +1,6 @@
 #include "imgui.h"
 #include "console_panel.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/debug.hpp"
 
 void ConsolePanel::Draw()
 {
@@ -39,7 +39,7 @@ void ConsolePanel::DrawLogWindow()
 
         ImGui::PushTextWrapPos();
 
-        auto& logs = CMD::GetInstance().GetLogs();
+        auto& logs = CMD::CMD::GetInstance().GetLogs();
         for (auto it = logs.begin(); it != logs.end(); ++it)
         {
             auto* log = it->get();
@@ -48,9 +48,9 @@ void ConsolePanel::DrawLogWindow()
             ImVec4 color;
             switch (log->Type) 
             {
-                case CMDLogType::INFO:    color = ImVec4(0.4f, 1.0f, 1.0f, 1.0f); break;
-                case CMDLogType::WARNING: color = ImVec4(0.9f, 0.7f, 0.0f, 1.0f); break;
-                case CMDLogType::ERROR:   color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); break;
+                case CMD::LogType::INFO:    color = ImVec4(0.4f, 1.0f, 1.0f, 1.0f); break;
+                case CMD::LogType::WARNING: color = ImVec4(0.9f, 0.7f, 0.0f, 1.0f); break;
+                case CMD::LogType::ERROR:   color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); break;
                 default:                  color = ImVec4(0.8f, 0.8f, 0.8f, 1.0f); break;
             }
 
@@ -88,7 +88,7 @@ void ConsolePanel::DrawLogWindow()
 void ConsolePanel::DrawInput()
 {
     if (ImGui::Button("Clear"))
-        CMD::GetInstance().Execute("clear");
+        CMD::CMD::GetInstance().Execute("clear");
 
     ImGui::SameLine();
 
@@ -119,7 +119,7 @@ void ConsolePanel::ExecuteCommand(char* input)
     if (m_autoScroll)
         m_scrollToBottom = true;
 
-    CMD::GetInstance().Execute(str);
+    CMD::Execute(str);
 
     memset(input, 0, INPUT_SIZE);
 }

@@ -16,24 +16,123 @@
 namespace Gizmos
 {
     static IMesh* g_LineMesh;
+    static IMesh* g_BoxMesh;
+    static IMesh* g_BoxWireMesh;
+    static IMesh* g_TriangleMesh;
     static IMaterial* g_Material;
 
 	void Init()
 	{
+        auto* factory = g_Renderer->GetFactory();
+        g_Material = factory->CreateMaterial("gizmos");
+
+        //-------------------------------------------
         std::vector<Vertex> vertices =
         {
             {{0, 0, 0}, {1,1,1,1}, {0,0}},
             {{1, 0, 0}, {1,1,1,1}, {0,0}},
         };
 
-        std::vector<uint32_t> indices = 
+        std::vector<std::uint32_t> indices = 
         {
             0, 1
         };
 
-        auto* factory = g_Renderer->GetFactory();
         g_LineMesh = factory->CreateMesh(MeshData{ vertices, indices });
-        g_Material = factory->CreateMaterial("gizmos");
+
+        //-------------------------------------------
+        std::vector<Vertex> boxVertices = {
+            {{-1,-1, 1},{1,1,1,1},{0,0}},
+            {{ 1,-1, 1},{1,1,1,1},{0,0}},
+            {{ 1, 1, 1},{1,1,1,1},{0,0}},
+            {{-1, 1, 1},{1,1,1,1},{0,0}},
+            {{-1,-1,-1},{1,1,1,1},{0,0}},
+            {{ 1,-1,-1},{1,1,1,1},{0,0}},
+            {{ 1, 1,-1},{1,1,1,1},{0,0}},
+            {{-1, 1,-1},{1,1,1,1},{0,0}},
+        };
+
+        std::vector<std::uint32_t> boxIndices = {
+            0,1, 1,2, 2,3, 3,0,  // front face
+            4,5, 5,6, 6,7, 7,4,  // back face
+            0,4, 1,5, 2,6, 3,7   // connections
+        };
+
+        g_BoxWireMesh = factory->CreateMesh(MeshData{ boxVertices, boxIndices });
+
+        std::vector<Vertex> cubeVertices
+        {
+            // Front
+            {{-1, -1,  1}, {1,1,1,1}, {0,1}},
+            {{ 1, -1,  1}, {1,1,1,1}, {1,1}},
+            {{ 1,  1,  1}, {1,1,1,1}, {1,0}},
+            {{-1,  1,  1}, {1,1,1,1}, {0,0}},
+
+            // Back
+            {{ 1, -1, -1}, {1,1,1,1}, {0,1}},
+            {{-1, -1, -1}, {1,1,1,1}, {1,1}},
+            {{-1,  1, -1}, {1,1,1,1}, {1,0}},
+            {{ 1,  1, -1}, {1,1,1,1}, {0,0}},
+
+            // Top
+            {{-1,  1,  1}, {1,1,1,1}, {0,1}},
+            {{ 1,  1,  1}, {1,1,1,1}, {1,1}},
+            {{ 1,  1, -1}, {1,1,1,1}, {1,0}},
+            {{-1,  1, -1}, {1,1,1,1}, {0,0}},
+
+            // Bottom
+            {{-1, -1, -1}, {1,1,1,1}, {0,1}},
+            {{ 1, -1, -1}, {1,1,1,1}, {1,1}},
+            {{ 1, -1,  1}, {1,1,1,1}, {1,0}},
+            {{-1, -1,  1}, {1,1,1,1}, {0,0}},
+
+            // Right
+            {{ 1, -1,  1}, {1,1,1,1}, {0,1}},
+            {{ 1, -1, -1}, {1,1,1,1}, {1,1}},
+            {{ 1,  1, -1}, {1,1,1,1}, {1,0}},
+            {{ 1,  1,  1}, {1,1,1,1}, {0,0}},
+
+            // Left
+            {{-1, -1, -1}, {1,1,1,1}, {0,1}},
+            {{-1, -1,  1}, {1,1,1,1}, {1,1}},
+            {{-1,  1,  1}, {1,1,1,1}, {1,0}},
+            {{-1,  1, -1}, {1,1,1,1}, {0,0}},
+        };
+
+        std::vector<std::uint32_t> cubeIndices
+        {
+            // Front
+            0, 1, 2,  2, 3, 0,
+            // Back
+            4, 5, 6,  6, 7, 4,
+            // Top
+            8, 9,10, 10,11, 8,
+            // Bottom
+            12,13,14, 14,15,12,
+            // Right
+            16,17,18, 18,19,16,
+            // Left
+            20,21,22, 22,23,20
+        };
+
+        g_BoxMesh = factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
+
+        //-------------------------------------------
+        std::vector<std::uint32_t> triangleIndices =
+        {
+            0, 1,
+            1, 2,
+            2, 0
+        };
+
+        std::vector<Vertex> verticesTriangle = 
+        {
+            {{0, 0, 0}, {1,1,1,1}, {0,0}},
+            {{1, 0, 0}, {1,1,1,1}, {0,0}},
+            {{0, 1, 0}, {1,1,1,1}, {0,0}},
+        };
+
+        g_TriangleMesh = factory->CreateMesh(MeshData{ verticesTriangle, triangleIndices });
 	}
 
     void Line(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color)
@@ -51,12 +150,63 @@ namespace Gizmos
             glm::scale(glm::mat4(1.0f), glm::vec3(length, 1.0f, 1.0f));
 
         auto* shader = g_Material->GetShader();
-        g_Renderer->SetPrimitiveTopology(LINES);
-        shader->Bind();
         shader->SetVSParameter("model", model);
         shader->SetPSParameter("color", color);
 
+        shader->Bind();
+
+        g_Renderer->SetPrimitiveTopology(LINES);
         g_LineMesh->Draw();
+
+        shader->Unbind();
+    }
+
+    void Box(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& min, const glm::vec3& max, const glm::vec4& color)
+    {
+        glm::vec3 scale = (max - min) * 0.5f;
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), position)
+            * glm::toMat4(rotation)
+            * glm::scale(glm::mat4(1.0f), scale);
+
+        auto* shader = g_Material->GetShader();
+        shader->SetVSParameter("model", model);
+        shader->SetPSParameter("color", glm::vec4(color.r, color.g, color.b, 1));
+
+        shader->Bind();
+        g_Renderer->SetPrimitiveTopology(LINES);
+        g_BoxWireMesh->Draw();
+
+        if (color.a > 0)
+        {
+            shader->SetPSParameter("color", color);
+            shader->Bind();
+            g_Renderer->SetPrimitiveTopology(TRIANGLES);
+            g_BoxMesh->Draw();
+        }
+
+        shader->Unbind();
+    }
+
+    void Triangle(const glm::vec3& position, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3, const glm::vec4& color)
+    {
+        glm::vec3 edge1 = v2 - v1;
+        glm::vec3 edge2 = v3 - v1;
+        glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
+
+        glm::mat3 basis(edge1, edge2, normal);
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, v1);
+        model *= glm::mat4(glm::mat3(basis)); // scale/rotate
+        model *= glm::translate(glm::mat4(1.0f), position);
+
+        auto* shader = g_Material->GetShader();
+        shader->SetVSParameter("model", glm::mat4(1.0f));
+        shader->SetPSParameter("color", color);
+
+        shader->Bind();
+
+        g_Renderer->SetPrimitiveTopology(LINES);
+        g_TriangleMesh->Draw();
 
         shader->Unbind();
     }
@@ -64,5 +214,8 @@ namespace Gizmos
     void Shutdown()
     {
         delete g_LineMesh;
+        delete g_BoxMesh;
+        delete g_BoxWireMesh;
+        delete g_Material;
     }
 }

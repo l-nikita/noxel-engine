@@ -9,7 +9,7 @@
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 
 #include "common/singleton.hpp"
-#include "common/profiler.hpp"
+#include "dbg/profiler.hpp"
 
 #include "iphysics.hpp"
 #include "physics_layers.hpp"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include <dxgi1_2.h>
 #include <cstdint>
 #include <vector>
 #include <initguid.h>
@@ -40,7 +41,14 @@ public:
 private:
 	ID3D11Device* m_device = nullptr;
 	ID3D11DeviceContext* m_context = nullptr;
-	IDXGISwapChain* m_swapChain = nullptr;
+
+	IDXGIDevice* m_dxgiDevice = nullptr;
+	IDXGIAdapter* m_dxgiAdapter = nullptr;
+	IDXGIFactory2* m_dxgiFactory = nullptr;
+	IDXGISwapChain1* m_swapChain = nullptr;
+
+	ID3D11BlendState* m_blendState = nullptr;
+
 	ID3D11RenderTargetView* m_rtv = nullptr; // Render target view
 
 	ID3D11Texture2D* m_depthStencil = nullptr;

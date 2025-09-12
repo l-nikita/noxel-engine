@@ -29,7 +29,7 @@ bool AssetSystem::Init()
 	MaterialAsset::CreateNew("dirt", (m_assetsPath / "materials\\dirt.nmt").string());
 	MaterialAsset::CreateNew("atlas", (m_assetsPath / "materials\\atlas.nmt").string());
 
-	CMD_LOG("] Asset system initialized", INFO);
+	CMD_INFO("] Asset system initialized", CMD::ASSETSYSTEM);
 	return true;
 }
 

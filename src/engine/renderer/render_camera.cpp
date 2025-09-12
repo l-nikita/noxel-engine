@@ -2,7 +2,7 @@
 #include <algorithm>
 
 #include "render_camera.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/cmd/cmd.hpp"
 #include "input/input.hpp"
 #include "iengine.hpp"
 
@@ -25,8 +25,6 @@ void RenderCamera::OnFrameBufferResize(int& width, int& height)
 
 void RenderCamera::Update()
 {
-	//std::cout << m_Transform.ToString() << std::endl;
-
 	auto delta = g_Input->GetMouseDelta();
 	if (g_Input->GetRelativeMouseMode() == false)
 		return;
@@ -40,22 +38,22 @@ void RenderCamera::Update()
 	m_Transform.Rotation = qYaw * qPitch;
 
 	if (g_Input->IsKeyDown(SDL_SCANCODE_W))
-		Move(m_Transform.Forward(), 0.01f);
+		Move(m_Transform.Forward(), 10.0f);
 
 	if (g_Input->IsKeyDown(SDL_SCANCODE_S))
-		Move(m_Transform.Backward(), 0.01f);
+		Move(m_Transform.Backward(), 10.0f);
 
 	if (g_Input->IsKeyDown(SDL_SCANCODE_A))
-		Move(m_Transform.Left(), 0.01f);
+		Move(m_Transform.Left(), 10.0f);
 
 	if (g_Input->IsKeyDown(SDL_SCANCODE_D))
-		Move(m_Transform.Right(), 0.01f);
+		Move(m_Transform.Right(), 10.0f);
 
 	if (g_Input->IsKeyDown(SDL_SCANCODE_SPACE))
-		Move(glm::vec3(0, 1, 0), 0.01f);
+		Move(glm::vec3(0, 1, 0), 10.0f);
 
 	if (g_Input->IsKeyDown(SDL_SCANCODE_LSHIFT))
-		Move(glm::vec3(0, -1, 0), 0.01f);
+		Move(glm::vec3(0, -1, 0), 10.0f);
 }
 
 void RenderCamera::Move(glm::vec3 direction, float distance)

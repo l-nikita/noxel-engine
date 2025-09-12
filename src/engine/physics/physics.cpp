@@ -19,7 +19,7 @@
 #include <thread>
 
 #include "engine.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/debug.hpp"
 #include "utils.hpp"
 
 using namespace JPH;
@@ -39,7 +39,7 @@ static void TraceImpl(const char* inFMT, ...)
 	vsnprintf(buffer, sizeof(buffer), inFMT, list);
 	va_end(list);
 
-	CMD_LOG_INFO(buffer);
+	CMD_INFO(buffer, CMD::PHYSICS);
 }
 
 #ifdef JPH_ENABLE_ASSERTS
@@ -47,8 +47,7 @@ static void TraceImpl(const char* inFMT, ...)
 static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, uint inLine)
 {
 	std::string str = inFile + std::string(":") + std::to_string(inLine) + ": (" + inExpression + ") " + (inMessage != nullptr ? inMessage : "");
-	CMD_LOG(str, ERROR);
-	throw std::runtime_error(str);
+	FATAL_ERROR(str, CMD::PHYSICS);
 
 	return true;
 };
@@ -117,7 +116,7 @@ bool Physics::Init()
 	m_system->OptimizeBroadPhase();
 	m_IsRunning = true;
 
-	CMD_LOG("] Physics initialized", INFO);
+	CMD_INFO("] Physics initialized", CMD::PHYSICS);
     return true;
 }
 

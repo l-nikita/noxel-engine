@@ -7,8 +7,8 @@
 #include <d3d11.h>
 
 DX11Mesh::DX11Mesh(ID3D11Device* device, ID3D11DeviceContext* context,
-    const void* vertices, uint32_t vertexSize, uint32_t vertexCount,
-    const void* indices, uint32_t indexCount)
+    const void* vertices, std::uint32_t vertexSize, std::uint32_t vertexCount,
+    const void* indices, std::uint32_t indexCount)
     : m_context(context), m_vertexCount(vertexCount), m_indexCount(indexCount), m_vertexStride(vertexSize)
 {
     m_vertexBuffer = new DX11Buffer(
@@ -23,7 +23,7 @@ DX11Mesh::DX11Mesh(ID3D11Device* device, ID3D11DeviceContext* context,
         device,
         context,
         GPUBufferType::INDEX,
-        sizeof(uint32_t) * indexCount,
+        sizeof(std::uint32_t) * indexCount,
         indices);
 }
 

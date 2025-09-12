@@ -11,7 +11,7 @@
 #include "renderer/vertex.hpp"
 #include "renderer/gizmos.hpp"
 #include "gui/igui.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/cmd/cmd.hpp"
 
 // Shaders should be included here (somewhere). Compiler issue.
 #include "shaders/dx11shader_default.hpp"
@@ -19,6 +19,7 @@
 
 #define INITGUID
 #include <d3d11.h>
+#include <dxgi1_2.h>
 
 ITexture* g_ErrorTexture = nullptr;
 IMaterial* g_ErrorMaterial = nullptr;
@@ -35,36 +36,38 @@ bool DX11Renderer::Init()
 
     void* ptr = g_Engine->GetNativeWindowHandle();
     if (!ptr) 
-    {
-        std::cerr << "Couldn't get window handle from SDL window!\n";
-        return false;
-    }
+        throw std::runtime_error("Couldn't get window handle from SDL window!");
 
     HWND hwnd = (HWND)ptr;
 
-    DXGI_SWAP_CHAIN_DESC scDesc = {};
-    scDesc.BufferCount = 1;
-    scDesc.BufferDesc.Width = width;
-    scDesc.BufferDesc.Height = height;
-    scDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    scDesc.OutputWindow = hwnd;
-    scDesc.SampleDesc.Count = 1;
-    scDesc.Windowed = true;
-    scDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-
-    HRESULT hr = D3D11CreateDeviceAndSwapChain(
-        nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0,
-        nullptr, 0, D3D11_SDK_VERSION,
-        &scDesc, &m_swapChain, &m_device, nullptr, &m_context
-    );
+    D3D_FEATURE_LEVEL featureLevel;
+    HRESULT hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
+        D3D11_SDK_VERSION, &m_device, &featureLevel, &m_context);
 
     if (FAILED(hr)) 
-    {
-        throw std::runtime_error("D3D11CreateDeviceAndSwapChain failed");
-        return false;
-    }
+        throw std::runtime_error("D3D11CreateDevice failed");
 
+    m_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&m_dxgiDevice);
+    m_dxgiDevice->GetAdapter(&m_dxgiAdapter);
+    m_dxgiAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&m_dxgiFactory);
+
+    DXGI_SWAP_CHAIN_DESC1 scDesc = {};
+    scDesc.Width = width;
+    scDesc.Height = height;
+    scDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    scDesc.Stereo = FALSE;
+    scDesc.SampleDesc.Count = 1;
+    scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    scDesc.BufferCount = 2;
+    scDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+
+    hr = m_dxgiFactory->CreateSwapChainForHwnd(m_device, hwnd, &scDesc, nullptr, nullptr, &m_swapChain);
+
+    if (FAILED(hr))
+        throw std::runtime_error("CreateSwapChainForHwnd failed");
+
+    //-------------------------------------------
     D3D11_TEXTURE2D_DESC depthDesc = {};
     depthDesc.Width = width;
     depthDesc.Height = height;
@@ -82,6 +85,18 @@ bool DX11Renderer::Init()
     hr = m_device->CreateDepthStencilView(m_depthStencil, nullptr, &m_dsv);
     if (FAILED(hr)) 
         throw std::runtime_error("Failed to create depth stencil view");
+
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.RenderTarget[0].BlendEnable = TRUE;
+    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    m_device->CreateBlendState(&blendDesc, &m_blendState);
 
     OnWindowResize(width, height);
 
@@ -132,7 +147,7 @@ bool DX11Renderer::Init()
         {{-1,  1, -1}, {1,1,1,1}, {0,0}},
     };
 
-    std::vector<uint32_t> cubeIndices
+    std::vector<std::uint32_t> cubeIndices
     {
         // Front
         0, 1, 2,  2, 3, 0,
@@ -171,7 +186,7 @@ bool DX11Renderer::Init()
     model->m_Transform.Position = glm::vec3(0, 0, 5);
     m_Models.push_back(model);
 
-	CMD_LOG("] Renderer initialized", INFO);
+	CMD_INFO("] Renderer initialized", CMD::RENDERING);
 	return true;
 }
 
@@ -181,6 +196,9 @@ bool DX11Renderer::Init()
 void DX11Renderer::Render()
 {
     float clearColor[4] = { 0.1f, 0.2f, 0.3f, 1.0f };
+
+    float blendFactor[4] = { 0,0,0,0 };
+    m_context->OMSetBlendState(m_blendState, blendFactor, 0xFFFFFFFF);
 
     m_context->OMSetRenderTargets(1, &m_rtv, m_dsv);
     m_context->ClearRenderTargetView(m_rtv, clearColor);
@@ -192,12 +210,31 @@ void DX11Renderer::Render()
         model->Draw();
     }
 
-    Gizmos::Line(glm::vec3(0, 0, 0), glm::vec3(0, 0, 5), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    static float angle = 0.0f;
+    static glm::vec3 pos = glm::vec3(0);
+
+    angle += g_Engine->DeltaTime() * 1.0f;
+    glm::quat rotation = glm::angleAxis(angle, glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
+
+    pos.y = 0.3f * glm::sin(g_Engine->ElapsedTime() * 1.0f);
+
+    Gizmos::Line(pos, glm::vec3(0, 0, 5), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+    Gizmos::Box(pos, rotation, glm::vec3(1, 1, 1), glm::vec3(-1, -1, -1), glm::vec4(1, 0, 1, 0.1f));
+    //Gizmos::Triangle(
+    //    glm::vec3(0, 0, 0),
+    //    glm::vec3(0, 0, 0),
+    //    glm::vec3(1, 0, 0),
+    //    glm::vec3(0, 1, 0),
+    //    glm::vec4(0, 0, 1, 1)
+    //);
 
     //-------------------------------------------
     g_Gui->Render();
 
-    m_swapChain->Present(m_vsyncEnabled ? 1 : 0, 0);
+    m_swapChain->Present(m_vsyncEnabled ? 1 : 0,
+        m_vsyncEnabled ? 0 : DXGI_PRESENT_ALLOW_TEARING);
+
 #ifdef _DEBUG
     m_DrawCallCount = 0;
 #endif
@@ -258,7 +295,7 @@ void DX11Renderer::OnWindowResize(int width, int height)
     m_width = width;
     m_height = height;
 
-    HRESULT hr = m_swapChain->ResizeBuffers(0, m_width, m_height, DXGI_FORMAT_UNKNOWN, 0);
+    HRESULT hr = m_swapChain->ResizeBuffers(2, m_width, m_height, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING);
     if (FAILED(hr))
         throw std::runtime_error("Failed to resize swap chain buffers");
 

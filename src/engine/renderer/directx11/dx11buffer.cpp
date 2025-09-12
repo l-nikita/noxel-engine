@@ -92,7 +92,7 @@ void DX11Buffer::Destroy()
     m_buffer = nullptr;
 }
 
-uint32_t DX11Buffer::GetBindFlags(GPUBufferType type)
+std::uint32_t DX11Buffer::GetBindFlags(GPUBufferType type)
 {
     switch (type)
     {

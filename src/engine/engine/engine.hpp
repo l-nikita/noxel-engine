@@ -34,11 +34,11 @@ public:
     bool IsInFullscreen() override;
 
     // -------------------------------------------------
-    std::chrono::duration<float, std::milli> DeltaDuration() const { return m_deltaTime; }
+    std::chrono::duration<float> DeltaDuration() const { return m_deltaTime; }
     // Delta time (ms)
     float DeltaTime() override { return m_deltaTime.count(); }
     
-    std::chrono::duration<float, std::milli> ElapsedDuration() const { return m_elapsedTime; }
+    std::chrono::duration<float> ElapsedDuration() const { return m_elapsedTime; }
     // Elapsed time since engine loop ran (ms)
     float ElapsedTime() override { return m_elapsedTime.count(); }
     // -------------------------------------------------
@@ -50,6 +50,6 @@ private:
 
     bool m_isRunning = false;
 
-    std::chrono::duration<float, std::milli> m_deltaTime;
-    std::chrono::duration<float, std::milli> m_elapsedTime;
+    std::chrono::duration<float> m_deltaTime;
+    std::chrono::duration<float> m_elapsedTime;
 };

@@ -6,7 +6,7 @@
 #include "renderer/directx11/dx11renderer.hpp"
 #include "gui.hpp"
 #include "panel.hpp"
-#include "cmd/cmd.hpp"
+#include "dbg/cmd/cmd.hpp"
 #include "imgui/debug_menu/debug_menu.hpp"
 
 bool Gui::Init()

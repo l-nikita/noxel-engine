@@ -19,7 +19,6 @@ public:
 
     static void Register(const std::string& type, ShaderCreator creator)
     {
-        std::cout << type;
         Registry()[type] = creator;
     }
 
