@@ -23,6 +23,8 @@ bool AssetSystem::Init()
 
 	TextureAsset::m_error = TextureAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.png").string());
 	MaterialAsset::m_error = MaterialAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.nmt").string());
+	//TODO: Make error shader
+	//ShaderAsset::m_error = ;
 
 	MaterialAsset::CreateNew("gizmos", (m_assetsPath / "materials\\engine\\gizmos.nmt").string());
 

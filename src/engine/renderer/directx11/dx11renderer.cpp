@@ -186,7 +186,7 @@ bool DX11Renderer::Init()
     model->m_Transform.Position = glm::vec3(0, 0, 5);
     m_Models.push_back(model);
 
-	CMD_INFO("] Renderer initialized", CMD::RENDERING);
+	CMD_INFO("] DX11: Renderer initialized", CMD::RENDERING);
 	return true;
 }
 

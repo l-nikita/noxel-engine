@@ -35,5 +35,14 @@ namespace CMD
 				return oss.str();
 				}, Value);
 		}
+
+		std::string DefValueToString() const
+		{
+			return std::visit([](auto&& val) -> std::string {
+				std::ostringstream oss;
+				oss << std::boolalpha << val;
+				return oss.str();
+				}, DefaultValue);
+		}
 	};
 }

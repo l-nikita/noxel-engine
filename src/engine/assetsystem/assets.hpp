@@ -95,11 +95,25 @@ public:
         auto it = assets.find(name);
 
         if (it == assets.end())
-            return nullptr;
+        {
+            CMD_ERROR("Couldn't find shader [" + name + "].", CMD::ASSETSYSTEM);
+            return GetError();
+        }
 
         return static_cast<ShaderAsset*>(it->second);
     }
 #pragma endregion
+
+
+    static ShaderAsset* m_error;
+
+    //TODO: Make error shader
+    static ShaderAsset* GetError()
+    {
+        auto asset = ShaderAsset::Get("default");
+        assert(asset != nullptr);
+        return asset;
+    }
 };
 
 //-----------------------------------------------------------------------------

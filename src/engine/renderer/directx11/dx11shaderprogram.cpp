@@ -63,11 +63,11 @@ void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
         if (errorBlob)
         {
             OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-            CMD_ERROR("Shader compilation error: " + std::string((char*)errorBlob->GetBufferPointer()), CMD::RENDERING);
+            CMD_ERROR("DX11: Shader compilation error: " + std::string((char*)errorBlob->GetBufferPointer()), CMD::RENDERING);
             errorBlob->Release();
         }
 
-        FATAL_ERROR("Failed to compile shader!", CMD::RENDERING);
+        FATAL_ERROR("DX11: Failed to compile shader!", CMD::RENDERING);
     }
 }
 

@@ -12,11 +12,11 @@ namespace CMD
 	{
 		RegisterCommand("help", "", [this]() {
 			LogHelp();
-			});
+		});
 
 		RegisterCommand("clear", "Clear console logs.", [this]() {
 			ClearLogs();
-			});
+		});
 
 		RegisterVar("test_var", "test", false);
 		RegisterVar("test_var_str", "test", "Sex");
@@ -224,10 +224,27 @@ namespace CMD
 
 	void CMD::LogHelp()
 	{
+		LogMsg("//-------- COMMANDS --------", DEFAULT, CONSOLE);
 		for (auto it = m_commands.begin(); it != m_commands.end(); ++it)
 		{
 			if (it->first != "help")
-				LogMsg(it->first + " - " + it->second.Desc, DEFAULT, CONSOLE);
+			{
+				auto& desc = it->second.Desc;
+				if(desc.empty())
+					LogMsg(it->first, DEFAULT, CONSOLE);
+				else
+					LogMsg(it->first + " - " + it->second.Desc, DEFAULT, CONSOLE);
+			}
+		}
+
+		LogMsg("//-------- VARS --------", DEFAULT, CONSOLE);
+		for (auto it = m_vars.begin(); it != m_vars.end(); ++it)
+		{
+			auto& desc = it->second.Desc;
+			if (desc.empty())
+				LogMsg(it->first + " = " + it->second.ValueToString(), DEFAULT, CONSOLE);
+			else
+				LogMsg(it->first + " = " + it->second.ValueToString() + " [ default: " + it->second.DefValueToString() + " ] - " + it->second.Desc, DEFAULT, CONSOLE);
 		}
 	}
 }
