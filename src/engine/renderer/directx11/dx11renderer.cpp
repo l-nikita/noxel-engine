@@ -36,7 +36,7 @@ bool DX11Renderer::Init()
 
     void* ptr = g_Engine->GetNativeWindowHandle();
     if (!ptr) 
-        throw std::runtime_error("Couldn't get window handle from SDL window!");
+        FATAL_ERROR("DX11: Couldn't get window handle from SDL window!", CMD::RENDERING);
 
     HWND hwnd = (HWND)ptr;
 
@@ -45,7 +45,7 @@ bool DX11Renderer::Init()
         D3D11_SDK_VERSION, &m_device, &featureLevel, &m_context);
 
     if (FAILED(hr)) 
-        throw std::runtime_error("D3D11CreateDevice failed");
+        FATAL_ERROR("DX11: D3D11CreateDevice failed", CMD::RENDERING);
 
     m_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&m_dxgiDevice);
     m_dxgiDevice->GetAdapter(&m_dxgiAdapter);
@@ -65,7 +65,7 @@ bool DX11Renderer::Init()
     hr = m_dxgiFactory->CreateSwapChainForHwnd(m_device, hwnd, &scDesc, nullptr, nullptr, &m_swapChain);
 
     if (FAILED(hr))
-        throw std::runtime_error("CreateSwapChainForHwnd failed");
+        FATAL_ERROR("DX11: CreateSwapChainForHwnd failed", CMD::RENDERING);
 
     //-------------------------------------------
     D3D11_TEXTURE2D_DESC depthDesc = {};
@@ -80,11 +80,11 @@ bool DX11Renderer::Init()
 
     hr = m_device->CreateTexture2D(&depthDesc, nullptr, &m_depthStencil);
     if (FAILED(hr)) 
-        throw std::runtime_error("Failed to create depth stencil buffer");
+        FATAL_ERROR("DX11: Failed to create depth stencil buffer", CMD::RENDERING);
 
     hr = m_device->CreateDepthStencilView(m_depthStencil, nullptr, &m_dsv);
     if (FAILED(hr)) 
-        throw std::runtime_error("Failed to create depth stencil view");
+        FATAL_ERROR("DX11: Failed to create depth stencil view", CMD::RENDERING);
 
     D3D11_BLEND_DESC blendDesc = {};
     blendDesc.RenderTarget[0].BlendEnable = TRUE;
@@ -297,17 +297,17 @@ void DX11Renderer::OnWindowResize(int width, int height)
 
     HRESULT hr = m_swapChain->ResizeBuffers(2, m_width, m_height, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING);
     if (FAILED(hr))
-        throw std::runtime_error("Failed to resize swap chain buffers");
+        FATAL_ERROR("DX11: Failed to resize swap chain buffers", CMD::RENDERING);
 
     ID3D11Texture2D* backBuffer = nullptr;
     hr = m_swapChain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&backBuffer);
     if (FAILED(hr))
-        throw std::runtime_error("Failed to get back buffer after resize");
+        FATAL_ERROR("DX11: Failed to get back buffer after resize", CMD::RENDERING);
 
     hr = m_device->CreateRenderTargetView(backBuffer, nullptr, &m_rtv);
     backBuffer->Release();
     if (FAILED(hr))
-        throw std::runtime_error("Failed to create render target view after resize");
+        FATAL_ERROR("DX11: Failed to create render target view after resize", CMD::RENDERING);
 
     D3D11_TEXTURE2D_DESC depthDesc = {};
     depthDesc.Width = m_width;
@@ -324,11 +324,11 @@ void DX11Renderer::OnWindowResize(int width, int height)
 
     hr = m_device->CreateTexture2D(&depthDesc, nullptr, &m_depthStencil);
     if (FAILED(hr))
-        throw std::runtime_error("Failed to create depth stencil texture");
+        FATAL_ERROR("DX11: Failed to create depth stencil texture", CMD::RENDERING);
 
     hr = m_device->CreateDepthStencilView(m_depthStencil, nullptr, &m_dsv);
     if (FAILED(hr))
-        throw std::runtime_error("Failed to create depth stencil view");
+        FATAL_ERROR("DX11: Failed to create depth stencil view", CMD::RENDERING);
 
     m_context->OMSetRenderTargets(1, &m_rtv, m_dsv);
 

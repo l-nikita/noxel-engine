@@ -310,7 +310,7 @@ public:
 
         auto shaderAsset = ShaderAsset::Get(data.Shader); // TODO: Make fallback shader in code
         if (shaderAsset == nullptr)
-            throw std::runtime_error("Shader ["+ data.Shader + "] not found!");
+            FATAL_ERROR("Shader ["+ data.Shader + "] not found!", CMD::ASSETSYSTEM);
 
         m_shaderAsset = shaderAsset;
     }

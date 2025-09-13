@@ -9,9 +9,7 @@ DX11ShaderProgram::DX11ShaderProgram(ID3D11Device* device, ID3D11DeviceContext* 
     : m_device(device), m_context(context), m_vs(nullptr), m_ps(nullptr), m_vsBlob(nullptr), m_psBlob(nullptr)
 {
     if (!ShaderRegistry::IsShaderExist(asset->GetName()))
-    {
         FATAL_ERROR("Shader [" + asset->GetName() + "] not found in registry.", CMD::RENDERING);
-    }
 
     Compile(asset, VERTEX);
     Compile(asset, PIXEL);
@@ -21,22 +19,22 @@ DX11ShaderProgram::DX11ShaderProgram(ID3D11Device* device, ID3D11DeviceContext* 
         nullptr, &m_vs);
 
     if (FAILED(hr)) 
-        throw std::runtime_error("Failed to create vertex dx11 shader");
+        FATAL_ERROR("DX11: Failed to create vertex dx11 shader", CMD::RENDERING);
 
     hr = m_device->CreatePixelShader(
         m_psBlob->GetBufferPointer(), m_psBlob->GetBufferSize(),
         nullptr, &m_ps);
 
     if (FAILED(hr)) 
-        throw std::runtime_error("Failed to create pixel dx11 shader");
+        FATAL_ERROR("DX11: Failed to create pixel dx11 shader", CMD::RENDERING);
 
     m_vShader = ShaderRegistry::Create(asset->GetName() + "VS", this);
     if (!m_vShader)
-        throw std::runtime_error("Failed to create pixel shader");
+        FATAL_ERROR("DX11: Failed to create pixel shader", CMD::RENDERING);
 
     m_pShader = ShaderRegistry::Create(asset->GetName()+"PS", this);
     if(!m_pShader)
-        throw std::runtime_error("Failed to create pixel shader");
+        FATAL_ERROR("DX11: Failed to create pixel shader", CMD::RENDERING);
 }
 
 void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
@@ -69,7 +67,7 @@ void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
             errorBlob->Release();
         }
 
-        throw std::runtime_error("Failed to compile shader!");
+        FATAL_ERROR("Failed to compile shader!", CMD::RENDERING);
     }
 }
 

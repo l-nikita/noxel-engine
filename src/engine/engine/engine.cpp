@@ -157,7 +157,7 @@ bool Engine::InitWindow()
         m_window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
     }
     else
-        throw std::runtime_error("Unknown graphics API!");
+        FATAL_ERROR("Unknown graphics API!", CMD::ENGINE);
 
     if (!GetWindow())
     {

@@ -59,10 +59,8 @@ void Model::Draw()
 //-----------------------------------------------------------------------------
 void Model::SetMaterial(IMaterial* material, size_t index)
 {
-    if (!material)
-        throw std::invalid_argument("Material is null");
-    if (index >= m_materials.size())
-        throw std::out_of_range("Invalid material index");
+    assert(material);
+    assert(index < m_materials.size());
 
     if (m_materials[index])
     {

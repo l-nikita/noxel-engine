@@ -24,13 +24,13 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, Tex
 
     HRESULT hr = device->CreateTexture2D(&desc, &initData, &m_texture);
     if (FAILED(hr)) 
-        throw std::runtime_error("Failed to create texture2D");
+        FATAL_ERROR("DX11: Failed to create texture2D", CMD::RENDERING);
 
     hr = device->CreateShaderResourceView(m_texture, nullptr, &m_srv);
     if (FAILED(hr)) 
     {
         m_texture->Release();
-        throw std::runtime_error("Failed to create shader resource view");
+        FATAL_ERROR("DX11: Failed to create shader resource view", CMD::RENDERING);
     }
 
     m_width = desc.Width;

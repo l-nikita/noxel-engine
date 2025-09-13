@@ -34,7 +34,7 @@ public:
 
         HRESULT hr = m_device->CreateBuffer(&cbd, nullptr, &m_CBColor);
         if (FAILED(hr))
-            throw std::runtime_error("Failed to create constant buffer");
+            FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
     }
 
     ShaderType GetType() { return PIXEL; }
@@ -99,7 +99,7 @@ public:
             &m_inputLayout);
 
         if (FAILED(hr))
-            throw std::runtime_error("Failed to create input layout");
+            FATAL_ERROR("DX11: Failed to create input layout", CMD::RENDERING);
 
         D3D11_BUFFER_DESC cbd = {};
         cbd.Usage = D3D11_USAGE_DEFAULT;
@@ -111,7 +111,7 @@ public:
 
         hr = m_device->CreateBuffer(&cbd, nullptr, &m_constantBuffer);
         if (FAILED(hr))
-            throw std::runtime_error("Failed to create constant buffer");
+            FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
     }
 
     ShaderType GetType() { return VERTEX; }

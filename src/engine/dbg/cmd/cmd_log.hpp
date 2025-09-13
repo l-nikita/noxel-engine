@@ -15,6 +15,7 @@ namespace CMD
 		INFO, // Blue
 		WARNING, // Orange
 		ERROR, // Red
+		FATAL_ERROR,
 	};
 
 	enum LogCategory
@@ -40,6 +41,7 @@ namespace CMD
 			case INFO: return "INFO";
 			case WARNING: return "WARNING";
 			case ERROR: return "ERROR";
+			case FATAL_ERROR: return "FATAL_ERROR";
 		}
 
 		return "UNKNOWN_TYPE";
