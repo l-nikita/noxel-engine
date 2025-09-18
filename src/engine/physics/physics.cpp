@@ -60,9 +60,6 @@ static bool AssertFailedImpl(const char* inExpression, const char* inMessage, co
 //-----------------------------------------------------------------------------
 bool Physics::Init()
 {
-	m_updateProfiler = new Profiler("PhysicsUpdate");
-	m_drawProfiler = new Profiler("PhysicsDraw");
-
 	RegisterDefaultAllocator();
 
 	Trace = TraceImpl;
@@ -127,7 +124,7 @@ void Physics::Update()
 {
 	if (!IsRunning()) return;
 
-	m_updateProfiler->Start();
+	PROF_START("Physics::Update", "Physics");
 
 	const float cDeltaTime = 1.0f / 60.0f;
 	const int cCollisionSteps = 1;
@@ -136,14 +133,14 @@ void Physics::Update()
 	m_system->Update(cDeltaTime, 1, m_tempAllocator, m_jobSystem);
 	FlushPendingDestructions();
 
-	m_updateProfiler->End();
+	PROF_END("Physics::Update");
 }
 
 void Physics::Render()
 {
 	if (!IsRunning()) return;
 
-	m_drawProfiler->Start();
+	PROF_START("Physics::Render", "Physics");
 
 	JPH::BodyManager::DrawSettings drawSettings;
 	drawSettings.mDrawShape = false;
@@ -151,7 +148,7 @@ void Physics::Render()
 	drawSettings.mDrawCenterOfMassTransform = true;
 	m_system->DrawBodies(drawSettings, m_debugRenderer);
 
-	m_drawProfiler->End();
+	PROF_END("Physics::Render");
 }
 
 //-----------------------------------------------------------------------------
@@ -200,9 +197,6 @@ void Physics::Shutdown()
 
 	m_bodiesIDs.clear();
 	UnregisterTypes();
-
-	delete m_updateProfiler;
-	delete m_drawProfiler;
 
 	delete m_system;
 	delete m_tempAllocator;

@@ -9,7 +9,7 @@ class BudgetPanel : public Panel
 {
 public:
 	void Draw();
-	void DrawRow(Profiler* profiler);
+	void DrawRow(Profiler::Profiler* prof);
 
 private:
 	float m_fps;

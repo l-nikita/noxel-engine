@@ -173,8 +173,12 @@ namespace Gizmos
         shader->SetPSParameter("color", glm::vec4(color.r, color.g, color.b, 1));
 
         shader->Bind();
-        g_Renderer->SetPrimitiveTopology(LINES);
-        g_BoxWireMesh->Draw();
+
+        if (color.a < 1)
+        {
+            g_Renderer->SetPrimitiveTopology(LINES);
+            g_BoxWireMesh->Draw();
+        }
 
         if (color.a > 0)
         {

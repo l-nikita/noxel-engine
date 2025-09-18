@@ -27,8 +27,8 @@ void BudgetPanel::Draw()
 			ImGui::TableSetupColumn("Name");
 			ImGui::TableSetupColumn("Time");
 
-			for (auto profiler : Profiler::All)
-				DrawRow(profiler);
+			for (auto& prof : Profiler::GetAll())
+				DrawRow(prof.second);
 
 			ImGui::EndTable();
 		}
@@ -46,9 +46,9 @@ void BudgetPanel::Draw()
 	ImGui::End();
 }
 
-void BudgetPanel::DrawRow(Profiler* profiler)
+void BudgetPanel::DrawRow(Profiler::Profiler* prof)
 {
-	if (profiler == nullptr) return;
+	if (prof == nullptr) return;
 
 	ImGui::TableNextRow();
 
@@ -56,8 +56,8 @@ void BudgetPanel::DrawRow(Profiler* profiler)
 	{
 		ImGui::TableSetColumnIndex(column);
 		if (column == 0)
-			ImGui::Text("%s", profiler->GetName().c_str());
+			ImGui::Text("%s", prof->GetName().c_str());
 		if (column == 1)
-			ImGui::Text("%.4f ms", profiler->GetTime());
+			ImGui::Text("%.4f ms", prof->GetTime());
 	}
 }

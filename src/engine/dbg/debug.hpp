@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cmd/cmd.hpp"
+#include "profiler.hpp"
 
 #define CMD_LOG(msg, type, category) CMD::CMD::GetInstance().LogMsg(std::string(msg), type, category)
 #define CMD_LOG_WITH_FILE(msg, type, category) CMD::CMD::GetInstance().LogMsg(std::string(msg) + " [" + __FILE__ + ":" + std::to_string(__LINE__) + "]", type, category)
@@ -19,3 +20,6 @@ static void FatalError(const std::string& msg, CMD::LogCategory category, const 
 }
 
 #define FATAL_ERROR(msg, category) FatalError((msg), (category), __FILE__, __LINE__)
+
+#define PROF_START(name, category) Profiler::Start(name, category);
+#define PROF_END(name) Profiler::End(name);

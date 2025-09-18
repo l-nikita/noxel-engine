@@ -27,8 +27,6 @@ public:
 	void Shutdown() override;
 
 	bool IsRunning() override { return m_IsRunning; }
-	Profiler* m_updateProfiler;
-	Profiler* m_drawProfiler;
 
 	JPH::PhysicsSystem* GetSystem() { return m_system; }
 

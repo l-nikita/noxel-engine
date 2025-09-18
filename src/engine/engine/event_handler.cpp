@@ -4,15 +4,18 @@
 
 #include "event_handler.hpp"
 #include "input/input.hpp"
+#include "dbg/debug.hpp"
 
 void EventHandler::HandleEvents()
 {
-	m_profiler.Start();
+	PROF_START("EventHandler::HandleEvents", "EventHandler");
+
 	SDL_Event event;
 
 	while (SDL_PollEvent(&event))
 		OnEvent(event);
-	m_profiler.End();
+
+	PROF_END("EventHandler::HandleEvents");
 }
 
 void EventHandler::OnEvent(SDL_Event& event)

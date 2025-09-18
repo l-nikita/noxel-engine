@@ -4,25 +4,67 @@
 #include <chrono>
 #include <vector>
 #include <string>
+#include <unordered_map>
+#include <cassert>
 
 #include "common.hpp"
 
-class ENGINE_API Profiler
+#define PROF_ENABLED _DEBUG
+
+namespace Profiler
 {
-public:
-    static std::vector<Profiler*> All;
-    Profiler(const std::string& name);
+    class Profiler;
+    using Profilers = std::unordered_map<std::string, Profiler*>;
 
-private:
-    std::string _name;
-    std::chrono::high_resolution_clock::time_point _start;
-    std::chrono::high_resolution_clock::time_point _end;
-    float _lastFrameTime = 0.0f;
+    class ENGINE_API Profiler
+    {
+    public:
+        static Profilers m_all;
+        Profiler(const std::string& name, const std::string& category);
 
-public:
-    void Start();
-    void End();
+    private:
+        std::string m_name;
+        std::string m_category;
+        std::chrono::high_resolution_clock::time_point m_start;
+        std::chrono::high_resolution_clock::time_point m_end;
+        float m_lastFrameTime = 0.0f;
 
-    float GetTime() const { return _lastFrameTime; }
-    std::string GetName() const { return _name; }
-};
+    public:
+        void Start();
+        void End();
+
+        float GetTime() const { return m_lastFrameTime; }
+        std::string GetName() const { return m_name; }
+        std::string GetCategory() const { return m_category; }
+    };
+
+    static Profilers GetAll()
+    {
+        return Profiler::m_all;
+    }
+
+    static void Start(const std::string& name, const std::string& category)
+    {
+#ifdef PROF_ENABLED
+        auto it = Profiler::m_all.find(name);
+        if (it == Profiler::m_all.end())
+        {
+            auto* p = new Profiler(name, category);
+            p->Start();
+        }
+        else
+            it->second->Start();
+#endif
+    }
+
+    static void End(const std::string& name)
+    {
+#ifdef PROF_ENABLED
+        auto it = Profiler::m_all.find(name);
+        if (it != Profiler::m_all.end())
+            it->second->End();
+        else
+            assert(false, ("Profiler [" + name + "] not found").c_str());
+#endif
+    }
+}

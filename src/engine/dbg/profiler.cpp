@@ -3,22 +3,26 @@
 
 #include "profiler.hpp"
 
-std::vector<Profiler*> Profiler::All;
-
-Profiler::Profiler(const std::string& name)
+namespace Profiler
 {
-    _name = name;
-    All.push_back(this);
-    _start = std::chrono::high_resolution_clock::now();
-}
+    Profilers Profiler::m_all;
 
-void Profiler::Start() 
-{
-    _start = std::chrono::high_resolution_clock::now();
-}
+    Profiler::Profiler(const std::string& name, const std::string& category)
+    {
+        m_name = name;
+        m_category = category;
+        m_all[name] = this;
+        m_start = std::chrono::high_resolution_clock::now();
+    }
 
-void Profiler::End() 
-{
-    _end = std::chrono::high_resolution_clock::now();
-    _lastFrameTime = std::chrono::duration<float, std::milli>(_end - _start).count();
+    void Profiler::Start()
+    {
+        m_start = std::chrono::high_resolution_clock::now();
+    }
+
+    void Profiler::End()
+    {
+        m_end = std::chrono::high_resolution_clock::now();
+        m_lastFrameTime = std::chrono::duration<float, std::milli>(m_end - m_start).count();
+    }
 }

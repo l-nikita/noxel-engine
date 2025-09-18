@@ -61,7 +61,7 @@ void Engine::Update()
 
 void Engine::Render()
 {
-    Uint32 flags = SDL_GetWindowFlags(m_window);
+    std::uint32_t flags = SDL_GetWindowFlags(m_window);
     if (flags & SDL_WINDOW_MINIMIZED)
         return;
 
@@ -77,9 +77,6 @@ void Engine::Run()
     auto lastTime = high_resolution_clock::now();
     auto startTime = high_resolution_clock::now();
 
-    Profiler updateProfiler("Update");
-    Profiler renderProfiler("Render");
-
     m_isRunning = true;
 
     while (m_isRunning)
@@ -89,13 +86,13 @@ void Engine::Run()
         lastTime = currentTime;
         m_elapsedTime = duration<float>(currentTime - startTime);
 
-        updateProfiler.Start();
+        PROF_START("Engine::Update", "Engine");
         Update();
-        updateProfiler.End();
+        PROF_END("Engine::Update");
 
-        renderProfiler.Start();
+        PROF_START("Engine::Render", "Engine");
         Render();
-        renderProfiler.End();
+        PROF_END("Engine::Render");
     }
 
     Shutdown();

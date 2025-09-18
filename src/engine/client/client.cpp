@@ -43,10 +43,9 @@ bool Client::Connect(const std::string& ip, uint16_t port)
 
 void Client::PollMessages()
 {
-    Profiler msgProfiler("[Client] PollMessages");
     while (m_isRunning)
     {
-        msgProfiler.Start();
+        PROF_START("Client::PollMessages", "Client");
         ISteamNetworkingMessage* pIncomingMsg[10];
         int numMsgs = m_interface->ReceiveMessagesOnConnection(m_connection, pIncomingMsg, 10);
         for (int i = 0; i < numMsgs; ++i)
@@ -58,7 +57,7 @@ void Client::PollMessages()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         m_interface->RunCallbacks();
-        msgProfiler.End();
+        PROF_END("Client::PollMessages");
     }
 }
 

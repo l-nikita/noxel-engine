@@ -95,10 +95,9 @@ bool Server::StartNet()
 
 void Server::PollMessages()
 {
-    Profiler msgProfiler("[Server] PollMessages");
     while (m_isRunning)
     {
-        msgProfiler.Start();
+        PROF_START("Server::PollMessages", "Server");
         ISteamNetworkingMessage* msg = nullptr;
 
         int numMsgs = m_interface->ReceiveMessagesOnPollGroup(m_pollGroup, &msg, 1);
@@ -111,7 +110,7 @@ void Server::PollMessages()
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
         m_interface->RunCallbacks();
-        msgProfiler.End();
+        PROF_END("Server::PollMessages");
     }
 }
 
