@@ -5,7 +5,7 @@
 
 class IRenderer;
 class IGui;
-struct SDL_Window; // IWindow
+class Window;
 
 class ENGINE_API IEngine
 {
@@ -25,16 +25,10 @@ public:
 
 	virtual float DeltaTime() = 0;
 	virtual float ElapsedTime() = 0;
+	virtual float GetFPS() = 0;
 
-	virtual SDL_Window* GetWindow() = 0;
-	virtual int GetWindowWidth() = 0;
-	virtual int GetWindowHeight() = 0;
-	virtual void* GetNativeWindowHandle() = 0;
+	virtual Window* GetWindow() = 0;
 	virtual void OnWindowResize() = 0;
-
-	virtual void ToggleFullscreen() = 0;
-	virtual bool IsInFullscreen() = 0;
-	virtual void SetFullscreen(bool fullscreen) = 0;
 
 	virtual GraphicsAPI GetGraphicsAPI() = 0;
 };

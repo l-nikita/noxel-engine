@@ -1,4 +1,5 @@
 #include "engine.hpp"
+#include "window.hpp"
 #include "input.hpp"
 #include "dbg/debug.hpp"
 
@@ -7,7 +8,7 @@
 //-----------------------------------------------------------------------------
 bool Input::Init()
 {
-    CMD_INFO("] Input initialized", CMD::INPUT);
+    CMD_INFO("Input initialized", CMD::INPUT);
     return true;
 }
 
@@ -49,12 +50,12 @@ bool Input::IsButtonReleased(Uint8 button)
 
 void Input::SetRelativeMouseMode(bool value)
 {
-    SDL_SetWindowRelativeMouseMode(g_Engine->GetWindow(), value);
+    SDL_SetWindowRelativeMouseMode(g_Engine->GetWindow()->GetHandle(), value);
 }
 
 bool Input::GetRelativeMouseMode()
 {
-    return SDL_GetWindowRelativeMouseMode(g_Engine->GetWindow());
+    return SDL_GetWindowRelativeMouseMode(g_Engine->GetWindow()->GetHandle());
 }
 
 glm::vec2 Input::GetMousePos()

@@ -113,7 +113,7 @@ bool Physics::Init()
 	m_system->OptimizeBroadPhase();
 	m_IsRunning = true;
 
-	CMD_INFO("] Physics initialized", CMD::PHYSICS);
+	CMD_INFO("Physics initialized", CMD::PHYSICS);
     return true;
 }
 

@@ -33,6 +33,10 @@ public:
 	int GetDrawCallCount() override { return m_DrawCallCount; }
 #endif
 
+	void CreateDevice();
+	void CreateSwapChain();
+	void Swap() override;
+
 	ID3D11Device* GetDevice() { return m_device; }
 	ID3D11DeviceContext* GetContext() { return m_context; }
 

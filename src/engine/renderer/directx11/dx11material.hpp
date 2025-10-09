@@ -7,6 +7,7 @@
 #include "renderer/itexture.hpp"
 #include "assetsystem/assets.hpp"
 
+//TODO: MAKE JUST MATERIAL
 class DX11Material : public IMaterial 
 {
 public:

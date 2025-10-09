@@ -7,11 +7,11 @@
 #include "renderer/irenderer.hpp"
 #include "common.hpp"
 
+class Window;
+
 class ENGINE_API Engine : public IEngine
 {
 public:
-    ~Engine() { Shutdown(); }
-
     bool Init() override;
     bool InitWindow() override;
 
@@ -23,15 +23,9 @@ public:
     void Update() override;
     void Render() override;
 
-    SDL_Window* GetWindow() override { return m_window; }
-    int GetWindowWidth() override { return 0; }
-    int GetWindowHeight() override { return 0; }
-    void* GetNativeWindowHandle() override;
+    // Current active window.
+    Window* GetWindow() override { return m_window; }
     void OnWindowResize() override;
-
-    void ToggleFullscreen() override;
-    void SetFullscreen(bool fullscreen) override;
-    bool IsInFullscreen() override;
 
     // -------------------------------------------------
     std::chrono::duration<float> DeltaDuration() const { return m_deltaTime; }
@@ -41,13 +35,15 @@ public:
     std::chrono::duration<float> ElapsedDuration() const { return m_elapsedTime; }
     // Elapsed time since engine loop ran (ms)
     float ElapsedTime() override { return m_elapsedTime.count(); }
+
+    float GetFPS() override { return 1.0f / DeltaTime(); }
+
     // -------------------------------------------------
 
     GraphicsAPI GetGraphicsAPI() { return DIRECTX11; }
 
 private:
-    SDL_Window* m_window = nullptr;
-
+    Window* m_window = nullptr;
     bool m_isRunning = false;
 
     std::chrono::duration<float> m_deltaTime;

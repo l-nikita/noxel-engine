@@ -104,15 +104,3 @@ std::vector<IMesh*> Model::GetMeshes() const
 {
     return m_meshes;
 }
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void Model::Destory()
-{
-    for (auto& mesh : m_meshes)
-        if (mesh) delete mesh;
-
-    for (auto& mat : m_materials)
-        if (mat) delete mat;
-}

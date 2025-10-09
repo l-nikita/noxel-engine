@@ -47,11 +47,12 @@ void DX11Material::Unbind()
 void DX11Material::Destroy()
 {
     delete m_shader;
+    m_shader = nullptr;
 
     for (std::uint32_t i = 0; i < MATERIAL_TEXTURES_SLOTS; ++i)
     {
-        if (m_textures[i])
-            delete m_textures[i];
+        delete m_textures[i];
+        m_textures[i] = nullptr;
     }
 }
 

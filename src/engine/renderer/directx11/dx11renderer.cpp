@@ -5,6 +5,7 @@
 #include "dx11mesh.hpp"
 #include "dx11texture.hpp"
 #include "iengine.hpp"
+#include "window.hpp"
 #include "renderer/imaterial.hpp"
 #include "renderer/model.hpp"
 #include "renderer/render_camera.hpp"
@@ -27,25 +28,37 @@ IMaterial* g_ErrorMaterial = nullptr;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool DX11Renderer::Init()
+void DX11Renderer::CreateDevice()
 {
-	int width, height;
-    auto window = g_Engine->GetWindow();
+    D3D_FEATURE_LEVEL featureLevel;
+    HRESULT hr = D3D11CreateDevice(
+        nullptr,                    // adapter
+        D3D_DRIVER_TYPE_HARDWARE,   // driver type
+        nullptr,                    // software
+        0,                          // flags
+        nullptr,                    // feature levels
+        0,                          // feature levels
+        D3D11_SDK_VERSION,          // version
+        &m_device,                  // device
+        &featureLevel,              // feature level
+        &m_context);                // device context
 
-	SDL_GetWindowSizeInPixels(window, &width, &height);
+    if (FAILED(hr))
+        FATAL_ERROR("DX11: D3D11CreateDevice failed", CMD::RENDERING);
+}
 
-    void* ptr = g_Engine->GetNativeWindowHandle();
-    if (!ptr) 
-        FATAL_ERROR("DX11: Couldn't get window handle from SDL window!", CMD::RENDERING);
+void DX11Renderer::CreateSwapChain()
+{
+    assert(m_device);
+
+    void* ptr = g_Engine->GetWindow()->GetPointer();
+    if (!ptr)
+        FATAL_ERROR("DX11: Couldn't get window pointer from SDL window!", CMD::RENDERING);
 
     HWND hwnd = (HWND)ptr;
 
-    D3D_FEATURE_LEVEL featureLevel;
-    HRESULT hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
-        D3D11_SDK_VERSION, &m_device, &featureLevel, &m_context);
-
-    if (FAILED(hr)) 
-        FATAL_ERROR("DX11: D3D11CreateDevice failed", CMD::RENDERING);
+    int width, height;
+    g_Engine->GetWindow()->GetSize(&width, &height);
 
     m_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&m_dxgiDevice);
     m_dxgiDevice->GetAdapter(&m_dxgiAdapter);
@@ -62,12 +75,21 @@ bool DX11Renderer::Init()
     scDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
-    hr = m_dxgiFactory->CreateSwapChainForHwnd(m_device, hwnd, &scDesc, nullptr, nullptr, &m_swapChain);
+    HRESULT hr = m_dxgiFactory->CreateSwapChainForHwnd(m_device, hwnd, &scDesc, nullptr, nullptr, &m_swapChain);
 
     if (FAILED(hr))
         FATAL_ERROR("DX11: CreateSwapChainForHwnd failed", CMD::RENDERING);
+}
+
+bool DX11Renderer::Init()
+{
+    CreateDevice();
+    CreateSwapChain();
 
     //-------------------------------------------
+    int width, height;
+    g_Engine->GetWindow()->GetSize(&width, &height);
+
     D3D11_TEXTURE2D_DESC depthDesc = {};
     depthDesc.Width = width;
     depthDesc.Height = height;
@@ -78,7 +100,7 @@ bool DX11Renderer::Init()
     depthDesc.Usage = D3D11_USAGE_DEFAULT;
     depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
-    hr = m_device->CreateTexture2D(&depthDesc, nullptr, &m_depthStencil);
+    HRESULT hr = m_device->CreateTexture2D(&depthDesc, nullptr, &m_depthStencil);
     if (FAILED(hr)) 
         FATAL_ERROR("DX11: Failed to create depth stencil buffer", CMD::RENDERING);
 
@@ -186,7 +208,7 @@ bool DX11Renderer::Init()
     model->m_Transform.Position = glm::vec3(0, 0, 5);
     m_Models.push_back(model);
 
-	CMD_INFO("] DX11: Renderer initialized", CMD::RENDERING);
+	CMD_INFO("DX11: Renderer initialized", CMD::RENDERING);
 	return true;
 }
 
@@ -259,12 +281,17 @@ void DX11Renderer::Render()
     //-------------------------------------------
     g_Gui->Render();
 
-    m_swapChain->Present(m_vsyncEnabled ? 1 : 0,
-        m_vsyncEnabled ? 0 : DXGI_PRESENT_ALLOW_TEARING);
+    Swap();
 
 #ifdef _DEBUG
     m_DrawCallCount = 0;
 #endif
+}
+
+void DX11Renderer::Swap()
+{
+    m_swapChain->Present(m_vsyncEnabled ? 1 : 0,
+        m_vsyncEnabled ? 0 : DXGI_PRESENT_ALLOW_TEARING);
 }
 
 //-----------------------------------------------------------------------------
@@ -288,6 +315,8 @@ void DX11Renderer::Shutdown()
         delete model;
         model = nullptr;
     }
+
+    m_Models.clear();
 
 	delete m_camera;
     m_rtv->Release();

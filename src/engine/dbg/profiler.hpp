@@ -43,28 +43,6 @@ namespace Profiler
         return Profiler::m_all;
     }
 
-    static void Start(const std::string& name, const std::string& category)
-    {
-#ifdef PROF_ENABLED
-        auto it = Profiler::m_all.find(name);
-        if (it == Profiler::m_all.end())
-        {
-            auto* p = new Profiler(name, category);
-            p->Start();
-        }
-        else
-            it->second->Start();
-#endif
-    }
-
-    static void End(const std::string& name)
-    {
-#ifdef PROF_ENABLED
-        auto it = Profiler::m_all.find(name);
-        if (it != Profiler::m_all.end())
-            it->second->End();
-        else
-            assert(false, ("Profiler [" + name + "] not found").c_str());
-#endif
-    }
+    void Start(const std::string& name, const std::string& category);
+    void End(const std::string& name);
 }

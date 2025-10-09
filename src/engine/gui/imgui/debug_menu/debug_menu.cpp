@@ -1,6 +1,7 @@
 #include <imgui.h>
 
 #include "engine.hpp"
+#include "window.hpp"
 #include "debug_menu.hpp"
 #include "dbg/cmd/cmd.hpp"
 #include "networking/networking.hpp"
@@ -20,7 +21,7 @@ void DebugMenu::Draw()
 		if (ImGui::BeginMenu("Engine"))
 		{
 			if (ImGui::MenuItem("Toggle Fullscreen"))
-				g_Engine->ToggleFullscreen();
+				g_Engine->GetWindow()->ToggleFullscreen();
 
 			ImGui::Separator();
 

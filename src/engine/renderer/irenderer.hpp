@@ -23,6 +23,7 @@ public:
 	virtual bool Init() = 0;
 	virtual void Render() = 0;
 	virtual void Shutdown() = 0;
+	virtual void Swap() = 0;
 	virtual void OnWindowResize(int width, int height) = 0;
 
 	virtual IRenderFactory* GetFactory() = 0;

@@ -17,7 +17,6 @@ protected:
 public:
     Model(const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials);
     Model(IMesh* mesh, IMaterial* material);
-    ~Model() { Destory(); }
 
     void SetMaterial(IMaterial* material, size_t index = 0);
 
@@ -30,5 +29,4 @@ public:
     std::vector<IMesh*> GetMeshes() const;
 
     void Draw();
-    void Destory();
 };

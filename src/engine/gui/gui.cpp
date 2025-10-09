@@ -3,6 +3,7 @@
 #include <imgui_impl_dx11.h>
 
 #include "iengine.hpp"
+#include "window.hpp"
 #include "renderer/directx11/dx11renderer.hpp"
 #include "gui.hpp"
 #include "panel.hpp"
@@ -18,7 +19,7 @@ bool Gui::Init()
     if (g_Engine->GetGraphicsAPI() == DIRECTX11)
     {
         auto dx11render = static_cast<DX11Renderer*>(g_Renderer);
-        ImGui_ImplSDL3_InitForD3D(g_Engine->GetWindow());
+        ImGui_ImplSDL3_InitForD3D(g_Engine->GetWindow()->GetHandle());
         ImGui_ImplDX11_Init(dx11render->GetDevice(), dx11render->GetContext());
     }
     else

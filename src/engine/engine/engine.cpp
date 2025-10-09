@@ -21,6 +21,7 @@
 #include "dbg/profiler.hpp"
 #include "dbg/cmd/cmd.hpp"
 #include "engine.hpp"
+#include "window.hpp"
 
 IEngine* g_Engine = nullptr;
 IInput* g_Input = nullptr;
@@ -28,7 +29,6 @@ IAssetSystem* g_Assets = nullptr;
 IPhysics* g_Physics = nullptr;
 IRenderer* g_Renderer = nullptr;
 IGui* g_Gui = nullptr;
-//IEntities* g_Entities = nullptr;
 
 //-----------------------------------------------------------------------------
 //
@@ -54,14 +54,14 @@ void Engine::Update()
     if (isF3)
         g_Input->SetRelativeMouseMode(!g_Input->GetRelativeMouseMode());
     else if (isF11)
-        ToggleFullscreen();
+        GetWindow()->ToggleFullscreen();
 
     g_Input->Reset();
 }
 
 void Engine::Render()
 {
-    std::uint32_t flags = SDL_GetWindowFlags(m_window);
+    std::uint32_t flags = GetWindow()->GetFlags();
     if (flags & SDL_WINDOW_MINIMIZED)
         return;
 
@@ -103,7 +103,6 @@ void Engine::Run()
 //-----------------------------------------------------------------------------
 void Engine::Stop()
 {
-    if (!m_isRunning) return;
     m_isRunning = false;
 }
 
@@ -112,10 +111,8 @@ void Engine::Stop()
 //-----------------------------------------------------------------------------
 void Engine::Shutdown()
 {
-    if (!m_isRunning) return;
     Stop();
 
-    //g_Entities->Shutdown();
     g_Physics->Shutdown();
     Networking::GetInstance().Shutdown();
 
@@ -127,12 +124,11 @@ void Engine::Shutdown()
     delete g_Physics;
     delete g_Renderer;
     delete g_Gui;
-    //delete g_Entities;
 
     Gizmos::Shutdown();
 
-    if(GetWindow())
-        SDL_DestroyWindow(GetWindow());
+    GetWindow()->Destroy();
+    delete m_window;
 
     SDL_Quit();
     CMD_INFO("Engine stopped.", CMD::ENGINE);
@@ -143,27 +139,8 @@ void Engine::Shutdown()
 //-----------------------------------------------------------------------------
 bool Engine::InitWindow()
 {
-    if (GetGraphicsAPI() == DIRECTX11)
-        m_window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_RESIZABLE);
-    else if (GetGraphicsAPI() == OPENGL)
-    {
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-        m_window = SDL_CreateWindow(ENGINE_NAME, 1920, 1080, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
-    }
-    else
-        FATAL_ERROR("Unknown graphics API!", CMD::ENGINE);
-
-    if (!GetWindow())
-    {
-        CMD_ERROR("SDL_CreateWindow Error: " + std::string(SDL_GetError()), CMD::ENGINE);
-        Shutdown();
-        return false;
-    }
-
-    return true;
+    m_window = new Window(ENGINE_NAME, 1920, 1080);
+    return m_window != nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -201,18 +178,12 @@ bool Engine::Init()
         g_Renderer = new DX11Renderer();
         if (!g_Renderer->Init()) return false;
     }
-    else if (GetGraphicsAPI() == OPENGL)
-    {
-
-    }
+    else if (GetGraphicsAPI() == OPENGL) { }
 
     g_Gui = new Gui();
     if (!g_Gui->Init()) return false;
 
     if (!Networking::GetInstance().Init()) return false;
-
-    //g_Entities = new Entities();
-    //if (!g_Entities->Init()) return false;
 
     Gizmos::Init();
     CMD::CMD::GetInstance().Setup();
@@ -224,34 +195,9 @@ bool Engine::Init()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void* Engine::GetNativeWindowHandle()
-{
-#ifdef SDL_PLATFORM_WIN32
-    return SDL_GetPointerProperty(SDL_GetWindowProperties(GetWindow()), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
-#else
-    return nullptr;
-#endif
-}
-
-void Engine::SetFullscreen(bool fullscreen)
-{
-    SDL_SetWindowFullscreen(GetWindow(), fullscreen);
-}
-
-void Engine::ToggleFullscreen()
-{
-    SetFullscreen(!IsInFullscreen());
-}
-
-bool Engine::IsInFullscreen()
-{
-    Uint32 flags = SDL_GetWindowFlags(GetWindow());
-    return (flags & SDL_WINDOW_FULLSCREEN);
-}
-
 void Engine::OnWindowResize()
 {
     int width, height;
-    SDL_GetWindowSizeInPixels(GetWindow(), &width, &height);
+    GetWindow()->GetSize(&width, &height);
     g_Renderer->OnWindowResize(width, height);
 }
