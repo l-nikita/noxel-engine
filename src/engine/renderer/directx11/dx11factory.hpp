@@ -11,6 +11,7 @@ public:
 
     IMesh* CreateMesh(const MeshData& data) override;
     IShaderProgram* CreateShaderProgram(ShaderAsset* asset) override;
+    ITexture* CreateTexture(TextureAsset* asset) override;
 
     IMaterial* CreateMaterial(MaterialAsset* asset) override;
     IMaterial* CreateMaterial(std::string assetName) override;

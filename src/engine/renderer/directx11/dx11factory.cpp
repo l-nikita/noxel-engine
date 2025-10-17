@@ -4,6 +4,7 @@
 #include "dx11mesh.hpp"
 #include "dx11material.hpp"
 #include "dx11shaderprogram.hpp"
+#include "dx11texture.hpp"
 
 DX11Factory::DX11Factory(ID3D11Device* device, ID3D11DeviceContext* context) 
 	: m_device(device), m_context(context)
@@ -29,6 +30,12 @@ IShaderProgram* DX11Factory::CreateShaderProgram(ShaderAsset* asset)
 {
     assert(asset != nullptr);
     return new DX11ShaderProgram(m_device, m_context, asset);
+}
+
+ITexture* DX11Factory::CreateTexture(TextureAsset* asset)
+{
+    assert(asset != nullptr);
+    return new DX11Texture(m_device, m_context, asset);
 }
 
 IMaterial* DX11Factory::CreateMaterial(MaterialAsset* asset)

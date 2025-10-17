@@ -4,7 +4,6 @@
 #include <string>
 #include <chrono>
 
-
 #include "renderer/directx11/dx11renderer.hpp"
 #include "renderer/render_camera.hpp"
 #include "event_handler.hpp"
@@ -37,8 +36,7 @@ void Engine::Update()
 {
     EventHandler::GetInstance().HandleEvents();
 
-    //g_Entities->Update();
-    g_Physics->Update();
+    //g_Physics->Update();
     
     auto camera = g_Renderer->GetCamera();
     if (camera)
@@ -113,7 +111,7 @@ void Engine::Shutdown()
 {
     Stop();
 
-    g_Physics->Shutdown();
+    //g_Physics->Shutdown();
     Networking::GetInstance().Shutdown();
 
     g_Renderer->Shutdown();
@@ -121,7 +119,7 @@ void Engine::Shutdown()
 
     delete g_Assets;
     delete g_Input;
-    delete g_Physics;
+    //delete g_Physics;
     delete g_Renderer;
     delete g_Gui;
 
@@ -170,8 +168,8 @@ bool Engine::Init()
     g_Input = new Input();
     if (!g_Input->Init()) return false;
 
-    g_Physics = new Physics();
-    if(!g_Physics->Init()) return false;
+    //g_Physics = new Physics();
+    //if(!g_Physics->Init()) return false;
 
     if (GetGraphicsAPI() == DIRECTX11)
     {

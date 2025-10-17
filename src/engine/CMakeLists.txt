@@ -51,6 +51,7 @@ add_custom_command(TARGET engine POST_BUILD
 # ------------------
 target_link_libraries(engine PUBLIC 
 	proto
+	
 	SDL3::SDL3
 	EnTT::EnTT	
 	glm::glm
@@ -59,6 +60,7 @@ target_link_libraries(engine PUBLIC
 	protobuf::libprotobuf
 	GameNetworkingSockets::GameNetworkingSockets
 	imgui::imgui
+	#Tracy::TracyClient
 	
 	glad
     d3d11

@@ -12,6 +12,7 @@ class IRenderFactory
 public:
     virtual IMesh* CreateMesh(const MeshData& data) = 0;
     virtual IShaderProgram* CreateShaderProgram(ShaderAsset* asset) = 0;
+    virtual ITexture* CreateTexture(TextureAsset* asset) = 0;
 
     virtual IMaterial* CreateMaterial(MaterialAsset* asset) = 0;
     virtual IMaterial* CreateMaterial(std::string assetName) = 0;

@@ -13,13 +13,11 @@
 #define CMD_WARNING(msg, category) CMD_LOG(msg, CMD::WARNING, category)
 #define CMD_ERROR(msg, category) CMD_LOG_WITH_FILE(msg, CMD::ERROR, category)
 
-static void FatalError(const std::string& msg, CMD::LogCategory category, const char* file, int line) 
-{
-    CMD_LOG_WITH_FILE(msg, CMD::FATAL_ERROR, category);
-    throw std::runtime_error(msg);
+#define FATAL_ERROR(msg, category) \
+{ \
+	CMD_LOG_WITH_FILE(msg, CMD::FATAL_ERROR, category); \
+	throw std::runtime_error(msg); \
 }
-
-#define FATAL_ERROR(msg, category) FatalError((msg), (category), __FILE__, __LINE__)
 
 #define PROF_START(name, category) Profiler::Start(name, category);
 #define PROF_END(name) Profiler::End(name);

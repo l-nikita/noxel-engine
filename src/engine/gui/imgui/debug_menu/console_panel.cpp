@@ -1,4 +1,6 @@
-#include "imgui.h"
+#include <imgui.h>
+#include <format>
+
 #include "console_panel.hpp"
 #include "dbg/debug.hpp"
 
@@ -55,7 +57,14 @@ void ConsolePanel::DrawLogWindow()
             }
 
             ImGui::PushStyleColor(ImGuiCol_Text, color);
-            ImGui::Text(log->Text.c_str());
+
+            std::string formated;
+            if (log->Category != CMD::CONSOLE)
+                formated = std::format("[{:12}] {}\n", CMD::LogCategoryToString(log->Category), log->Text);
+            else
+                formated = log->Text;
+
+            ImGui::Text(formated.c_str());
             ImGui::PopStyleColor();
 
             if (m_timeStamp)

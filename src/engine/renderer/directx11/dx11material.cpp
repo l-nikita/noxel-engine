@@ -9,8 +9,8 @@ DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, M
     : m_context(context), m_asset(asset)
 {
     auto texAsset = m_asset->TextureAsset();
-    if (texAsset != nullptr)
-        m_textures[0] = new DX11Texture(device, context, texAsset); // TODO
+    if (texAsset != nullptr)  // TODO
+        m_textures[0] = g_Renderer->GetFactory()->CreateTexture(texAsset);
 
     auto shaderAsset = m_asset->ShaderAsset();
     if (shaderAsset != nullptr)

@@ -7,7 +7,6 @@
 #include "renderer/itexture.hpp"
 #include "assetsystem/assets.hpp"
 
-//TODO: MAKE JUST MATERIAL
 class DX11Material : public IMaterial 
 {
 public:
@@ -28,5 +27,6 @@ private:
     MaterialAsset* m_asset;
     ID3D11DeviceContext* m_context;
     IShaderProgram* m_shader = nullptr;
+
     ITexture* m_textures[MATERIAL_TEXTURES_SLOTS] = { nullptr }; // 8 slots by default
 };
