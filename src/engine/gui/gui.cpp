@@ -10,7 +10,7 @@
 #include "dbg/cmd/cmd.hpp"
 #include "imgui/debug_menu/debug_menu.hpp"
 
-bool Gui::Init()
+void Gui::Init()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -32,8 +32,6 @@ bool Gui::Init()
 
     m_DebugMenu = new DebugMenu();
     m_panels.push_back(dynamic_cast<Panel*>(m_DebugMenu));
-
-    return true;
 }
 
 void Gui::Render()

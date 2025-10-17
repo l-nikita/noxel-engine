@@ -22,7 +22,7 @@ private:
     std::filesystem::path m_assetsPath;
 
 public:
-	bool Init() override;
+	void Init() override;
 
     std::filesystem::path GetRootPath() override { return m_rootPath; }
     std::filesystem::path GetBinPath() override { return m_binPath; }

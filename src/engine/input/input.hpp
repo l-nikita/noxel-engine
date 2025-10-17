@@ -10,7 +10,7 @@
 class Input : public IInput
 {
 public:
-	bool Init() override;
+	void Init() override;
 	bool IsKeyDown(SDL_Scancode key) override;
 	bool IsKeyPressed(SDL_Scancode key) override;
 	bool IsKeyReleased(SDL_Scancode key) override;

@@ -16,6 +16,8 @@ public:
     IMaterial* CreateMaterial(MaterialAsset* asset) override;
     IMaterial* CreateMaterial(std::string assetName) override;
 
+    IRenderTarget* CreateRenderTarget(int width, int height) override;
+
 private:
     ID3D11Device* m_device;
     ID3D11DeviceContext* m_context;

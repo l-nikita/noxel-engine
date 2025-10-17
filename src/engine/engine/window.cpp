@@ -41,6 +41,11 @@ bool Window::IsInFullscreen()
     return (GetFlags() & SDL_WINDOW_FULLSCREEN);
 }
 
+bool Window::IsMinimized()
+{
+    return (GetFlags() & SDL_WINDOW_MINIMIZED);
+}
+
 void Window::ToggleFullscreen()
 {
     SetFullscreen(!IsInFullscreen());

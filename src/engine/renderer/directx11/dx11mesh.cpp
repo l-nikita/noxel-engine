@@ -1,6 +1,6 @@
 #include "dx11buffer.hpp"
 #include "dx11mesh.hpp"
-#include "renderer/irenderer.hpp"
+#include "renderer/irender_pipeline.hpp"
 #include <stdexcept>
 #include <cstdint>
 #include <iostream>
@@ -50,7 +50,7 @@ void DX11Mesh::Draw()
     Bind();
     m_context->DrawIndexed(m_indexCount, 0, 0);
 #ifdef _DEBUG
-    g_Renderer->AddDrawCallCount();
+    g_RenderPipeline->AddDrawCallCount();
 #endif
     Unbind();
 }

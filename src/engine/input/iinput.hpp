@@ -16,7 +16,7 @@ class IInput
 public:
 	virtual ~IInput() = default;
 
-	virtual bool Init() = 0;
+	virtual void Init() = 0;
 
 	virtual bool IsKeyDown(SDL_Scancode key) = 0;
 	virtual bool IsKeyPressed(SDL_Scancode key) = 0;

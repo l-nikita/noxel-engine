@@ -35,9 +35,7 @@ public:
 private:
     void Compile(ShaderAsset* asset, ShaderType type);
 
-    ID3D11Device* m_device;
-    ID3D11DeviceContext* m_context;
-
+private:
     IShader* m_pShader;
     IShader* m_vShader;
 
@@ -45,4 +43,8 @@ private:
     ID3D11PixelShader* m_ps;
     ID3D10Blob* m_vsBlob;
     ID3D10Blob* m_psBlob;
+
+private:
+    ID3D11Device* m_device;
+    ID3D11DeviceContext* m_context;
 };

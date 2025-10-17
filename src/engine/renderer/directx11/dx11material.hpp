@@ -25,8 +25,11 @@ public:
 
 private:
     MaterialAsset* m_asset;
-    ID3D11DeviceContext* m_context;
     IShaderProgram* m_shader = nullptr;
 
     ITexture* m_textures[MATERIAL_TEXTURES_SLOTS] = { nullptr }; // 8 slots by default
+
+private:
+    ID3D11DeviceContext* m_context;
+    ID3D11Device* m_device;
 };

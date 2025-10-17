@@ -15,6 +15,8 @@ public:
 	void SetFullscreen(bool fullscreen);
 	bool IsInFullscreen();
 
+	bool IsMinimized();
+
 	void* GetPointer();
 
 	SDL_WindowFlags GetFlags() { return SDL_GetWindowFlags(m_handle); }

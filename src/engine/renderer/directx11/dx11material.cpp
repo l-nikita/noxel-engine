@@ -6,7 +6,7 @@
 #include <d3d11.h>
 
 DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset)
-    : m_context(context), m_asset(asset)
+    : m_device(device), m_context(context), m_asset(asset)
 {
     auto texAsset = m_asset->TextureAsset();
     if (texAsset != nullptr)  // TODO

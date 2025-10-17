@@ -11,7 +11,7 @@
 TextureAsset* TextureAsset::m_error = nullptr;
 MaterialAsset* MaterialAsset::m_error = nullptr;
 
-bool AssetSystem::Init()
+void AssetSystem::Init()
 {
 	m_rootPath = std::filesystem::current_path().parent_path();
 	m_binPath = std::filesystem::current_path().parent_path() / "bin";
@@ -32,7 +32,6 @@ bool AssetSystem::Init()
 	MaterialAsset::CreateNew("atlas", (m_assetsPath / "materials\\atlas.nmt").string());
 
 	CMD_INFO("Asset system initialized", CMD::ASSETSYSTEM);
-	return true;
 }
 
 void AssetSystem::RegisterAsset(BaseAsset* asset)

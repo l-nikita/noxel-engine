@@ -7,7 +7,7 @@ class DebugMenu;
 class Gui : public IGui
 {
 public:
-	bool Init() override;
+	void Init() override;
 	void Render() override;
 	void Shutdown() override;
 

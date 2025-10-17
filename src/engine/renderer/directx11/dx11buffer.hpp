@@ -21,12 +21,13 @@ public:
     void Destroy() override;
 
 private:
-    ID3D11Device* m_device = nullptr;
-    ID3D11DeviceContext* m_context = nullptr;
-
     UINT m_stride = 0;
     ID3D11Buffer* m_buffer = nullptr;
     GPUBufferType m_type;
 
     std::uint32_t GetBindFlags(GPUBufferType type);
+
+private:
+    ID3D11Device* m_device = nullptr;
+    ID3D11DeviceContext* m_context = nullptr;
 };

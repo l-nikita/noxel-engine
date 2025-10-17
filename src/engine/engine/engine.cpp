@@ -5,10 +5,11 @@
 #include <chrono>
 
 #include "renderer/directx11/dx11renderer.hpp"
+#include "renderer/deferred_render_pipeline.hpp"
 #include "renderer/render_camera.hpp"
+#include "renderer/gizmos.hpp"
 #include "event_handler.hpp"
 #include "input/input.hpp"
-#include "renderer/gizmos.hpp"
 #include "gui/gui.hpp"
 #include "gui/panel.hpp"
 #include "gui/imgui/debug_menu/debug_menu.hpp"
@@ -27,6 +28,7 @@ IInput* g_Input = nullptr;
 IAssetSystem* g_Assets = nullptr;
 IPhysics* g_Physics = nullptr;
 IRenderer* g_Renderer = nullptr;
+IRenderPipeline* g_RenderPipeline = nullptr;
 IGui* g_Gui = nullptr;
 
 //-----------------------------------------------------------------------------
@@ -59,11 +61,10 @@ void Engine::Update()
 
 void Engine::Render()
 {
-    std::uint32_t flags = GetWindow()->GetFlags();
-    if (flags & SDL_WINDOW_MINIMIZED)
+    if (GetWindow()->IsMinimized())
         return;
 
-    g_Renderer->Render();
+    g_RenderPipeline->Render();
 }
 
 //-----------------------------------------------------------------------------
@@ -111,15 +112,12 @@ void Engine::Shutdown()
 {
     Stop();
 
-    //g_Physics->Shutdown();
-    Networking::GetInstance().Shutdown();
-
-    g_Renderer->Shutdown();
+    g_RenderPipeline->Shutdown();
     g_Gui->Shutdown();
 
     delete g_Assets;
     delete g_Input;
-    //delete g_Physics;
+    delete g_RenderPipeline;
     delete g_Renderer;
     delete g_Gui;
 
@@ -160,28 +158,27 @@ bool Engine::Init()
         return false;
     }
 
-    if (!InitWindow()) return false;
+    if (!InitWindow()) 
+        return false;
 
     g_Assets = new AssetSystem();
-    if (!g_Assets->Init()) return false;
+    g_Assets->Init();
 
     g_Input = new Input();
-    if (!g_Input->Init()) return false;
+    g_Input->Init();
 
-    //g_Physics = new Physics();
-    //if(!g_Physics->Init()) return false;
-
-    if (GetGraphicsAPI() == DIRECTX11)
-    {
+    if (g_Engine->GetGraphicsAPI() == DIRECTX11)
         g_Renderer = new DX11Renderer();
-        if (!g_Renderer->Init()) return false;
-    }
-    else if (GetGraphicsAPI() == OPENGL) { }
+    else
+        FATAL_ERROR("Invalid graphics API.", CMD::ENGINE);
+
+    g_Renderer->Init();
+
+    g_RenderPipeline = new DeferredRenderPipeline();
+    g_RenderPipeline->Init();
 
     g_Gui = new Gui();
-    if (!g_Gui->Init()) return false;
-
-    if (!Networking::GetInstance().Init()) return false;
+    g_Gui->Init();
 
     Gizmos::Init();
     CMD::CMD::GetInstance().Setup();

@@ -12,7 +12,7 @@ class IAssetSystem
 public:
     virtual ~IAssetSystem() = default;
 
-    virtual bool Init() = 0;
+    virtual void Init() = 0;
 
     virtual std::filesystem::path GetRootPath() = 0;
     virtual std::filesystem::path GetBinPath() = 0;

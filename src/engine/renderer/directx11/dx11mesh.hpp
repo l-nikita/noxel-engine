@@ -22,11 +22,13 @@ public:
     void Destroy() override;
 
 private:
-    ID3D11DeviceContext* m_context;
     DX11Buffer* m_vertexBuffer = nullptr;
     DX11Buffer* m_indexBuffer = nullptr;
 
     std::uint32_t m_vertexCount = 0;
     std::uint32_t m_indexCount = 0;
     std::uint32_t m_vertexStride = 0;
+
+private:
+    ID3D11DeviceContext* m_context;
 };

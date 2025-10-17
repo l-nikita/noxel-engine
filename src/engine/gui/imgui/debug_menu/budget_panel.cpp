@@ -1,7 +1,7 @@
 #include <imgui.h>
 
 #include "engine.hpp"
-#include "renderer/irenderer.hpp"
+#include "renderer/irender_pipeline.hpp"
 #include "budget_panel.hpp"
 #include "dbg/profiler.hpp"
 
@@ -17,7 +17,7 @@ void BudgetPanel::Draw()
 		m_fps = g_Engine->GetFPS();
 		ImGui::Text("FPS: %f", m_fps);
 #ifdef _DEBUG
-		ImGui::Text("DrawCalls: %i", g_Renderer->GetDrawCallCount());
+		ImGui::Text("DrawCalls: %i", g_RenderPipeline->GetDrawCallCount());
 #endif
 		ImGui::Separator();
 

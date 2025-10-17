@@ -5,6 +5,7 @@
 #include "dx11material.hpp"
 #include "dx11shaderprogram.hpp"
 #include "dx11texture.hpp"
+#include "dx11rendertarget.hpp"
 
 DX11Factory::DX11Factory(ID3D11Device* device, ID3D11DeviceContext* context) 
 	: m_device(device), m_context(context)
@@ -48,4 +49,9 @@ IMaterial* DX11Factory::CreateMaterial(std::string assetName)
 {
     assert(!assetName.empty());
     return new DX11Material(m_device, m_context, MaterialAsset::Get(assetName));
+}
+
+IRenderTarget* DX11Factory::CreateRenderTarget(int width, int height)
+{
+    return new DX11RenderTarget(m_device, m_context, width, height);
 }

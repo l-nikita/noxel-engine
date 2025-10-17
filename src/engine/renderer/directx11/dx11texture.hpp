@@ -9,6 +9,7 @@ class DX11Texture : public ITexture
 {
 public:
     DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, TextureAsset* asset);
+    DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture);
     ~DX11Texture() { Destroy(); }
 
     void Bind(std::uint32_t slot = 0) override;
@@ -19,9 +20,9 @@ public:
     std::uint32_t GetHeight() const override { return m_height; }
     TextureFormat GetFormat() const override { return m_format; }
 
-private:
-    ID3D11DeviceContext* m_context = nullptr;
+    ID3D11Texture2D* GetTexture2D() { return m_texture; }
 
+private:
     ID3D11ShaderResourceView* m_srv = nullptr;
     ID3D11Resource* m_resource = nullptr;
     ID3D11Texture2D* m_texture = nullptr;
@@ -29,4 +30,7 @@ private:
     std::uint32_t m_width = 0;
     std::uint32_t m_height = 0;
     TextureFormat m_format = TextureFormat::RGBA8;
+
+private:
+    ID3D11DeviceContext* m_context = nullptr;
 };
