@@ -32,7 +32,7 @@ DX11ShaderProgram::DX11ShaderProgram(ID3D11Device* device, ID3D11DeviceContext* 
     if (!m_vShader)
         FATAL_ERROR("DX11: Failed to create pixel shader", CMD::RENDERING);
 
-    m_pShader = ShaderRegistry::Create(asset->GetName()+"PS", this);
+    m_pShader = ShaderRegistry::Create(asset->GetName() + "PS", this);
     if(!m_pShader)
         FATAL_ERROR("DX11: Failed to create pixel shader", CMD::RENDERING);
 }
@@ -87,22 +87,53 @@ void DX11ShaderProgram::Unbind()
     m_context->PSSetShader(nullptr, nullptr, 0);
 }
 
-void DX11ShaderProgram::Destroy()
+void DX11ShaderProgram::Release()
 {
-    if (m_vShader) m_vShader->Destroy();
-    if (m_pShader) m_pShader->Destroy();
-    if (m_vs) m_vs->Release();
-    if (m_ps) m_ps->Release();
-    if (m_vsBlob) m_vsBlob->Release();
-    if (m_psBlob) m_psBlob->Release();
+    if (m_vShader)
+    {
+        delete m_vShader;
+        m_vShader = nullptr;
+    }
+
+    if (m_pShader)
+    {
+        delete m_pShader;
+        m_pShader = nullptr;
+    }
+
+    if (m_vs)
+    {
+        m_vs->Release();
+        m_vs = nullptr;
+    }
+
+    if (m_ps)
+    {
+        m_ps->Release();
+        m_ps = nullptr;
+    }
+
+    if (m_vsBlob)
+    {
+        m_vsBlob->Release();
+        m_vsBlob = nullptr;
+    }
+
+    if (m_psBlob)
+    {
+        m_psBlob->Release();
+        m_psBlob = nullptr;
+    }
 }
 
 ID3DBlob* DX11ShaderProgram::GetVSBlob() const
 { 
+    assert(m_vsBlob);
     return m_vsBlob; 
 }
 
 ID3DBlob* DX11ShaderProgram::GetPSBlob() const
 { 
+    assert(m_psBlob);
     return m_psBlob; 
 }

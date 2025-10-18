@@ -122,44 +122,27 @@ public:
 struct TextureData
 {
     unsigned char* Image = nullptr;
-    int Width;
-    int Height;
+    int Width = 0;
+    int Height = 0;
     int Channels = 0;
 
     TextureData() = default;
-    ~TextureData() { if (Image) stbi_image_free(Image); }
+    ~TextureData() { Release(); }
 
     // disable copying
     TextureData(const TextureData&) = delete;
     TextureData& operator=(const TextureData&) = delete;
 
-    // move constructor to transfer ownership
-    TextureData(TextureData&& other) noexcept
-        : Image(other.Image), Width(other.Width), Height(other.Height), Channels(other.Channels)
-    {
-        other.Image = nullptr;
-        other.Width = 0;
-        other.Height = 0;
-        other.Channels = 0;
-    }
-
-    TextureData& operator=(TextureData&& other) noexcept
-    {
-        if (this != &other)
+    void Release() 
+    {  
+        if (Image)
         {
-            if (Image) stbi_image_free(Image);
-
-            Image = other.Image;
-            Width = other.Width;
-            Height = other.Height;
-            Channels = other.Channels;
-
-            other.Image = nullptr;
-            other.Width = 0;
-            other.Height = 0;
-            other.Channels = 0;
+            stbi_image_free(Image);
+            Image = nullptr;
+            Width = 0;
+            Height = 0;
+            Channels = 0;
         }
-        return *this;
     }
 };
 
@@ -175,12 +158,12 @@ public:
         m_assetPath = assetPath;
     }
 
-    TextureData Load()
+    TextureData* Load()
     {
         if (m_assetPath.empty())
         {
             CMD_ERROR("Asset path is null or empty!!!", CMD::ASSETSYSTEM);
-            return {};
+            return nullptr;
         }
 
         int width, height, channels;
@@ -188,14 +171,14 @@ public:
         if (!image)
         {
             CMD_ERROR("Couldn't load texture ["+ m_assetPath.string()+"]!", CMD::ASSETSYSTEM);
-            return {};
+            return nullptr;
         }
 
-        TextureData data{};
-        data.Image = image;
-        data.Width = width;
-        data.Height = height;
-        data.Channels = channels;
+        TextureData* data = new TextureData();
+        data->Image = image;
+        data->Width = width;
+        data->Height = height;
+        data->Channels = channels;
 
         return data;
     }

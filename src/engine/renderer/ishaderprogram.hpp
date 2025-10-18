@@ -17,7 +17,7 @@ public:
 
     virtual void Bind() = 0;
     virtual void Unbind() = 0;
-    virtual void Destroy() = 0;
+    virtual void Release() = 0;
 
     virtual IShader* GetPSShader() = 0;
     virtual IShader* GetVSShader() = 0;

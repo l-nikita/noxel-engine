@@ -11,7 +11,7 @@ public:
 
     virtual void Clear(glm::vec4 color) = 0;
     virtual void Bind() = 0;
-    virtual void Destroy() = 0;
+    virtual void Release() = 0;
 
     virtual ITexture* GetTexture() = 0;
 };

@@ -16,7 +16,7 @@ public:
 
     virtual void Bind(std::uint32_t slot = 0) = 0;
     virtual void Unbind(std::uint32_t slot = 0) = 0;
-    virtual void Destroy() = 0;
+    virtual void Release() = 0;
 
     virtual std::uint32_t GetWidth() const = 0;
     virtual std::uint32_t GetHeight() const = 0;

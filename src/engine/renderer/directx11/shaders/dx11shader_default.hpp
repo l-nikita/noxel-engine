@@ -19,7 +19,7 @@ public:
         : DX11Shader(program)
     { Init(); }
 
-    ~DefaultPS() { Destroy(); }
+    ~DefaultPS() { Release(); }
 
     void Init()
     {
@@ -68,10 +68,19 @@ public:
         m_context->PSSetSamplers(0, 1, nullSampler);
     }
 
-    void Destroy() 
+    void Release() 
     {
-        if (m_samplerState) m_samplerState->Release();
-        if (m_texture && m_texture != g_ErrorTexture) delete m_texture;
+        if (m_samplerState)
+        {
+            m_samplerState->Release();
+            m_samplerState = nullptr;
+        }
+
+        if (m_texture && m_texture != g_ErrorTexture)
+        {
+            delete m_texture;
+            m_texture = nullptr;
+        }
     }
 
 private:
@@ -89,7 +98,7 @@ public:
         : DX11Shader(program)
     { Init(); }
 
-    ~DefaultVS() { Destroy(); }
+    ~DefaultVS() { Release(); }
 
     void Init()
     {
@@ -154,10 +163,19 @@ public:
         m_context->VSSetConstantBuffers(0, 1, &nullBuffer);
     }
 
-    void Destroy()
+    void Release()
     {
-        if (m_inputLayout) { m_inputLayout->Release(); }
-        if (m_constantBuffer) { m_constantBuffer->Release(); }
+        if (m_inputLayout) 
+        { 
+            m_inputLayout->Release(); 
+            m_inputLayout = nullptr;
+        }
+
+        if (m_constantBuffer) 
+        { 
+            m_constantBuffer->Release(); 
+            m_constantBuffer = nullptr;
+        }
     }
 
 private:

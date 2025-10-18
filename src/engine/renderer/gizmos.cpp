@@ -217,9 +217,28 @@ namespace Gizmos
 
     void Shutdown()
     {
-        delete g_LineMesh;
-        delete g_BoxMesh;
-        delete g_BoxWireMesh;
-        delete g_Material;
+        if (g_LineMesh)
+        {
+            delete g_LineMesh;
+            g_LineMesh = nullptr;
+        }
+
+        if (g_BoxMesh)
+        {
+            delete g_BoxMesh;
+            g_BoxMesh = nullptr;
+        }
+
+        if (g_BoxWireMesh)
+        {
+            delete g_BoxWireMesh;
+            g_BoxWireMesh = nullptr;
+        }
+
+        if (g_Material)
+        {
+            delete g_Material;
+            g_Material = nullptr;
+        }
     }
 }

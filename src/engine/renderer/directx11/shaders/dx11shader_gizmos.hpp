@@ -17,7 +17,7 @@ public:
         : DX11Shader(program)
     { Init(); }
 
-    ~GizmosPS() { Destroy(); }
+    ~GizmosPS() { Release(); }
 
     void Init()
     {
@@ -62,9 +62,13 @@ public:
         m_context->PSSetConstantBuffers(0, 1, &nullBuffer);
     }
 
-    void Destroy() 
+    void Release()
     {
-        if (m_CBColor) { m_CBColor->Release(); }
+        if (m_CBColor) 
+        { 
+            m_CBColor->Release(); 
+            m_CBColor = nullptr;
+        }
     }
 
 private:
@@ -81,7 +85,7 @@ public:
         : DX11Shader(program)
     { Init(); }
 
-    ~GizmosVS() { Destroy(); }
+    ~GizmosVS() { Release(); }
 
     void Init()
     {
@@ -146,10 +150,19 @@ public:
         m_context->VSSetConstantBuffers(0, 1, &nullBuffer);
     }
 
-    void Destroy()
+    void Release()
     {
-        if (m_inputLayout) { m_inputLayout->Release(); }
-        if (m_constantBuffer) { m_constantBuffer->Release(); }
+        if (m_inputLayout) 
+        { 
+            m_inputLayout->Release(); 
+            m_inputLayout = nullptr;
+        }
+
+        if (m_constantBuffer) 
+        { 
+            m_constantBuffer->Release(); 
+            m_constantBuffer = nullptr;
+        }
     }
 
 private:

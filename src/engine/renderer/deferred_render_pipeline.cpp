@@ -139,7 +139,7 @@ void DeferredRenderPipeline::Render()
     dxrenderer->GetContext()->CopySubresourceRegion(
         dxrenderer->GetBackBuffer(),
         0, 10, 10, 0,
-        tex->GetTexture2D(),
+        tex->GetResource(),
         0, nullptr);
 
     /*

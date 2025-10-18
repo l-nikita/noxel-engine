@@ -113,7 +113,7 @@ void DX11Renderer::Init()
 void DX11Renderer::CopyToBackBuffer(IRenderTarget* rt)
 {
     auto tex = static_cast<DX11Texture*>(rt->GetTexture());
-    m_context->CopyResource(GetBackBuffer(), tex->GetTexture2D());
+    m_context->CopyResource(GetBackBuffer(), tex->GetResource());
 }
 
 void DX11Renderer::Swap()

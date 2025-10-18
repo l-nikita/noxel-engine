@@ -6,11 +6,11 @@
 DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, TextureAsset* asset)
     : m_context(context)
 {
-    TextureData data = asset->Load();
+    TextureData* data = asset->Load();
 
     D3D11_TEXTURE2D_DESC desc = {};
-    desc.Width = data.Width;
-    desc.Height = data.Height;
+    desc.Width = data->Width;
+    desc.Height = data->Height;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // Use correct DXGI_FORMAT
@@ -19,8 +19,8 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, Tex
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
     D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = data.Image;
-    initData.SysMemPitch = data.Width * 4;
+    initData.pSysMem = data->Image;
+    initData.SysMemPitch = data->Width * 4;
 
     HRESULT hr = device->CreateTexture2D(&desc, &initData, &m_texture);
     if (FAILED(hr)) 
@@ -41,6 +41,8 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, Tex
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
     sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
     sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+
+    delete data;
 }
 
 DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture)
@@ -61,10 +63,19 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3
     m_height = desc.Height;
 }
 
-void DX11Texture::Destroy()
+void DX11Texture::Release()
 {
-    if (m_srv) m_srv->Release();
-    if (m_texture) m_texture->Release();
+    if (m_srv)
+    {
+        m_srv->Release();
+        m_srv = nullptr;
+    }
+
+    if (m_texture)
+    {
+        m_texture->Release();
+        m_texture = nullptr;
+    }
 }
 
 void DX11Texture::Bind(std::uint32_t slot)

@@ -14,12 +14,12 @@ public:
         const void* vertices, std::uint32_t vertexSize, std::uint32_t vertexCount,
         const void* indices, std::uint32_t indexCount);
 
-    ~DX11Mesh() { Destroy(); }
+    ~DX11Mesh() { Release(); }
 
     void Bind() override;
     void Unbind() override;
     void Draw() override;
-    void Destroy() override;
+    void Release() override;
 
 private:
     DX11Buffer* m_vertexBuffer = nullptr;

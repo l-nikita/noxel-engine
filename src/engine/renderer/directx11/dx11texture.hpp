@@ -10,21 +10,20 @@ class DX11Texture : public ITexture
 public:
     DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, TextureAsset* asset);
     DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture);
-    ~DX11Texture() { Destroy(); }
+    ~DX11Texture() { Release(); }
 
     void Bind(std::uint32_t slot = 0) override;
     void Unbind(std::uint32_t slot = 0) override;
-    void Destroy() override;
+    void Release() override;
 
     std::uint32_t GetWidth() const override { return m_width; }
     std::uint32_t GetHeight() const override { return m_height; }
     TextureFormat GetFormat() const override { return m_format; }
 
-    ID3D11Texture2D* GetTexture2D() { return m_texture; }
+    ID3D11Texture2D* GetResource() { return m_texture; }
 
 private:
     ID3D11ShaderResourceView* m_srv = nullptr;
-    ID3D11Resource* m_resource = nullptr;
     ID3D11Texture2D* m_texture = nullptr;
 
     std::uint32_t m_width = 0;

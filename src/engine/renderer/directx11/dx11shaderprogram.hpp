@@ -14,11 +14,11 @@ public:
         ID3D11DeviceContext* context, 
         ShaderAsset* asset);
 
-    ~DX11ShaderProgram() { Destroy(); }
+    ~DX11ShaderProgram() { Release(); }
 
     void Bind() override;
     void Unbind() override;
-    void Destroy() override;
+    void Release() override;
 
     ID3D10Blob* GetVSBlob() const;
     ID3D10Blob* GetPSBlob() const;

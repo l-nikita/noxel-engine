@@ -14,7 +14,7 @@ public:
 
     virtual void Bind() = 0;
     virtual void Unbind() = 0;
-    virtual void Destroy() = 0;
+    virtual void Release() = 0;
 
     virtual void SetParameter(const std::string& name, const MaterialValue& value) = 0;
     virtual MaterialValue* GetParameterValue(const std::string& name) = 0;

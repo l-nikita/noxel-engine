@@ -8,6 +8,7 @@
 #include "imaterial.hpp"
 #include "common/transformable.hpp"
 
+// Model isn't owner of meshes and materials. It just handler which render them.
 class Model : public Transformable
 {
 protected:

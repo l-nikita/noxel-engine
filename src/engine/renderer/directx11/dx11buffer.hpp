@@ -15,10 +15,12 @@ public:
         const void* initialData = nullptr, 
         std::uint32_t stride = 0);
 
+    ~DX11Buffer() { Release(); }
+
     void Bind(std::uint32_t slot = 0) override;
     void Unbind(std::uint32_t slot = 0) override;
     void Update(const void* data, size_t size) override;
-    void Destroy() override;
+    void Release() override;
 
 private:
     UINT m_stride = 0;

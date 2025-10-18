@@ -63,7 +63,7 @@ void DX11RenderTarget::Bind()
     m_context->OMSetRenderTargets(1, &m_rtv, m_dsv);
 }
 
-void DX11RenderTarget::Destroy()
+void DX11RenderTarget::Release()
 {
     if (m_rtv)
     {
@@ -75,5 +75,11 @@ void DX11RenderTarget::Destroy()
     {
         m_dsv->Release();
         m_dsv = nullptr;
+    }
+
+    if (m_texture)
+    {
+        delete m_texture;
+        m_texture = nullptr;
     }
 }

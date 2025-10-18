@@ -11,11 +11,11 @@ class DX11Material : public IMaterial
 {
 public:
     DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset);
-    ~DX11Material() { Destroy(); }
+    ~DX11Material() { Release(); }
 
     void Bind() override;
     void Unbind() override;
-    void Destroy() override;
+    void Release() override;
 
     void SetShader(IShaderProgram* shader) override;
     void SetTexture(std::uint32_t slot = 0, ITexture* texture = nullptr) override;

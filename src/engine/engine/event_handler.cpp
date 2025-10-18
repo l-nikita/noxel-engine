@@ -31,7 +31,7 @@ void EventHandler::OnEvent(SDL_Event& event)
 		case SDL_EVENT_WINDOW_RESIZED:
 			g_Engine->OnWindowResize();
 			break;
-		// input events
+		// input event
 		case SDL_EVENT_KEY_DOWN:
 			g_Input->OnKey(event.key);
 			break;

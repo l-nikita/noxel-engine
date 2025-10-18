@@ -84,12 +84,13 @@ void DX11Buffer::Update(const void* data, size_t size)
     m_context->Unmap(m_buffer, 0);
 }
 
-void DX11Buffer::Destroy()
+void DX11Buffer::Release()
 {
     if (m_buffer)
+    {
         m_buffer->Release();
-
-    m_buffer = nullptr;
+        m_buffer = nullptr;
+    }
 }
 
 std::uint32_t DX11Buffer::GetBindFlags(GPUBufferType type)

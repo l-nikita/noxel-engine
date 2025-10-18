@@ -3,7 +3,7 @@
 #include <vector>
 #include "vertex.hpp"
 
-struct MeshData 
+struct MeshData
 {
     std::vector<Vertex> Vertices;
     std::vector<std::uint32_t> Indices;

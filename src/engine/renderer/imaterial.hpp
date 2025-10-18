@@ -11,7 +11,7 @@ public:
 
     virtual void Bind() = 0;
     virtual void Unbind() = 0;
-    virtual void Destroy() = 0;
+    virtual void Release() = 0;
 
     // Set a texture to a slot (e.g. diffuse, normal map, etc.)
     virtual void SetTexture(std::uint32_t slot = 0, class ITexture* texture = nullptr) = 0;

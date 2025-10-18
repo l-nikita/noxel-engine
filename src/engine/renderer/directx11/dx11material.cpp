@@ -44,7 +44,7 @@ void DX11Material::Unbind()
     }
 }
 
-void DX11Material::Destroy()
+void DX11Material::Release()
 {
     delete m_shader;
     m_shader = nullptr;

@@ -18,7 +18,7 @@ public:
     virtual void Init() = 0;
     virtual void Bind() = 0;
     virtual void Unbind() = 0;
-    virtual void Destroy() = 0;
+    virtual void Release() = 0;
 
     void SetParameter(const std::string& name, const MaterialValue& value) override
     {
