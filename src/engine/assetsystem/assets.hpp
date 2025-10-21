@@ -110,8 +110,8 @@ public:
     //TODO: Make error shader
     static ShaderAsset* GetError()
     {
-        auto asset = ShaderAsset::Get("default");
-        assert(asset != nullptr);
+        auto asset = ShaderAsset::Get("colorpass");
+        assert(asset);
         return asset;
     }
 };

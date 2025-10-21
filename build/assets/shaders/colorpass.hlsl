@@ -1,19 +1,24 @@
 FragmentShader
 [
-	cbuffer ColorBuffer : register(b0)
+	Texture2D tex : register(t0);
+	SamplerState smp : register(s0);
+	
+	struct PSInput 
 	{
-		float4 color;
+		float4 pos : SV_POSITION;
+		float4 col : COLOR;
+		float2 uv : TEXCOORD0;
 	};
-
-	float4 main() : SV_TARGET
+	
+	float4 main(PSInput input) : SV_TARGET 
 	{
-		return color;
+		return tex.Sample(smp, input.uv);
 	}
 ]
 
 VertexShader
 [
-	cbuffer ConstantBuffer : register(b0) 
+	cbuffer Transform : register(b0)
 	{
 		matrix model;
 		matrix view;

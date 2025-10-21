@@ -2,7 +2,7 @@
 
 #include "glm/glm.hpp"
 
-struct CBMatrices
+struct CBTransform
 {
     glm::mat4 Model;
     glm::mat4 View;

@@ -18,8 +18,9 @@
 #include "dbg/cmd/cmd.hpp"
 
 // Shaders should be included here (somewhere). Compiler issue.
-#include "shaders/dx11shader_default.hpp"
-#include "shaders/dx11shader_gizmos.hpp"
+//#include "shaders/dx11shader_default.hpp"
+//include "shaders/dx11shader_gizmos.hpp"
+#include "shaders/dx11shader_colorpass.hpp"
 
 #define INITGUID
 #include <d3d11.h>

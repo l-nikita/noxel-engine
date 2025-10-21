@@ -18,18 +18,19 @@ void AssetSystem::Init()
 	m_assetsPath = std::filesystem::current_path().parent_path() / "assets";
 
 	//TODO: Automatic assets searing
-	ShaderAsset::CreateNew("default", (m_assetsPath / "shaders\\default.hlsl").string());
-	ShaderAsset::CreateNew("gizmos", (m_assetsPath / "shaders\\gizmos.hlsl").string());
+	//ShaderAsset::CreateNew("default", (m_assetsPath / "shaders\\default.hlsl").string());
+	//ShaderAsset::CreateNew("gizmos", (m_assetsPath / "shaders\\gizmos.hlsl").string());
+	ShaderAsset::CreateNew("colorpass", (m_assetsPath / "shaders\\colorpass.hlsl").string());
 
 	TextureAsset::m_error = TextureAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.png").string());
 	MaterialAsset::m_error = MaterialAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.nmt").string());
 	//TODO: Make error shader
 	//ShaderAsset::m_error = ;
 
-	MaterialAsset::CreateNew("gizmos", (m_assetsPath / "materials\\engine\\gizmos.nmt").string());
+	//MaterialAsset::CreateNew("gizmos", (m_assetsPath / "materials\\engine\\gizmos.nmt").string());
 
 	MaterialAsset::CreateNew("dirt", (m_assetsPath / "materials\\dirt.nmt").string());
-	MaterialAsset::CreateNew("atlas", (m_assetsPath / "materials\\atlas.nmt").string());
+	//MaterialAsset::CreateNew("atlas", (m_assetsPath / "materials\\atlas.nmt").string());
 
 	CMD_INFO("Asset system initialized", CMD::ASSETSYSTEM);
 }

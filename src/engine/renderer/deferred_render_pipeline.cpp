@@ -111,14 +111,19 @@ void DeferredRenderPipeline::Init()
     g_Engine->GetWindow()->GetSize(&width, &height);
 
     m_backBufferViewport = factory->CreateViewport(0, 0, width, height);
-    m_testViewport = factory->CreateViewport(0, 0, 512, 512);
+    //m_testViewport = factory->CreateViewport(0, 0, 512, 512);
 
-    m_testRT = factory->CreateRenderTarget(512, 512);
+    //m_testRT = factory->CreateRenderTarget(512, 512);
 
     g_Cam1 = new RenderCamera(width, height);
-    g_Cam2 = new RenderCamera(512, 512);
+    //g_Cam2 = new RenderCamera(512, 512);
 
     g_Renderer->SetCamera(g_Cam1);
+    g_Renderer->SetViewport(m_backBufferViewport);
+
+    m_GBuffer.Color = factory->CreateRenderTarget(width, height);
+    m_GBuffer.Normal = factory->CreateRenderTarget(width, height);
+    m_GBuffer.Position = factory->CreateRenderTarget(width, height);
 
     CMD_INFO("RenderPipeline initialized", CMD::RENDERING);
 }
@@ -126,8 +131,31 @@ void DeferredRenderPipeline::Init()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
+void DeferredRenderPipeline::DoGeometryPass()
+{
+    m_GBuffer.Color->Clear(glm::vec4(0.1f, 0.2f, 0.3f, 1.0f));
+    m_GBuffer.Color->Bind();
+    for (auto model : m_Models)
+        model->Draw();
+
+    m_GBuffer.Normal->Clear(glm::vec4(0));
+    m_GBuffer.Normal->Bind();
+    for (auto model : m_Models)
+        model->Draw();
+
+    m_GBuffer.Position->Clear(glm::vec4(0));
+    m_GBuffer.Position->Bind();
+    for (auto model : m_Models)
+        model->Draw();
+}
+
 void DeferredRenderPipeline::Render()
 {
+    DoGeometryPass();
+
+    g_Renderer->CopyToBackBuffer(m_GBuffer.Normal);
+
+    /*
     auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
     auto backBuffer = g_Renderer->GetBackBufferRT();
 
@@ -182,9 +210,9 @@ void DeferredRenderPipeline::Render()
 
     dxrenderer->GetContext()->CopySubresourceRegion(
         backTex->GetResource(),
-        0, 10, 10, 0,
+        0, 10, 25, 0,
         tex->GetResource(),
-        0, nullptr);
+        0, nullptr);*/
 
     /*
     static float angle = 0.0f;
@@ -252,11 +280,11 @@ void DeferredRenderPipeline::Shutdown()
 
     m_Models.clear();
 
-    if (m_testRT)
-    {
-        delete m_testRT;
-        m_testRT = nullptr;
-    }
+    //if (m_testRT)
+    //{
+    //    delete m_testRT;
+    //    m_testRT = nullptr;
+    //}
 
     if (g_Cam1)
     {
@@ -264,11 +292,11 @@ void DeferredRenderPipeline::Shutdown()
         g_Cam1 = nullptr;
     }
 
-    if (g_Cam2)
-    {
-        delete g_Cam2;
-        g_Cam2 = nullptr;
-    }
+    //if (g_Cam2)
+    //{
+    //    delete g_Cam2;
+    //    g_Cam2 = nullptr;
+    //}
 
     g_Renderer->Shutdown();
 }

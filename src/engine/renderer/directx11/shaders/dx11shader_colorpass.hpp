@@ -13,20 +13,19 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DefaultPS : public DX11Shader
+class ColorPassPS : public DX11Shader
 {
 public:
-    DefaultPS(IShaderProgram* program)
+    ColorPassPS(IShaderProgram* program)
         : DX11Shader(program)
-    { Init(); }
+    {
+        Init();
+    }
 
-    ~DefaultPS() { Release(); }
+    ~ColorPassPS() { Release(); }
 
     void Init()
     {
-        // parameters, buffers, resources...
-        SetParameter("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
         //D3D11_FILTER_MIN_MAG_MIP_LINEAR
         D3D11_SAMPLER_DESC sampDesc = {};
         sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -46,13 +45,13 @@ public:
 
     ShaderType GetType() { return PIXEL; }
 
-    void Bind() 
+    void Bind()
     {
         MaterialValue* texVal = GetParameterValue("basetexture");
         if (auto texPtr = std::get_if<ITexture*>(texVal))
             m_texture = *texPtr;
 
-        if (m_texture) 
+        if (m_texture)
             m_texture->Bind();
         else
             g_ErrorTexture->Bind();
@@ -60,7 +59,7 @@ public:
         m_context->PSSetSamplers(0, 1, &m_samplerState);
     }
 
-    void Unbind() 
+    void Unbind()
     {
         ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
         m_context->PSSetShaderResources(0, 1, nullSRV);
@@ -69,7 +68,7 @@ public:
         m_context->PSSetSamplers(0, 1, nullSampler);
     }
 
-    void Release() 
+    void Release()
     {
         if (m_samplerState)
         {
@@ -89,19 +88,21 @@ private:
     ITexture* m_texture = nullptr;
 };
 
-REGISTER_SHADER("defaultPS", DefaultPS);
+REGISTER_SHADER("colorpassPS", ColorPassPS);
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DefaultVS : public DX11Shader
+class ColorPassVS : public DX11Shader
 {
 public:
-    DefaultVS(IShaderProgram* program)
+    ColorPassVS(IShaderProgram* program)
         : DX11Shader(program)
-    { Init(); }
+    {
+        Init();
+    }
 
-    ~DefaultVS() { Release(); }
+    ~ColorPassVS() { Release(); }
 
     void Init()
     {
@@ -123,7 +124,7 @@ public:
 
         D3D11_BUFFER_DESC cbd = {};
         cbd.Usage = D3D11_USAGE_DEFAULT;
-        cbd.ByteWidth = sizeof(CBMatrices);
+        cbd.ByteWidth = sizeof(CBTransform);
         cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         cbd.CPUAccessFlags = 0;
         cbd.MiscFlags = 0;
@@ -148,13 +149,13 @@ public:
         if (auto matPtr = std::get_if<glm::mat4>(modelVal))
             model = *matPtr;
 
-        CBMatrices matricesCB
+        CBTransform matricesCB
         {
             glm::transpose(model),
             glm::transpose(camera->GetViewMatrix()),
             glm::transpose(camera->GetProjectionMatrix()),
         };
-        
+
         m_context->UpdateSubresource(m_constantBuffer, 0, nullptr, &matricesCB, 0, 0);
         m_context->VSSetConstantBuffers(0, 1, &m_constantBuffer);
     }
@@ -168,15 +169,15 @@ public:
 
     void Release()
     {
-        if (m_inputLayout) 
-        { 
-            m_inputLayout->Release(); 
+        if (m_inputLayout)
+        {
+            m_inputLayout->Release();
             m_inputLayout = nullptr;
         }
 
-        if (m_constantBuffer) 
-        { 
-            m_constantBuffer->Release(); 
+        if (m_constantBuffer)
+        {
+            m_constantBuffer->Release();
             m_constantBuffer = nullptr;
         }
     }
@@ -185,4 +186,4 @@ private:
     ID3D11Buffer* m_constantBuffer;
 };
 
-REGISTER_SHADER("defaultVS", DefaultVS);
+REGISTER_SHADER("colorpassVS", ColorPassVS);

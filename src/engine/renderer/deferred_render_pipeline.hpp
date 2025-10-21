@@ -7,6 +7,14 @@
 
 class Model;
 
+struct GBuffer
+{
+	IRenderTarget* Color;
+	IRenderTarget* Normal;
+	IRenderTarget* Position;
+	IRenderTarget* Material;
+};
+
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
@@ -17,6 +25,8 @@ public:
 	void Render() override;
 	void Shutdown() override;
 	void OnWindowResize(int width, int height) override;
+
+	void DoGeometryPass();
 
 #ifdef _DEBUG
 	void AddDrawCallCount() { m_DrawCallCount++; }
@@ -31,6 +41,7 @@ public:
 	std::vector<Model*> m_Models;
 
 private:
+	GBuffer m_GBuffer;
 	IRenderTarget* m_testRT;
 
 	IViewport* m_backBufferViewport;

@@ -72,6 +72,41 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3
     m_height = desc.Height;
 }
 
+// TODO: Make seperate class for render texture
+DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height, TextureFormat format)
+    : m_context(context)
+{
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = width;
+    desc.Height = height;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = ToDXGIFormat(format);
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+
+    if (format == TextureFormat::DEPTH24STENCIL8)
+        desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    else
+        desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+    desc.CPUAccessFlags = 0;
+    desc.MiscFlags = 0;
+
+    HRESULT hr = device->CreateTexture2D(&desc, nullptr, &m_texture);
+    if (FAILED(hr))
+        FATAL_ERROR("DX11: Failed to create Texture2D (Render texture).", CMD::RENDERING);
+
+    if (format != TextureFormat::DEPTH24STENCIL8)
+    {
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = desc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MipLevels = 1;
+        device->CreateShaderResourceView(m_texture, &srvDesc, &m_srv);
+    }
+}
+
 void DX11Texture::Release()
 {
     if (m_srv)
