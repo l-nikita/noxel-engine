@@ -11,12 +11,12 @@ constexpr auto DEPTH_NEAR = 0.1f;
 constexpr auto DEPTH_FAR = 100.0f;
 constexpr auto SENSITIVITY = 0.1f;
 
-RenderCamera::RenderCamera(int& width, int& height)
+RenderCamera::RenderCamera(int width, int height)
 {
 	OnFrameBufferResize(width, height);
 }
 
-void RenderCamera::OnFrameBufferResize(int& width, int& height)
+void RenderCamera::OnFrameBufferResize(int width, int height)
 {
 	m_screenWidth = width;
 	m_screenHeight = height;

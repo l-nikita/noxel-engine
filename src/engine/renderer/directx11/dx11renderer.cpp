@@ -20,19 +20,25 @@
 
 #define INITGUID
 #include <d3d11.h>
-#include <dxgi1_2.h>
+#include <dxgidebug.h>
+#include <dxgi1_3.h>
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 void DX11Renderer::CreateDevice()
 {
+    UINT flags = 0;
+#ifdef _DEBUG
+    flags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
     D3D_FEATURE_LEVEL featureLevel;
     HRESULT hr = D3D11CreateDevice(
         nullptr,                    // adapter
         D3D_DRIVER_TYPE_HARDWARE,   // driver type
         nullptr,                    // software
-        0,                          // flags
+        flags,                          // flags
         nullptr,                    // feature levels
         0,                          // feature levels
         D3D11_SDK_VERSION,          // version
@@ -41,25 +47,25 @@ void DX11Renderer::CreateDevice()
         &m_context);                // device context
 
     if (FAILED(hr))
-        FATAL_ERROR("DX11: D3D11CreateDevice failed", CMD::RENDERING);
+        FATAL_ERROR("DX11: D3D11CreateDevice failed.", CMD::RENDERING);
 }
 
 void DX11Renderer::CreateSwapChain()
 {
     assert(m_device);
 
-    void* ptr = g_Engine->GetWindow()->GetPointer();
-    if (!ptr)
-        FATAL_ERROR("DX11: Couldn't get window pointer from SDL window!", CMD::RENDERING);
-
-    HWND hwnd = (HWND)ptr;
+    auto window = g_Engine->GetWindow();
+    HWND hwnd = (HWND)window->GetPointer();
 
     int width, height;
-    g_Engine->GetWindow()->GetSize(&width, &height);
+    window->GetSize(&width, &height);
 
-    m_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&m_dxgiDevice);
-    m_dxgiDevice->GetAdapter(&m_dxgiAdapter);
-    m_dxgiAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&m_dxgiFactory);
+    IDXGIDevice* dxgiDevice = nullptr;
+    IDXGIAdapter* dxgiAdapter = nullptr;
+    IDXGIFactory2* dxgiFactory = nullptr;
+    m_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
+    dxgiDevice->GetAdapter(&dxgiAdapter);
+    dxgiAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&dxgiFactory);
 
     DXGI_SWAP_CHAIN_DESC1 scDesc = {};
     scDesc.Width = width;
@@ -72,10 +78,13 @@ void DX11Renderer::CreateSwapChain()
     scDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
-    HRESULT hr = m_dxgiFactory->CreateSwapChainForHwnd(m_device, hwnd, &scDesc, nullptr, nullptr, &m_swapChain);
-
+    HRESULT hr = dxgiFactory->CreateSwapChainForHwnd(m_device, hwnd, &scDesc, nullptr, nullptr, &m_swapChain);
     if (FAILED(hr))
-        FATAL_ERROR("DX11: CreateSwapChainForHwnd failed", CMD::RENDERING);
+        FATAL_ERROR("DX11: CreateSwapChainForHwnd failed.", CMD::RENDERING);
+
+    dxgiDevice->Release();
+    dxgiAdapter->Release();
+    dxgiFactory->Release();
 }
 
 void DX11Renderer::Init()
@@ -83,26 +92,22 @@ void DX11Renderer::Init()
     CreateDevice();
     CreateSwapChain();
 
-    HRESULT hr = m_swapChain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&m_backBuffer);
+    assert(m_device);
+    assert(m_swapChain);
+
+    ID3D11Texture2D* backBufferTex;
+    HRESULT hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBufferTex));
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to get back buffer.", CMD::RENDERING);
 
-    //-------------------------------------------
-    int width, height;
-    g_Engine->GetWindow()->GetSize(&width, &height);
-
-    OnWindowResize(width, height);
+    m_backBuffer = new DX11RenderTarget(m_device, m_context, backBufferTex);
 
     //-------------------------------------------
     m_factory = new DX11Factory(m_device, m_context);
-    m_camera = new RenderCamera(width, height);
 
-    D3D11_VIEWPORT viewport = {};
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.Width = width;
-    viewport.Height = height;
-    m_context->RSSetViewports(1, &viewport);
+    int width, height;
+    g_Engine->GetWindow()->GetSize(&width, &height);
+    m_camera = new RenderCamera(width, height);
 
 	CMD_INFO("DX11: Renderer initialized", CMD::RENDERING);
 }
@@ -113,7 +118,8 @@ void DX11Renderer::Init()
 void DX11Renderer::CopyToBackBuffer(IRenderTarget* rt)
 {
     auto tex = static_cast<DX11Texture*>(rt->GetTexture());
-    m_context->CopyResource(GetBackBuffer(), tex->GetResource());
+    auto backTex = static_cast<DX11Texture*>(m_backBuffer->GetTexture());
+    m_context->CopyResource(backTex->GetResource(), tex->GetResource());
 }
 
 void DX11Renderer::Swap()
@@ -137,10 +143,44 @@ void DX11Renderer::SetPrimitiveTopology(PrimitiveTopology topology)
 //-----------------------------------------------------------------------------
 void DX11Renderer::Shutdown()
 {
-	delete m_camera;
-    m_swapChain->Release();
-    m_context->Release();
-    m_device->Release();
+#ifdef _DEBUG
+    IDXGIDebug1* pDebug = nullptr;
+    if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
+    {
+        pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, (DXGI_DEBUG_RLO_FLAGS)(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_DETAIL));
+        pDebug->Release();
+    }
+#endif
+
+    if (m_camera)
+    {
+        delete m_camera;
+        m_camera = nullptr;
+    }
+
+    if (m_backBuffer)
+    {
+        delete m_backBuffer;
+        m_backBuffer = nullptr;
+    }
+
+    if (m_swapChain)
+    {
+        m_swapChain->Release();
+        m_swapChain = nullptr;
+    }
+
+    if (m_context)
+    {
+        m_context->Release();
+        m_context = nullptr;
+    }
+
+    if (m_device)
+    {
+        m_device->Release();
+        m_device = nullptr;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -148,4 +188,21 @@ void DX11Renderer::Shutdown()
 //-----------------------------------------------------------------------------
 void DX11Renderer::OnWindowResize(int width, int height)
 {
+    if (m_backBuffer)
+    {
+        delete m_backBuffer;
+        m_backBuffer = nullptr;
+    }
+
+    HRESULT hr = m_swapChain->ResizeBuffers(2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING);
+    if (FAILED(hr))
+        FATAL_ERROR("DX11: Failed to resize swap chain buffers.", CMD::RENDERING);
+
+    ID3D11Texture2D* backBufferTex;
+    hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBufferTex));
+    if (FAILED(hr))
+        FATAL_ERROR("DX11: Failed to get back buffer.", CMD::RENDERING);
+
+    m_backBuffer = new DX11RenderTarget(m_device, m_context, backBufferTex);
+    m_camera->OnFrameBufferResize(width, height);
 }

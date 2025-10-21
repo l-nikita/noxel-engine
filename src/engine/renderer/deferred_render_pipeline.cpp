@@ -13,6 +13,9 @@
 ITexture* g_ErrorTexture = nullptr;
 IMaterial* g_ErrorMaterial = nullptr;
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void DeferredRenderPipeline::Init()
 {
 	auto factory = g_Renderer->GetFactory();
@@ -81,9 +84,9 @@ void DeferredRenderPipeline::Init()
 	auto* mesh = factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
 
     /*
-    for (size_t i = 0; i < 45; i++)
+    for (int i = 0; i < 45; i++)
     {
-        for (size_t j = 0; j < 45; j++)
+        for (int j = 0; j < 45; j++)
         {
             if (mat && mesh)
             {
@@ -102,42 +105,62 @@ void DeferredRenderPipeline::Init()
     int width, height;
     g_Engine->GetWindow()->GetSize(&width, &height);
 
-    m_BackBufferRT = factory->CreateRenderTarget(width, height);
-    m_TestRT = factory->CreateRenderTarget(512, 512);
+    m_backBufferViewport.TopLeftX = 0;
+    m_backBufferViewport.TopLeftY = 0;
+    m_backBufferViewport.Width = width;
+    m_backBufferViewport.Height = height;
+    m_backBufferViewport.MinDepth = 0.0f;
+    m_backBufferViewport.MaxDepth = 1.0f;
+
+    m_testViewport.TopLeftX = 0;
+    m_testViewport.TopLeftY = 0;
+    m_testViewport.Width = 512;
+    m_testViewport.Height = 512;
+    m_testViewport.MinDepth = 0.0f;
+    m_testViewport.MaxDepth = 1.0f;
+
+    m_testRT = factory->CreateRenderTarget(512, 512);
 
     CMD_INFO("RenderPipeline initialized", CMD::RENDERING);
 }
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void DeferredRenderPipeline::Render()
 {
-    //-------------------------------------------
-    m_BackBufferRT->Clear(glm::vec4(0.1f, 0.2f, 0.3f, 1.0f));
-    m_BackBufferRT->Bind();
-
-    //for (auto model : m_Models)
-    //{
-    //    model->Draw();
-    //}
-
-    g_Gui->Render();
-
-
-    g_Renderer->CopyToBackBuffer(m_BackBufferRT);
+    auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
+    auto backBuffer = g_Renderer->GetBackBufferRT();
 
     //-------------------------------------------
-    m_TestRT->Clear(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-    m_TestRT->Bind();
+    backBuffer->Clear(glm::vec4(0.1f, 0.2f, 0.3f, 1.0f));
+    backBuffer->Bind();
+
+    dxrenderer->GetContext()->RSSetViewports(1, &m_backBufferViewport);
 
     for (auto model : m_Models)
     {
         model->Draw();
     }
 
-    auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
-    auto tex = static_cast<DX11Texture*>(m_TestRT->GetTexture());
+    g_Gui->Render();
+
+    //-------------------------------------------
+    m_testRT->Clear(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+    m_testRT->Bind();
+
+    dxrenderer->GetContext()->RSSetViewports(1, &m_testViewport);
+
+    for (auto model : m_Models)
+    {
+        model->Draw();
+    }
+
+    auto tex = static_cast<DX11Texture*>(m_testRT->GetTexture());
+    auto backTex = static_cast<DX11Texture*>(backBuffer->GetTexture());
 
     dxrenderer->GetContext()->CopySubresourceRegion(
-        dxrenderer->GetBackBuffer(),
+        backTex->GetResource(),
         0, 10, 10, 0,
         tex->GetResource(),
         0, nullptr);
@@ -190,9 +213,14 @@ void DeferredRenderPipeline::Render()
     */
 
 	g_Renderer->Swap();
+#ifdef _DEBUG
 	m_DrawCallCount = 0;
+#endif
 }
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void DeferredRenderPipeline::Shutdown()
 {
     for (auto model : m_Models)
@@ -200,10 +228,29 @@ void DeferredRenderPipeline::Shutdown()
         delete model;
         model = nullptr;
     }
+
     m_Models.clear();
 
-    delete m_BackBufferRT;
-    delete m_TestRT;
+    if (m_testRT)
+    {
+        delete m_testRT;
+        m_testRT = nullptr;
+    }
 
     g_Renderer->Shutdown();
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+void DeferredRenderPipeline::OnWindowResize(int width, int height)
+{
+    g_Renderer->OnWindowResize(width, height);
+
+    m_backBufferViewport.TopLeftX = 0;
+    m_backBufferViewport.TopLeftY = 0;
+    m_backBufferViewport.Width = width;
+    m_backBufferViewport.Height = height;
+    m_backBufferViewport.MinDepth = 0.0f;
+    m_backBufferViewport.MaxDepth = 1.0f;
 }

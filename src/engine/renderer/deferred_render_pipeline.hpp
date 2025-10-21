@@ -13,6 +13,7 @@ public:
 	void Init() override;
 	void Render() override;
 	void Shutdown() override;
+	void OnWindowResize(int width, int height) override;
 
 #ifdef _DEBUG
 	void AddDrawCallCount() { m_DrawCallCount++; }
@@ -27,6 +28,8 @@ public:
 	std::vector<Model*> m_Models;
 
 private:
-	IRenderTarget* m_BackBufferRT;
-	IRenderTarget* m_TestRT;
+	IRenderTarget* m_testRT;
+
+	D3D11_VIEWPORT m_backBufferViewport = {};
+	D3D11_VIEWPORT m_testViewport = {};
 };

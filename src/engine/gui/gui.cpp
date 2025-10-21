@@ -54,6 +54,8 @@ void Gui::Render()
 
     if(isDX11)
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+    ImGui_ImplDX11_InvalidateDeviceObjects();
 }
 
 void Gui::Shutdown()

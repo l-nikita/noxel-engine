@@ -26,12 +26,46 @@ DX11RenderTarget::DX11RenderTarget(ID3D11Device* device, ID3D11DeviceContext* co
         FATAL_ERROR("DX11: Failed to create render target.", CMD::RENDERING);
 
     m_texture = new DX11Texture(m_device, m_context, renderTex);
-    renderTex->Release();
 
     // Depth Stencil
     D3D11_TEXTURE2D_DESC depthDesc = {};
     depthDesc.Width = width;
     depthDesc.Height = height;
+    depthDesc.MipLevels = 1;
+    depthDesc.ArraySize = 1;
+    depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthDesc.SampleDesc.Count = 1;
+    depthDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+    ID3D11Texture2D* depthTex = nullptr;
+    hr = m_device->CreateTexture2D(&depthDesc, nullptr, &depthTex);
+    if (FAILED(hr))
+        FATAL_ERROR("DX11: Failed to create Depth Stencil Texture.", CMD::RENDERING);
+
+    hr = m_device->CreateDepthStencilView(depthTex, nullptr, &m_dsv);
+    if (FAILED(hr))
+        FATAL_ERROR("DX11: Failed to create Depth Stencil View.", CMD::RENDERING);
+
+    depthTex->Release();
+}
+
+DX11RenderTarget::DX11RenderTarget(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture)
+    : m_device(device), m_context(context)
+{
+    HRESULT hr = m_device->CreateRenderTargetView(texture, nullptr, &m_rtv);
+    if (FAILED(hr))
+        FATAL_ERROR("DX11: Failed to create render target from Texture2D.", CMD::RENDERING);
+
+    m_texture = new DX11Texture(m_device, m_context, texture);
+
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texture->GetDesc(&texDesc);
+
+    // Depth Stencil
+    D3D11_TEXTURE2D_DESC depthDesc = {};
+    depthDesc.Width = texDesc.Width;
+    depthDesc.Height = texDesc.Height;
     depthDesc.MipLevels = 1;
     depthDesc.ArraySize = 1;
     depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -65,6 +99,12 @@ void DX11RenderTarget::Bind()
 
 void DX11RenderTarget::Release()
 {
+    if (m_texture)
+    {
+        delete m_texture;
+        m_texture = nullptr;
+    }
+
     if (m_rtv)
     {
         m_rtv->Release();
@@ -75,11 +115,5 @@ void DX11RenderTarget::Release()
     {
         m_dsv->Release();
         m_dsv = nullptr;
-    }
-
-    if (m_texture)
-    {
-        delete m_texture;
-        m_texture = nullptr;
     }
 }

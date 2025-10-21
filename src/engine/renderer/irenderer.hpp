@@ -26,6 +26,7 @@ public:
 	virtual void Swap() = 0;
 	virtual void OnWindowResize(int width, int height) = 0;
 
+	virtual IRenderTarget* GetBackBufferRT() = 0;
 	virtual void CopyToBackBuffer(IRenderTarget* rt) = 0;
 
 	virtual IRenderFactory* GetFactory() = 0;

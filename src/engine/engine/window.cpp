@@ -53,5 +53,9 @@ void Window::ToggleFullscreen()
 
 void* Window::GetPointer()
 {
-    return SDL_GetPointerProperty(SDL_GetWindowProperties(m_handle), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+    void* ptr = SDL_GetPointerProperty(SDL_GetWindowProperties(m_handle), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+    if (!ptr)
+        FATAL_ERROR("Couldn't get window pointer from SDL window!", CMD::ENGINE);
+
+    return ptr;
 }

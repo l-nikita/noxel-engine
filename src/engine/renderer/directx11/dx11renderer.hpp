@@ -30,7 +30,7 @@ public:
 	void CreateSwapChain();
 	void Swap() override;
 
-	ID3D11Texture2D* GetBackBuffer() { return m_backBuffer; }
+	IRenderTarget* GetBackBufferRT() { return m_backBuffer; }
 	void CopyToBackBuffer(IRenderTarget* rt);
 
 	ID3D11Device* GetDevice() { return m_device; }
@@ -39,11 +39,8 @@ public:
 private:
 	ID3D11Device* m_device = nullptr;
 	ID3D11DeviceContext* m_context = nullptr;
-	ID3D11Texture2D* m_backBuffer;
+	IRenderTarget* m_backBuffer;
 
-	IDXGIDevice* m_dxgiDevice = nullptr;
-	IDXGIAdapter* m_dxgiAdapter = nullptr;
-	IDXGIFactory2* m_dxgiFactory = nullptr;
 	IDXGISwapChain1* m_swapChain = nullptr;
 
 	IRenderFactory* m_factory;

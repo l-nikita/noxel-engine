@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <string>
 #include <d3d11.h>
 #include "dx11texture.hpp"
 #include "assetsystem/assets.hpp"
@@ -6,6 +7,8 @@
 DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, TextureAsset* asset)
     : m_context(context)
 {
+    assert(asset);
+
     TextureData* data = asset->Load();
 
     D3D11_TEXTURE2D_DESC desc = {};
@@ -36,11 +39,11 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, Tex
     m_width = desc.Width;
     m_height = desc.Height;
 
-    D3D11_SAMPLER_DESC sampDesc = {};
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    //D3D11_SAMPLER_DESC sampDesc = {};
+    //sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    //sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    //sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    //sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 
     delete data;
 }
@@ -48,17 +51,23 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, Tex
 DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture)
     : m_context(context), m_texture(texture)
 {
+    assert(texture);
+
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = 1;
 
-    HRESULT hr = device->CreateShaderResourceView(m_texture, &srvDesc, &m_srv);
-    if (FAILED(hr))
-        FATAL_ERROR("DX11: Failed to create shader resource for Texture2D.", CMD::RENDERING);
-
     D3D11_TEXTURE2D_DESC desc;
     m_texture->GetDesc(&desc);
+
+    if (desc.BindFlags & D3D11_BIND_SHADER_RESOURCE)
+    {
+        HRESULT hr = device->CreateShaderResourceView(m_texture, &srvDesc, &m_srv);
+        if (FAILED(hr))
+            FATAL_ERROR("DX11: Failed to create shader resource for Texture2D.", CMD::RENDERING);
+    }
+
     m_width = desc.Width;
     m_height = desc.Height;
 }
@@ -80,6 +89,7 @@ void DX11Texture::Release()
 
 void DX11Texture::Bind(std::uint32_t slot)
 {
+    assert(m_srv);
     m_context->PSSetShaderResources(slot, 1, &m_srv);
 }
 

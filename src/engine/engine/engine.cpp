@@ -194,5 +194,5 @@ void Engine::OnWindowResize()
 {
     int width, height;
     GetWindow()->GetSize(&width, &height);
-    g_Renderer->OnWindowResize(width, height);
+    g_RenderPipeline->OnWindowResize(width, height);
 }

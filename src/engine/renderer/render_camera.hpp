@@ -7,9 +7,9 @@ class RenderCamera
 {
 public:
 	Transform m_Transform;
-	RenderCamera(int& width, int& height);
+	RenderCamera(int width, int height);
 
-	void OnFrameBufferResize(int& width, int& height);
+	void OnFrameBufferResize(int width, int height);
 	void Update();
 	void Move(glm::vec3 direction, float distance);
 
