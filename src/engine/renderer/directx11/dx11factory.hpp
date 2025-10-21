@@ -4,6 +4,9 @@
 #include <string>
 #include "renderer/irenderfactory.hpp"
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class DX11Factory : public IRenderFactory 
 {
 public:
@@ -17,6 +20,7 @@ public:
     IMaterial* CreateMaterial(std::string assetName) override;
 
     IRenderTarget* CreateRenderTarget(int width, int height) override;
+    IViewport* CreateViewport(int x, int y, int width, int height) override;
 
 private:
     ID3D11Device* m_device;

@@ -5,8 +5,7 @@
 #include "imesh.hpp"
 #include "irenderer.hpp"
 #include "irenderfactory.hpp"
-#include "render_camera.hpp"
-#include "iengine.hpp"
+#include "ishaderprogram.hpp"
 #include "meshdata.hpp"
 #include "vertex.hpp"
 
@@ -23,7 +22,7 @@ namespace Gizmos
 
 	void Init()
 	{
-        auto* factory = g_Renderer->GetFactory();
+        auto factory = g_Renderer->GetFactory();
         g_Material = factory->CreateMaterial("gizmos");
 
         //-------------------------------------------

@@ -9,6 +9,7 @@
 #include "gui/igui.hpp"
 #include "engine/window.hpp"
 #include "engine/iengine.hpp"
+#include "assetsystem/assets.hpp"
 
 ITexture* g_ErrorTexture = nullptr;
 IMaterial* g_ErrorMaterial = nullptr;
@@ -105,19 +106,8 @@ void DeferredRenderPipeline::Init()
     int width, height;
     g_Engine->GetWindow()->GetSize(&width, &height);
 
-    m_backBufferViewport.TopLeftX = 0;
-    m_backBufferViewport.TopLeftY = 0;
-    m_backBufferViewport.Width = width;
-    m_backBufferViewport.Height = height;
-    m_backBufferViewport.MinDepth = 0.0f;
-    m_backBufferViewport.MaxDepth = 1.0f;
-
-    m_testViewport.TopLeftX = 0;
-    m_testViewport.TopLeftY = 0;
-    m_testViewport.Width = 512;
-    m_testViewport.Height = 512;
-    m_testViewport.MinDepth = 0.0f;
-    m_testViewport.MaxDepth = 1.0f;
+    m_backBufferViewport = factory->CreateViewport(0, 0, width, height);
+    m_testViewport = factory->CreateViewport(0, 0, 512, 512);
 
     m_testRT = factory->CreateRenderTarget(512, 512);
 
@@ -136,7 +126,7 @@ void DeferredRenderPipeline::Render()
     backBuffer->Clear(glm::vec4(0.1f, 0.2f, 0.3f, 1.0f));
     backBuffer->Bind();
 
-    dxrenderer->GetContext()->RSSetViewports(1, &m_backBufferViewport);
+    g_Renderer->SetViewport(m_backBufferViewport);
 
     for (auto model : m_Models)
     {
@@ -149,7 +139,7 @@ void DeferredRenderPipeline::Render()
     m_testRT->Clear(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
     m_testRT->Bind();
 
-    dxrenderer->GetContext()->RSSetViewports(1, &m_testViewport);
+    g_Renderer->SetViewport(m_testViewport);
 
     for (auto model : m_Models)
     {
@@ -246,11 +236,5 @@ void DeferredRenderPipeline::Shutdown()
 void DeferredRenderPipeline::OnWindowResize(int width, int height)
 {
     g_Renderer->OnWindowResize(width, height);
-
-    m_backBufferViewport.TopLeftX = 0;
-    m_backBufferViewport.TopLeftY = 0;
-    m_backBufferViewport.Width = width;
-    m_backBufferViewport.Height = height;
-    m_backBufferViewport.MinDepth = 0.0f;
-    m_backBufferViewport.MaxDepth = 1.0f;
+    m_backBufferViewport->Resize(width, height);
 }

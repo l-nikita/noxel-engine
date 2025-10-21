@@ -15,7 +15,11 @@ enum PrimitiveTopology
 class RenderCamera;
 class IRenderFactory;
 class IRenderTarget;
+struct IViewport;
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class IRenderer
 {
 public:
@@ -28,6 +32,7 @@ public:
 
 	virtual IRenderTarget* GetBackBufferRT() = 0;
 	virtual void CopyToBackBuffer(IRenderTarget* rt) = 0;
+	virtual void SetViewport(IViewport* viewport) = 0;
 
 	virtual IRenderFactory* GetFactory() = 0;
 	virtual RenderCamera* GetCamera() = 0;

@@ -11,14 +11,15 @@ class DebugMenu : public Panel
 {
 public:
 	DebugMenu();
+	~DebugMenu();
 
-	std::unique_ptr<BudgetPanel> m_BudgetPanel;
+	BudgetPanel* m_BudgetPanel;
 	bool m_BudgetEnabled;	
 	
-	std::unique_ptr<ConsolePanel> m_ConsolePanel;
+	ConsolePanel* m_ConsolePanel;
 	bool m_ConsoleEnabled;
 
-	std::unique_ptr<DevPanel> m_DevPanel;
+	DevPanel* m_DevPanel;
 	bool m_DevPanelEnabled;
 
 	void Draw();

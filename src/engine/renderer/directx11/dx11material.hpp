@@ -5,8 +5,12 @@
 #include "renderer/imaterial.hpp"
 #include "renderer/ishader.hpp"
 #include "renderer/itexture.hpp"
-#include "assetsystem/assets.hpp"
 
+class MaterialAsset;
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class DX11Material : public IMaterial 
 {
 public:

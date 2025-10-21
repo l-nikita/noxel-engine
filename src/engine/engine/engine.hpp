@@ -27,7 +27,7 @@ public:
     Window* GetWindow() override { return m_window; }
     void OnWindowResize() override;
 
-    // -------------------------------------------------
+    //-------------------------------------------------
     std::chrono::duration<float> DeltaDuration() const { return m_deltaTime; }
     // Delta time (ms)
     float DeltaTime() override { return m_deltaTime.count(); }
@@ -38,7 +38,7 @@ public:
 
     float GetFPS() override { return 1.0f / DeltaTime(); }
 
-    // -------------------------------------------------
+    //-------------------------------------------------
 
     GraphicsAPI GetGraphicsAPI() { return DIRECTX11; }
 

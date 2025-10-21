@@ -1,11 +1,15 @@
 #pragma once
 
 #include <d3d11.h>
+#include <glm/gtc/type_ptr.hpp>
 #include <map>
 #include "renderer/ishaderprogram.hpp"
-#include "assetsystem/assets.hpp"
-#include <glm/gtc/type_ptr.hpp>
 
+class ShaderAsset;
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class DX11ShaderProgram : public IShaderProgram
 {
 public:

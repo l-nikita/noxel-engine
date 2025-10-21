@@ -54,12 +54,18 @@ void Gui::Render()
 
     if(isDX11)
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-    ImGui_ImplDX11_InvalidateDeviceObjects();
 }
 
 void Gui::Shutdown()
 {
+    if (m_DebugMenu)
+    {
+        delete m_DebugMenu;
+        m_DebugMenu = nullptr;
+    }
+
+    m_panels.clear();
+
     ImGui_ImplDX11_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();

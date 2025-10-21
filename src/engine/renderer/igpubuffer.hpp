@@ -1,3 +1,10 @@
+#pragma once
+
+#include <cstdint>
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 enum class GPUBufferType 
 {
     VERTEX,
@@ -6,10 +13,14 @@ enum class GPUBufferType
     PS_CONSTANT,
 };
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class IGPUBuffer 
 {
 public:
     virtual ~IGPUBuffer() = default;
+
     virtual void Bind(std::uint32_t slot = 0) = 0;
     virtual void Unbind(std::uint32_t slot = 0) = 0;
     virtual void Update(const void* data, size_t size) = 0;

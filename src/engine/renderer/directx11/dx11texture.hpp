@@ -3,8 +3,12 @@
 #include <d3d11.h>
 #include <cstdint>
 #include "renderer/itexture.hpp"
-#include "assetsystem/assets.hpp"
 
+class TextureAsset;
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class DX11Texture : public ITexture 
 {
 public:

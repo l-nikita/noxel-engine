@@ -1,14 +1,17 @@
 #include <SDL3/SDL.h>
 #include <glm/gtc/type_ptr.hpp>
+
 #include "dx11renderer.hpp"
 #include "dx11material.hpp"
 #include "dx11mesh.hpp"
 #include "dx11texture.hpp"
 #include "dx11rendertarget.hpp"
+#include "dx11factory.hpp"
+#include "dx11viewport.hpp"
+
 #include "iengine.hpp"
 #include "window.hpp"
 #include "renderer/imaterial.hpp"
-#include "renderer/model.hpp"
 #include "renderer/render_camera.hpp"
 #include "renderer/vertex.hpp"
 #include "gui/igui.hpp"
@@ -117,9 +120,16 @@ void DX11Renderer::Init()
 //-----------------------------------------------------------------------------
 void DX11Renderer::CopyToBackBuffer(IRenderTarget* rt)
 {
+    assert(rt);
     auto tex = static_cast<DX11Texture*>(rt->GetTexture());
     auto backTex = static_cast<DX11Texture*>(m_backBuffer->GetTexture());
     m_context->CopyResource(backTex->GetResource(), tex->GetResource());
+}
+
+void DX11Renderer::SetViewport(IViewport* viewport)
+{
+    assert(viewport);
+    static_cast<DX11Viewport*>(viewport)->Apply(m_context);
 }
 
 void DX11Renderer::Swap()

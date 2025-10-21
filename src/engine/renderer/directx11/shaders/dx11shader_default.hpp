@@ -1,16 +1,17 @@
 #pragma once
 
-#include <stdexcept>
 #include <DirectXMath.h>
+
 #include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
-#include "../dx11texture.hpp"
-#include "../dx11renderer.hpp"
+#include "renderer/directx11/dx11renderer.hpp"
 #include "renderer/vertex.hpp"
-#include "renderer/irenderer.hpp"
 #include "renderer/render_camera.hpp"
 #include "renderer/shaderregistry.hpp"
+#include "dbg/debug.hpp"
 
+//-----------------------------------------------------------------------------
+//
 //-----------------------------------------------------------------------------
 class DefaultPS : public DX11Shader
 {
@@ -90,6 +91,8 @@ private:
 
 REGISTER_SHADER("defaultPS", DefaultPS);
 
+//-----------------------------------------------------------------------------
+//
 //-----------------------------------------------------------------------------
 class DefaultVS : public DX11Shader
 {

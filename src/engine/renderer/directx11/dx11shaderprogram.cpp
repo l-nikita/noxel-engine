@@ -1,9 +1,11 @@
-#include "dx11shaderprogram.hpp"
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <string>
+
+#include "dx11shaderprogram.hpp"
 #include "renderer/vertex.hpp"
 #include "renderer/shaderregistry.hpp"
+#include "assetsystem/assets.hpp"
 
 DX11ShaderProgram::DX11ShaderProgram(ID3D11Device* device, ID3D11DeviceContext* context, ShaderAsset* asset)
     : m_device(device), m_context(context), m_vs(nullptr), m_ps(nullptr), m_vsBlob(nullptr), m_psBlob(nullptr)

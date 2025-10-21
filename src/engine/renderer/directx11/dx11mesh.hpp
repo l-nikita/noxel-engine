@@ -2,11 +2,13 @@
 
 #include <d3d11.h>
 #include "renderer/imesh.hpp"
-#include "renderer/imaterial.hpp"
 #include <cstdint>
 
 class DX11Buffer;
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class DX11Mesh : public IMesh 
 {
 public:

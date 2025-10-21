@@ -2,6 +2,7 @@
 
 #include <imgui_impl_sdl3.h>
 
+#include "engine.hpp"
 #include "event_handler.hpp"
 #include "input/input.hpp"
 #include "dbg/debug.hpp"

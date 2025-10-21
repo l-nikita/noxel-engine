@@ -1,7 +1,6 @@
-#include "iengine.hpp"
+#include "irenderer.hpp"
 #include "ishaderprogram.hpp"
 #include "model.hpp"
-#include "render_camera.hpp"
 #include "dbg/debug.hpp"
 
 //-----------------------------------------------------------------------------

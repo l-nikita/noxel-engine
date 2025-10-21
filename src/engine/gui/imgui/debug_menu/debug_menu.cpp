@@ -9,9 +9,30 @@
 
 DebugMenu::DebugMenu()
 {
-	m_BudgetPanel = std::make_unique<BudgetPanel>();
-	m_ConsolePanel = std::make_unique<ConsolePanel>();
-	m_DevPanel = std::make_unique<DevPanel>();
+	m_BudgetPanel = new BudgetPanel();
+	m_ConsolePanel = new ConsolePanel();
+	m_DevPanel = new DevPanel();
+}
+
+DebugMenu::~DebugMenu()
+{
+	if (m_BudgetPanel)
+	{
+		delete m_BudgetPanel;
+		m_BudgetPanel = nullptr;
+	}
+
+	if (m_ConsolePanel)
+	{
+		delete m_ConsolePanel;
+		m_ConsolePanel = nullptr;
+	}
+
+	if (m_DevPanel)
+	{
+		delete m_DevPanel;
+		m_DevPanel = nullptr;
+	}
 }
 
 void DebugMenu::Draw()

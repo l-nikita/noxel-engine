@@ -1,9 +1,11 @@
+#include <d3d11.h>
+
 #include "dx11texture.hpp"
 #include "dx11shaderprogram.hpp"
 #include "dx11material.hpp"
 #include "dx11factory.hpp"
 #include "dx11renderer.hpp"
-#include <d3d11.h>
+#include "assetsystem/assets.hpp"
 
 DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset)
     : m_device(device), m_context(context), m_asset(asset)

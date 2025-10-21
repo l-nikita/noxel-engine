@@ -19,6 +19,7 @@
 #include "server/server.hpp"
 #include "client/client.hpp"
 #include "dbg/profiler.hpp"
+#include "dbg/debug.hpp"
 #include "dbg/cmd/cmd.hpp"
 #include "engine.hpp"
 #include "window.hpp"

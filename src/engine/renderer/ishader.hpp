@@ -7,6 +7,9 @@
 
 using MaterialValue = std::variant<int, float, bool, std::string, glm::mat4, glm::vec3, glm::vec4, ITexture*>;
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class IShader
 {
 public:

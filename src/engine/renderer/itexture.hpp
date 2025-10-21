@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 enum class TextureFormat 
 {
     RGBA8,
@@ -9,6 +7,9 @@ enum class TextureFormat
     DEPTH24STENCIL8,
 };
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class ITexture
 {
 public:

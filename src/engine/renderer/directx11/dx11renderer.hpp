@@ -2,14 +2,17 @@
 
 #include <d3d11.h>
 #include <dxgi1_2.h>
+#include <initguid.h>
 #include <cstdint>
 #include <vector>
-#include <initguid.h>
+
 #include "renderer/irenderer.hpp"
 #include "renderer/irendertarget.hpp"
-#include "renderer/model.hpp"
-#include "renderer/directx11/dx11factory.hpp"
+#include "renderer/iviewport.hpp"
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class DX11Renderer : public IRenderer
 {
 public:
@@ -32,6 +35,7 @@ public:
 
 	IRenderTarget* GetBackBufferRT() { return m_backBuffer; }
 	void CopyToBackBuffer(IRenderTarget* rt);
+	void SetViewport(IViewport* viewport);
 
 	ID3D11Device* GetDevice() { return m_device; }
 	ID3D11DeviceContext* GetContext() { return m_context; }

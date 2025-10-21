@@ -3,9 +3,10 @@
 #include <d3d11.h>
 #include <unordered_map>
 #include "renderer/directx11/dx11shaderprogram.hpp"
-#include "renderer/ishader.hpp"
-#include "renderer/ishaderprogram.hpp"
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class DX11Shader : public IShader
 {
 public:
@@ -36,9 +37,11 @@ public:
 
 protected:
     DX11ShaderProgram* m_program;
-    ID3D11Device* m_device;
-    ID3D11DeviceContext* m_context;
 
     ID3D11InputLayout* m_inputLayout;
     std::unordered_map<std::string, MaterialValue> m_params;
+
+protected:
+    ID3D11Device* m_device;
+    ID3D11DeviceContext* m_context;
 };

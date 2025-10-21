@@ -6,6 +6,11 @@
 #include "renderer/irenderer.hpp"
 #include "renderer/render_camera.hpp"
 
+DevPanel::DevPanel()
+{
+	m_vsyncEnabled = g_Renderer->IsVSyncEnabled();
+}
+
 void DevPanel::Draw()
 {
 	if (ImGui::Begin("Developer menu"))

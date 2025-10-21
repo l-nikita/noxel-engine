@@ -1,11 +1,11 @@
 #pragma once
 
 #include "common.hpp"
-#include "renderer/irenderer.hpp"
 
 class IRenderer;
 class IGui;
 class Window;
+enum GraphicsAPI;
 
 class ENGINE_API IEngine
 {

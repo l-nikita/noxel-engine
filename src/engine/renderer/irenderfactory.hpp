@@ -4,10 +4,17 @@
 #include "imaterial.hpp"
 #include "irendertarget.hpp"
 #include "ishader.hpp"
+#include "iviewport.hpp"
 
 #include "meshdata.hpp"
-#include "assetsystem/assets.hpp"
 
+class ShaderAsset;
+class TextureAsset;
+class MaterialAsset;
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class IRenderFactory 
 {
 public:
@@ -19,4 +26,5 @@ public:
     virtual IMaterial* CreateMaterial(std::string assetName) = 0;
 
     virtual IRenderTarget* CreateRenderTarget(int width, int height) = 0;
+    virtual IViewport* CreateViewport(int x, int y, int width, int height) = 0;
 };

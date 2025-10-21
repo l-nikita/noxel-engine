@@ -5,7 +5,7 @@
 class DevPanel : public Panel
 {
 public:
-	DevPanel() { m_vsyncEnabled = g_Renderer->IsVSyncEnabled(); }
+	DevPanel();
 	void Draw();
 
 private:

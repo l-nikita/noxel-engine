@@ -1,9 +1,11 @@
 #pragma once
 
 #include <d3d11.h>
-#include <cstdint>
 #include "renderer/igpubuffer.hpp"
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class DX11Buffer : public IGPUBuffer
 {
 public:

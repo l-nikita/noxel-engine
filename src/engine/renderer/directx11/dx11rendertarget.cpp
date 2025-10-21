@@ -1,6 +1,7 @@
 #include "dx11renderer.hpp"
 #include "dx11rendertarget.hpp"
 #include "dx11texture.hpp"
+#include "dbg/debug.hpp"
 
 DX11RenderTarget::DX11RenderTarget(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height)
     : m_device(device), m_context(context)

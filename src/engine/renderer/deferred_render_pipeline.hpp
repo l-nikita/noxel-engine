@@ -7,6 +7,9 @@
 
 class Model;
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class DeferredRenderPipeline : public IRenderPipeline
 {
 public:
@@ -30,6 +33,6 @@ public:
 private:
 	IRenderTarget* m_testRT;
 
-	D3D11_VIEWPORT m_backBufferViewport = {};
-	D3D11_VIEWPORT m_testViewport = {};
+	IViewport* m_backBufferViewport;
+	IViewport* m_testViewport;
 };
