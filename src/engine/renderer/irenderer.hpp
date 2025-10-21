@@ -36,6 +36,7 @@ public:
 
 	virtual IRenderFactory* GetFactory() = 0;
 	virtual RenderCamera* GetCamera() = 0;
+	virtual void SetCamera(RenderCamera* camera) = 0;
 
 	virtual bool IsVSyncEnabled() = 0;
 	virtual void SetVSync(bool value) = 0;

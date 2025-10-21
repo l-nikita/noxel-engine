@@ -23,6 +23,7 @@
 #include "dbg/cmd/cmd.hpp"
 #include "engine.hpp"
 #include "window.hpp"
+#include "player.hpp"
 
 IEngine* g_Engine = nullptr;
 IInput* g_Input = nullptr;
@@ -31,6 +32,8 @@ IPhysics* g_Physics = nullptr;
 IRenderer* g_Renderer = nullptr;
 IRenderPipeline* g_RenderPipeline = nullptr;
 IGui* g_Gui = nullptr;
+
+Player* g_Player = nullptr;
 
 //-----------------------------------------------------------------------------
 //
@@ -41,9 +44,8 @@ void Engine::Update()
 
     //g_Physics->Update();
     
-    auto camera = g_Renderer->GetCamera();
-    if (camera)
-        camera->Update();
+    if (g_Player)
+        g_Player->Update();
 
     bool isGrave = g_Input->IsKeyPressed(SDL_SCANCODE_GRAVE);
     bool isF3 = g_Input->IsKeyPressed(SDL_SCANCODE_F3);
@@ -183,6 +185,8 @@ bool Engine::Init()
 
     Gizmos::Init();
     CMD::CMD::GetInstance().Setup();
+
+    g_Player = new Player(g_Renderer->GetCamera());
 
     CMD_INFO("Engine initialized successfully.", CMD::ENGINE);
     return true;

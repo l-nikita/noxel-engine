@@ -22,7 +22,8 @@ public:
 	void OnWindowResize(int width, int height) override;
 
 	IRenderFactory* GetFactory() { return m_factory; }
-	RenderCamera* GetCamera() { return m_camera; };
+	RenderCamera* GetCamera() { return m_camera; }
+	void SetCamera(RenderCamera* camera) { m_camera = camera; }
 
 	bool IsVSyncEnabled() override { return m_vsyncEnabled; }
 	void SetVSync(bool value) override { m_vsyncEnabled = value; }

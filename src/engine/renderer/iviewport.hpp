@@ -17,7 +17,7 @@ struct IViewport
 	{
 	}
 
-	void Resize(int width, int height)
+	virtual void Resize(int width, int height)
 	{
 		Width = width;
 		Height = height;

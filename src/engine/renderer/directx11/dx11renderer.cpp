@@ -110,7 +110,6 @@ void DX11Renderer::Init()
 
     int width, height;
     g_Engine->GetWindow()->GetSize(&width, &height);
-    m_camera = new RenderCamera(width, height);
 
 	CMD_INFO("DX11: Renderer initialized", CMD::RENDERING);
 }
@@ -162,12 +161,6 @@ void DX11Renderer::Shutdown()
     }
 #endif
 
-    if (m_camera)
-    {
-        delete m_camera;
-        m_camera = nullptr;
-    }
-
     if (m_backBuffer)
     {
         delete m_backBuffer;
@@ -214,5 +207,4 @@ void DX11Renderer::OnWindowResize(int width, int height)
         FATAL_ERROR("DX11: Failed to get back buffer.", CMD::RENDERING);
 
     m_backBuffer = new DX11RenderTarget(m_device, m_context, backBufferTex);
-    m_camera->OnFrameBufferResize(width, height);
 }

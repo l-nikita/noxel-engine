@@ -5,6 +5,7 @@
 #include "irenderfactory.hpp"
 #include "gizmos.hpp"
 #include "model.hpp"
+#include "render_camera.hpp"
 
 #include "gui/igui.hpp"
 #include "engine/window.hpp"
@@ -13,6 +14,9 @@
 
 ITexture* g_ErrorTexture = nullptr;
 IMaterial* g_ErrorMaterial = nullptr;
+
+static RenderCamera* g_Cam1;
+static RenderCamera* g_Cam2;
 
 //-----------------------------------------------------------------------------
 //
@@ -111,6 +115,11 @@ void DeferredRenderPipeline::Init()
 
     m_testRT = factory->CreateRenderTarget(512, 512);
 
+    g_Cam1 = new RenderCamera(width, height);
+    g_Cam2 = new RenderCamera(512, 512);
+
+    g_Renderer->SetCamera(g_Cam1);
+
     CMD_INFO("RenderPipeline initialized", CMD::RENDERING);
 }
 
@@ -127,11 +136,14 @@ void DeferredRenderPipeline::Render()
     backBuffer->Bind();
 
     g_Renderer->SetViewport(m_backBufferViewport);
+    g_Renderer->SetCamera(g_Cam1);
 
     for (auto model : m_Models)
     {
         model->Draw();
     }
+
+    g_Cam2->DebugDraw();
 
     g_Gui->Render();
 
@@ -140,12 +152,31 @@ void DeferredRenderPipeline::Render()
     m_testRT->Bind();
 
     g_Renderer->SetViewport(m_testViewport);
+    g_Renderer->SetCamera(g_Cam2);
 
     for (auto model : m_Models)
     {
         model->Draw();
     }
 
+    static float angle2 = 0.0f;
+    angle2 += g_Engine->DeltaTime() * 0.5f;
+
+    glm::vec3 center = glm::vec3(0.0f, 0.0f, 5.0f);
+
+    float radius = 5.0f;
+    float camX = center.x + radius * cos(angle2);
+    float camZ = center.z + radius * sin(angle2);
+    float camY = center.y + 2.0f;
+
+    g_Cam2->m_Transform.Position = glm::vec3(camX, camY, camZ);
+
+    glm::vec3 direction = glm::normalize(g_Cam2->m_Transform.Position - center);
+    g_Cam2->m_Transform.Rotation = glm::quatLookAt(direction, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    g_Cam1->DebugDraw();
+
+    //-------------------------------------------
     auto tex = static_cast<DX11Texture*>(m_testRT->GetTexture());
     auto backTex = static_cast<DX11Texture*>(backBuffer->GetTexture());
 
@@ -227,6 +258,18 @@ void DeferredRenderPipeline::Shutdown()
         m_testRT = nullptr;
     }
 
+    if (g_Cam1)
+    {
+        delete g_Cam1;
+        g_Cam1 = nullptr;
+    }
+
+    if (g_Cam2)
+    {
+        delete g_Cam2;
+        g_Cam2 = nullptr;
+    }
+
     g_Renderer->Shutdown();
 }
 
@@ -237,4 +280,6 @@ void DeferredRenderPipeline::OnWindowResize(int width, int height)
 {
     g_Renderer->OnWindowResize(width, height);
     m_backBufferViewport->Resize(width, height);
+
+    g_Cam1->OnFrameBufferResize(width, height);
 }
