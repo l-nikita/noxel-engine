@@ -17,6 +17,7 @@ IMaterial* g_ErrorMaterial = nullptr;
 
 static RenderCamera* g_Cam1;
 static RenderCamera* g_Cam2;
+static Model* g_TestModel;
 
 //-----------------------------------------------------------------------------
 //
@@ -31,41 +32,41 @@ void DeferredRenderPipeline::Init()
 
     std::vector<Vertex> cubeVertices
     {
-        // Front
-        {{-1, -1,  1}, {1,1,1,1}, {0,1}},
-        {{ 1, -1,  1}, {1,1,1,1}, {1,1}},
-        {{ 1,  1,  1}, {1,1,1,1}, {1,0}},
-        {{-1,  1,  1}, {1,1,1,1}, {0,0}},
+        // Front (+Z)
+        {{-1, -1,  1}, {0, 0, 1}, {0,1}, {1,1,1,1}},
+        {{ 1, -1,  1}, {0, 0, 1}, {1,1}, {1,1,1,1}},
+        {{ 1,  1,  1}, {0, 0, 1}, {1,0}, {1,1,1,1}},
+        {{-1,  1,  1}, {0, 0, 1}, {0,0}, {1,1,1,1}},
 
-        // Back
-        {{ 1, -1, -1}, {1,1,1,1}, {0,1}},
-        {{-1, -1, -1}, {1,1,1,1}, {1,1}},
-        {{-1,  1, -1}, {1,1,1,1}, {1,0}},
-        {{ 1,  1, -1}, {1,1,1,1}, {0,0}},
+        // Back (-Z)
+        {{ 1, -1, -1}, {0, 0, -1}, {0,1}, {1,1,1,1}},
+        {{-1, -1, -1}, {0, 0, -1}, {1,1}, {1,1,1,1}},
+        {{-1,  1, -1}, {0, 0, -1}, {1,0}, {1,1,1,1}},
+        {{ 1,  1, -1}, {0, 0, -1}, {0,0}, {1,1,1,1}},
 
-        // Top
-        {{-1,  1,  1}, {1,1,1,1}, {0,1}},
-        {{ 1,  1,  1}, {1,1,1,1}, {1,1}},
-        {{ 1,  1, -1}, {1,1,1,1}, {1,0}},
-        {{-1,  1, -1}, {1,1,1,1}, {0,0}},
+        // Top (+Y)
+        {{-1,  1,  1}, {0, 1, 0}, {0,1}, {1,1,1,1}},
+        {{ 1,  1,  1}, {0, 1, 0}, {1,1}, {1,1,1,1}},
+        {{ 1,  1, -1}, {0, 1, 0}, {1,0}, {1,1,1,1}},
+        {{-1,  1, -1}, {0, 1, 0}, {0,0}, {1,1,1,1}},
 
-        // Bottom
-        {{-1, -1, -1}, {1,1,1,1}, {0,1}},
-        {{ 1, -1, -1}, {1,1,1,1}, {1,1}},
-        {{ 1, -1,  1}, {1,1,1,1}, {1,0}},
-        {{-1, -1,  1}, {1,1,1,1}, {0,0}},
+        // Bottom (-Y)
+        {{-1, -1, -1}, {0, -1, 0}, {0,1}, {1,1,1,1}},
+        {{ 1, -1, -1}, {0, -1, 0}, {1,1}, {1,1,1,1}},
+        {{ 1, -1,  1}, {0, -1, 0}, {1,0}, {1,1,1,1}},
+        {{-1, -1,  1}, {0, -1, 0}, {0,0}, {1,1,1,1}},
 
-        // Right
-        {{ 1, -1,  1}, {1,1,1,1}, {0,1}},
-        {{ 1, -1, -1}, {1,1,1,1}, {1,1}},
-        {{ 1,  1, -1}, {1,1,1,1}, {1,0}},
-        {{ 1,  1,  1}, {1,1,1,1}, {0,0}},
+        // Right (+X)
+        {{ 1, -1,  1}, {1, 0, 0}, {0,1}, {1,1,1,1}},
+        {{ 1, -1, -1}, {1, 0, 0}, {1,1}, {1,1,1,1}},
+        {{ 1,  1, -1}, {1, 0, 0}, {1,0}, {1,1,1,1}},
+        {{ 1,  1,  1}, {1, 0, 0}, {0,0}, {1,1,1,1}},
 
-        // Left
-        {{-1, -1, -1}, {1,1,1,1}, {0,1}},
-        {{-1, -1,  1}, {1,1,1,1}, {1,1}},
-        {{-1,  1,  1}, {1,1,1,1}, {1,0}},
-        {{-1,  1, -1}, {1,1,1,1}, {0,0}},
+        // Left (-X)
+        {{-1, -1, -1}, {-1, 0, 0}, {0,1}, {1,1,1,1}},
+        {{-1, -1,  1}, {-1, 0, 0}, {1,1}, {1,1,1,1}},
+        {{-1,  1,  1}, {-1, 0, 0}, {1,0}, {1,1,1,1}},
+        {{-1,  1, -1}, {-1, 0, 0}, {0,0}, {1,1,1,1}},
     };
 
     std::vector<std::uint32_t> cubeIndices
@@ -107,23 +108,31 @@ void DeferredRenderPipeline::Init()
 	model->m_Transform.Position = glm::vec3(0, 0, 5);
 	m_Models.push_back(model);
 
+	auto model2 = new Model(mesh, mat);
+	model2->m_Transform.Position = glm::vec3(0, 0, 8);
+	m_Models.push_back(model2);
+
+	auto model3 = new Model(mesh, mat);
+	model3->m_Transform.Position = glm::vec3(0, 5, 8);
+	m_Models.push_back(model3);
+
+    g_TestModel = new Model(mesh, mat);
+
     int width, height;
     g_Engine->GetWindow()->GetSize(&width, &height);
 
     m_backBufferViewport = factory->CreateViewport(0, 0, width, height);
-    //m_testViewport = factory->CreateViewport(0, 0, 512, 512);
-
-    //m_testRT = factory->CreateRenderTarget(512, 512);
-
     g_Cam1 = new RenderCamera(width, height);
-    //g_Cam2 = new RenderCamera(512, 512);
 
     g_Renderer->SetCamera(g_Cam1);
     g_Renderer->SetViewport(m_backBufferViewport);
 
-    m_GBuffer.Color = factory->CreateRenderTarget(width, height);
-    m_GBuffer.Normal = factory->CreateRenderTarget(width, height);
-    m_GBuffer.Position = factory->CreateRenderTarget(width, height);
+    m_GBuffer.DepthStencil = factory->CreateDepthStencil(width, height);
+    m_GBuffer.Color = factory->CreateRenderTexture(width, height, false);
+    m_GBuffer.Normal = factory->CreateRenderTexture(width, height, false);
+    m_GBuffer.Position = factory->CreateRenderTexture(width, height, false);
+
+    m_lightingShader = factory->CreateShaderProgram(ShaderAsset::Get("lightingpass"));
 
     CMD_INFO("RenderPipeline initialized", CMD::RENDERING);
 }
@@ -133,27 +142,70 @@ void DeferredRenderPipeline::Init()
 //-----------------------------------------------------------------------------
 void DeferredRenderPipeline::DoGeometryPass()
 {
-    m_GBuffer.Color->Clear(glm::vec4(0.1f, 0.2f, 0.3f, 1.0f));
-    m_GBuffer.Color->Bind();
+    IRenderTexture* rts[3] = {
+        m_GBuffer.Color,
+        m_GBuffer.Normal,
+        m_GBuffer.Position
+    };
+
+    // 0.1f, 0.2f, 0.3f, 1.0f
+    auto color = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    for (auto& rt : rts) 
+        rt->Clear(color);
+
+    m_GBuffer.DepthStencil->Clear();
+
+    g_Renderer->SetRenderTextures(rts, 3, m_GBuffer.DepthStencil);
+
     for (auto model : m_Models)
         model->Draw();
 
-    m_GBuffer.Normal->Clear(glm::vec4(0));
-    m_GBuffer.Normal->Bind();
-    for (auto model : m_Models)
-        model->Draw();
+    static float totalTime = 0.0f;
+    totalTime += g_Engine->DeltaTime();
 
-    m_GBuffer.Position->Clear(glm::vec4(0));
-    m_GBuffer.Position->Bind();
-    for (auto model : m_Models)
-        model->Draw();
+    g_TestModel->m_Transform.Position = glm::vec3(
+        sin(totalTime) * 5.0f,
+        5.0f,
+        cos(totalTime) * 5.0f
+    );
+
+    static float angle2 = 0.0f;
+    angle2 += g_Engine->DeltaTime() * 5.0f;
+    g_TestModel->m_Transform.Rotation = glm::angleAxis(angle2, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    g_TestModel->m_Transform.Scale = glm::vec3(0.5f);
+    g_TestModel->Draw();
+}
+
+void DeferredRenderPipeline::DoLightingPass()
+{
+    IRenderTexture* rts[3] = {
+        m_GBuffer.Color,
+        m_GBuffer.Normal,
+        m_GBuffer.Position
+    };
+
+    g_Renderer->BindRenderTextures(rts, 3);
+    m_lightingShader->Bind();
+
+    auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
+    auto context = dxrenderer->GetContext();
+
+    g_Renderer->SetPrimitiveTopology(TRIANGLES);
+    context->Draw(3, 0);
+
+    m_lightingShader->Unbind();
 }
 
 void DeferredRenderPipeline::Render()
 {
+    auto backBuffer = g_Renderer->GetBackBufferRT();
+    backBuffer->Clear(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+
     DoGeometryPass();
 
-    g_Renderer->CopyToBackBuffer(m_GBuffer.Normal);
+    backBuffer->Bind();
+    DoLightingPass();
 
     /*
     auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
@@ -280,23 +332,11 @@ void DeferredRenderPipeline::Shutdown()
 
     m_Models.clear();
 
-    //if (m_testRT)
-    //{
-    //    delete m_testRT;
-    //    m_testRT = nullptr;
-    //}
-
     if (g_Cam1)
     {
         delete g_Cam1;
         g_Cam1 = nullptr;
     }
-
-    //if (g_Cam2)
-    //{
-    //    delete g_Cam2;
-    //    g_Cam2 = nullptr;
-    //}
 
     g_Renderer->Shutdown();
 }

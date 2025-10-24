@@ -20,7 +20,8 @@ void AssetSystem::Init()
 	//TODO: Automatic assets searing
 	//ShaderAsset::CreateNew("default", (m_assetsPath / "shaders\\default.hlsl").string());
 	//ShaderAsset::CreateNew("gizmos", (m_assetsPath / "shaders\\gizmos.hlsl").string());
-	ShaderAsset::CreateNew("colorpass", (m_assetsPath / "shaders\\colorpass.hlsl").string());
+	ShaderAsset::CreateNew("geometrypass", (m_assetsPath / "shaders\\geometrypass.hlsl").string());
+	ShaderAsset::CreateNew("lightingpass", (m_assetsPath / "shaders\\lightingpass.hlsl").string());
 
 	TextureAsset::m_error = TextureAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.png").string());
 	MaterialAsset::m_error = MaterialAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.nmt").string());

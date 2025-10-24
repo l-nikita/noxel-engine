@@ -49,15 +49,17 @@ void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
     compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
+    std::string src;
+
     if (type == VERTEX)
     {
-        auto vertSrc = asset->GetShaderSource(VERTEX);
-        hr = D3DCompile(vertSrc.c_str(), vertSrc.length(), nullptr, nullptr, nullptr, "main", "vs_5_0", compileFlags, 0, &m_vsBlob, &errorBlob);
+        src = asset->GetShaderSource(VERTEX);
+        hr = D3DCompile(src.c_str(), src.length(), nullptr, nullptr, nullptr, "main", "vs_5_0", compileFlags, 0, &m_vsBlob, &errorBlob);
     }
     else if (type == PIXEL)
     {
-        auto pixelSrc = asset->GetShaderSource(PIXEL);
-        hr = D3DCompile(pixelSrc.c_str(), pixelSrc.length(), nullptr, nullptr, nullptr, "main", "ps_5_0", compileFlags, 0, &m_psBlob, &errorBlob);
+        src = asset->GetShaderSource(PIXEL);
+        hr = D3DCompile(src.c_str(), src.length(), nullptr, nullptr, nullptr, "main", "ps_5_0", compileFlags, 0, &m_psBlob, &errorBlob);
     }
 
     if (FAILED(hr))
@@ -69,7 +71,12 @@ void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
             errorBlob->Release();
         }
 
-        FATAL_ERROR("DX11: Failed to compile shader!", CMD::RENDERING);
+        if (type == VERTEX)
+        {
+            FATAL_ERROR("DX11: Failed to compile vertex shader!", CMD::RENDERING);
+        }
+        else if (type == PIXEL)
+            FATAL_ERROR("DX11: Failed to compile pixel shader!", CMD::RENDERING);
     }
 }
 

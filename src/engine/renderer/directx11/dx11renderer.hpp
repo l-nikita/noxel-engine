@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "renderer/irenderer.hpp"
-#include "renderer/irendertarget.hpp"
+#include "renderer/irendertexture.hpp"
 #include "renderer/iviewport.hpp"
 
 //-----------------------------------------------------------------------------
@@ -34,9 +34,11 @@ public:
 	void CreateSwapChain();
 	void Swap() override;
 
-	IRenderTarget* GetBackBufferRT() { return m_backBuffer; }
-	void CopyToBackBuffer(IRenderTarget* rt);
-	void SetViewport(IViewport* viewport);
+	IRenderTexture* GetBackBufferRT() override { return m_backBuffer; }
+	void CopyToBackBuffer(IRenderTexture* rt) override;
+	void SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, IDepthStencil* depthStencil) override;
+	void BindRenderTextures(IRenderTexture* rts[], std::uint32_t num) override;
+	void SetViewport(IViewport* viewport) override;
 
 	ID3D11Device* GetDevice() { return m_device; }
 	ID3D11DeviceContext* GetContext() { return m_context; }
@@ -44,7 +46,7 @@ public:
 private:
 	ID3D11Device* m_device = nullptr;
 	ID3D11DeviceContext* m_context = nullptr;
-	IRenderTarget* m_backBuffer;
+	IRenderTexture* m_backBuffer;
 
 	IDXGISwapChain1* m_swapChain = nullptr;
 

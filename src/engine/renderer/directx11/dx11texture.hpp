@@ -26,6 +26,7 @@ public:
     TextureFormat GetFormat() const override { return m_format; }
 
     ID3D11Texture2D* GetResource() { return m_texture; }
+    ID3D11ShaderResourceView* GetSRV() { return m_srv; }
 
 private:
     ID3D11ShaderResourceView* m_srv = nullptr;

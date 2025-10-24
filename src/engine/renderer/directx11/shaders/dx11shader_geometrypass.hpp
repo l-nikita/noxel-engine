@@ -13,16 +13,16 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class ColorPassPS : public DX11Shader
+class GeometryPassPS : public DX11Shader
 {
 public:
-    ColorPassPS(IShaderProgram* program)
+    GeometryPassPS(IShaderProgram* program)
         : DX11Shader(program)
     {
         Init();
     }
 
-    ~ColorPassPS() { Release(); }
+    ~GeometryPassPS() { Release(); }
 
     void Init()
     {
@@ -47,7 +47,7 @@ public:
 
     void Bind()
     {
-        MaterialValue* texVal = GetParameterValue("basetexture");
+        MaterialVar* texVal = GetParameterValue("basetexture");
         if (auto texPtr = std::get_if<ITexture*>(texVal))
             m_texture = *texPtr;
 
@@ -88,29 +88,30 @@ private:
     ITexture* m_texture = nullptr;
 };
 
-REGISTER_SHADER("colorpassPS", ColorPassPS);
+REGISTER_SHADER("geometrypassPS", GeometryPassPS);
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class ColorPassVS : public DX11Shader
+class GeometryPassVS : public DX11Shader
 {
 public:
-    ColorPassVS(IShaderProgram* program)
+    GeometryPassVS(IShaderProgram* program)
         : DX11Shader(program)
     {
         Init();
     }
 
-    ~ColorPassVS() { Release(); }
+    ~GeometryPassVS() { Release(); }
 
     void Init()
     {
         // parameters, buffers, resources...
         D3D11_INPUT_ELEMENT_DESC layout[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,     0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,  0, offsetof(Vertex, Color),    D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,        0, offsetof(Vertex, UV),       D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Normal),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,      0, offsetof(Vertex, UV),       D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,0, offsetof(Vertex, Color),    D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
 
         HRESULT hr = m_program->GetDevice()->CreateInputLayout(
@@ -130,7 +131,7 @@ public:
         cbd.MiscFlags = 0;
         cbd.StructureByteStride = 0;
 
-        hr = m_device->CreateBuffer(&cbd, nullptr, &m_constantBuffer);
+        hr = m_device->CreateBuffer(&cbd, nullptr, &m_cbTransform);
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
     }
@@ -144,9 +145,9 @@ public:
         auto* camera = g_Renderer->GetCamera();
 
         glm::mat4 model = glm::mat4(1.0f);
-        MaterialValue* modelVal = GetParameterValue("model");
+        MaterialVar* varModel = GetParameterValue("model");
 
-        if (auto matPtr = std::get_if<glm::mat4>(modelVal))
+        if (auto matPtr = std::get_if<glm::mat4>(varModel))
             model = *matPtr;
 
         CBTransform matricesCB
@@ -156,8 +157,8 @@ public:
             glm::transpose(camera->GetProjectionMatrix()),
         };
 
-        m_context->UpdateSubresource(m_constantBuffer, 0, nullptr, &matricesCB, 0, 0);
-        m_context->VSSetConstantBuffers(0, 1, &m_constantBuffer);
+        m_context->UpdateSubresource(m_cbTransform, 0, nullptr, &matricesCB, 0, 0);
+        m_context->VSSetConstantBuffers(0, 1, &m_cbTransform);
     }
 
     void Unbind()
@@ -175,15 +176,15 @@ public:
             m_inputLayout = nullptr;
         }
 
-        if (m_constantBuffer)
+        if (m_cbTransform)
         {
-            m_constantBuffer->Release();
-            m_constantBuffer = nullptr;
+            m_cbTransform->Release();
+            m_cbTransform = nullptr;
         }
     }
 
 private:
-    ID3D11Buffer* m_constantBuffer;
+    ID3D11Buffer* m_cbTransform;
 };
 
-REGISTER_SHADER("colorpassVS", ColorPassVS);
+REGISTER_SHADER("geometrypassVS", GeometryPassVS);

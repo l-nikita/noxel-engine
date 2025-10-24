@@ -32,18 +32,25 @@ static std::string LoadShaderSource(const std::string& shaderType, const std::st
     std::string line;
     while (std::getline(file, line))
     {
-        if (line.find(shaderType) != std::string::npos)
+        std::string trimmed = line;
+        trimmed.erase(0, trimmed.find_first_not_of(" \t\r\n"));
+        trimmed.erase(trimmed.find_last_not_of(" \t\r\n") + 1);
+
+        if (!isInShader && trimmed == shaderType)
         {
             isInShader = true;
+            continue;
         }
 
         if (isInShader)
         {
-            if (line.find("]") != std::string::npos)
+            if (trimmed == "[")
+                continue;
+
+            if (trimmed == "]")
                 break;
 
-            if (line.find("[") == std::string::npos && line.find(shaderType) == std::string::npos)
-                shaderStream << line << '\n';
+            shaderStream << line << '\n';
         }
     }
 
@@ -53,8 +60,8 @@ static std::string LoadShaderSource(const std::string& shaderType, const std::st
 class ShaderAsset : public BaseAsset
 {
 private:
-    std::string m_shaderFragSource;
-    std::string m_shaderVertSource;
+    std::string m_shaderPixelSource;
+    std::string m_shaderVertexSource;
 
 public:
     AssetType GetType() const override { return Type; }
@@ -65,16 +72,16 @@ public:
         m_name = name;
         m_assetPath = assetPath;
 
-        m_shaderFragSource = LoadShaderSource("FragmentShader", assetPath);
-        m_shaderVertSource = LoadShaderSource("VertexShader", assetPath);
+        m_shaderPixelSource = LoadShaderSource("PixelShader", assetPath);
+        m_shaderVertexSource = LoadShaderSource("VertexShader", assetPath);
     }
 
     std::string GetShaderSource(ShaderType type) const
     {
         if (type == VERTEX)
-            return m_shaderVertSource;
+            return m_shaderVertexSource;
         else if (type == PIXEL)
-            return m_shaderFragSource;
+            return m_shaderPixelSource;
         else
             CMD_ERROR("Unsupported shader type.", CMD::ASSETSYSTEM);
 

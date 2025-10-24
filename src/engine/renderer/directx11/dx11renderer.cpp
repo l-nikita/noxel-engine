@@ -5,7 +5,7 @@
 #include "dx11material.hpp"
 #include "dx11mesh.hpp"
 #include "dx11texture.hpp"
-#include "dx11rendertarget.hpp"
+#include "dx11rendertexture.hpp"
 #include "dx11factory.hpp"
 #include "dx11viewport.hpp"
 
@@ -20,7 +20,8 @@
 // Shaders should be included here (somewhere). Compiler issue.
 //#include "shaders/dx11shader_default.hpp"
 //include "shaders/dx11shader_gizmos.hpp"
-#include "shaders/dx11shader_colorpass.hpp"
+#include "shaders/dx11shader_geometrypass.hpp"
+#include "shaders/dx11shader_lightingpass.hpp"
 
 #define INITGUID
 #include <d3d11.h>
@@ -99,15 +100,15 @@ void DX11Renderer::Init()
     assert(m_device);
     assert(m_swapChain);
 
+    //-------------------------------------------
+    m_factory = new DX11Factory(m_device, m_context);
+
     ID3D11Texture2D* backBufferTex;
     HRESULT hr = m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBufferTex));
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to get back buffer.", CMD::RENDERING);
 
-    m_backBuffer = new DX11RenderTarget(m_device, m_context, backBufferTex);
-
-    //-------------------------------------------
-    m_factory = new DX11Factory(m_device, m_context);
+    m_backBuffer = new DX11RenderTexture(m_device, m_context, backBufferTex, false);
 
     int width, height;
     g_Engine->GetWindow()->GetSize(&width, &height);
@@ -118,7 +119,7 @@ void DX11Renderer::Init()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void DX11Renderer::CopyToBackBuffer(IRenderTarget* rt)
+void DX11Renderer::CopyToBackBuffer(IRenderTexture* rt)
 {
     assert(rt);
     auto tex = static_cast<DX11Texture*>(rt->GetTexture());
@@ -130,6 +131,28 @@ void DX11Renderer::SetViewport(IViewport* viewport)
 {
     assert(viewport);
     static_cast<DX11Viewport*>(viewport)->Apply(m_context);
+}
+
+void DX11Renderer::SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, IDepthStencil* depthStencil)
+{
+    ID3D11RenderTargetView* rtvs[8];
+    for (int i = 0; i < num; ++i)
+        rtvs[i] = static_cast<ID3D11RenderTargetView*>(rts[i]->GetResource());
+
+    m_context->OMSetRenderTargets(num, rtvs, static_cast<ID3D11DepthStencilView*>(depthStencil->GetResource()));
+}
+
+void DX11Renderer::BindRenderTextures(IRenderTexture* rts[], std::uint32_t num)
+{
+    DX11Texture* textures[8];
+    for (int i = 0; i < num; ++i)
+        textures[i] = static_cast<DX11Texture*>(rts[i]->GetTexture());
+
+    ID3D11ShaderResourceView* srvs[8];
+    for (int i = 0; i < num; ++i)
+        srvs[i] = textures[i]->GetSRV();
+
+    m_context->PSSetShaderResources(0, num, srvs);
 }
 
 void DX11Renderer::Swap()
@@ -207,5 +230,5 @@ void DX11Renderer::OnWindowResize(int width, int height)
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to get back buffer.", CMD::RENDERING);
 
-    m_backBuffer = new DX11RenderTarget(m_device, m_context, backBufferTex);
+    m_backBuffer = new DX11RenderTexture(m_device, m_context, backBufferTex, true);
 }

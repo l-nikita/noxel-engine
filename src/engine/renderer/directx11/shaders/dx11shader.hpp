@@ -21,12 +21,12 @@ public:
     virtual void Unbind() = 0;
     virtual void Release() = 0;
 
-    void SetParameter(const std::string& name, const MaterialValue& value) override
+    void SetParameter(const std::string& name, const MaterialVar& var) override
     {
-        m_params[name] = value;
+        m_params[name] = var;
     }
 
-    MaterialValue* GetParameterValue(const std::string& name) override
+    MaterialVar* GetParameterValue(const std::string& name) override
     {
         auto it = m_params.find(name);
         if (it != m_params.end())
@@ -39,7 +39,7 @@ protected:
     DX11ShaderProgram* m_program;
 
     ID3D11InputLayout* m_inputLayout;
-    std::unordered_map<std::string, MaterialValue> m_params;
+    std::unordered_map<std::string, MaterialVar> m_params;
 
 protected:
     ID3D11Device* m_device;

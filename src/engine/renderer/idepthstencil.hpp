@@ -1,20 +1,18 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
-#include "renderer/itexture.hpp"
+#include "itexture.hpp"
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class IRenderTarget
+class IDepthStencil
 {
 public:
-    virtual ~IRenderTarget() = default;
+    virtual ~IDepthStencil() = default;
 
-    virtual void Clear(glm::vec4 color) = 0;
-    virtual void Bind() = 0;
+    virtual void Clear() = 0;
     virtual void Release() = 0;
 
+    virtual void* GetResource() = 0;
     virtual ITexture* GetTexture() = 0;
 };

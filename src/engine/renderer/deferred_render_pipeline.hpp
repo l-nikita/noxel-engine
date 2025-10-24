@@ -2,17 +2,20 @@
 
 #include <cstdint>
 #include <vector>
-#include "irendertarget.hpp"
+#include "irendertexture.hpp"
 #include "irender_pipeline.hpp"
+#include "ishaderprogram.hpp"
+#include "idepthstencil.hpp"
 
 class Model;
 
 struct GBuffer
 {
-	IRenderTarget* Color;
-	IRenderTarget* Normal;
-	IRenderTarget* Position;
-	IRenderTarget* Material;
+	IDepthStencil* DepthStencil;
+	IRenderTexture* Color;
+	IRenderTexture* Normal;
+	IRenderTexture* Position;
+	IRenderTexture* Material;
 };
 
 //-----------------------------------------------------------------------------
@@ -27,6 +30,7 @@ public:
 	void OnWindowResize(int width, int height) override;
 
 	void DoGeometryPass();
+	void DoLightingPass();
 
 #ifdef _DEBUG
 	void AddDrawCallCount() { m_DrawCallCount++; }
@@ -42,8 +46,7 @@ public:
 
 private:
 	GBuffer m_GBuffer;
-	IRenderTarget* m_testRT;
+	IShaderProgram* m_lightingShader;
 
 	IViewport* m_backBufferViewport;
-	IViewport* m_testViewport;
 };

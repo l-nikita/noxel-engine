@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 enum class TextureFormat 
 {
     RGBA8,

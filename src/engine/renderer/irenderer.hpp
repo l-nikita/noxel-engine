@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 enum GraphicsAPI
 {
 	OPENGL,
@@ -14,7 +16,8 @@ enum PrimitiveTopology
 
 class RenderCamera;
 class IRenderFactory;
-class IRenderTarget;
+class IRenderTexture;
+class IDepthStencil;
 struct IViewport;
 
 //-----------------------------------------------------------------------------
@@ -30,9 +33,11 @@ public:
 	virtual void Swap() = 0;
 	virtual void OnWindowResize(int width, int height) = 0;
 
-	virtual IRenderTarget* GetBackBufferRT() = 0;
-	virtual void CopyToBackBuffer(IRenderTarget* rt) = 0;
+	virtual IRenderTexture* GetBackBufferRT() = 0;
+	virtual void CopyToBackBuffer(IRenderTexture* rt) = 0;
 	virtual void SetViewport(IViewport* viewport) = 0;
+	virtual void SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, IDepthStencil* depthStencil) = 0;
+	virtual void BindRenderTextures(IRenderTexture* rts[], std::uint32_t num) = 0;
 
 	virtual IRenderFactory* GetFactory() = 0;
 	virtual RenderCamera* GetCamera() = 0;

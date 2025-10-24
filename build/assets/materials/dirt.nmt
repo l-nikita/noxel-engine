@@ -1,4 +1,4 @@
 {
-	"shader" : "colorpass",
+	"shader" : "geometrypass",
 	"basetexture" : "dirt.png"
 }
