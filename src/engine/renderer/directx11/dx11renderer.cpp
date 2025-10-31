@@ -108,7 +108,7 @@ void DX11Renderer::Init()
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to get back buffer.", CMD::RENDERING);
 
-    m_backBuffer = new DX11RenderTexture(m_device, m_context, backBufferTex, false);
+    m_backBuffer = new DX11RenderTexture(m_device, m_context, backBufferTex, false, TextureFormat::RGBA32F);
 
     int width, height;
     g_Engine->GetWindow()->GetSize(&width, &height);
@@ -230,5 +230,5 @@ void DX11Renderer::OnWindowResize(int width, int height)
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to get back buffer.", CMD::RENDERING);
 
-    m_backBuffer = new DX11RenderTexture(m_device, m_context, backBufferTex, true);
+    m_backBuffer = new DX11RenderTexture(m_device, m_context, backBufferTex, true, TextureFormat::RGBA32F);
 }

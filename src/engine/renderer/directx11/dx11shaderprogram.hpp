@@ -33,8 +33,8 @@ public:
     ID3D11Device* GetDevice() { return m_device; };
     ID3D11DeviceContext* GetContext() { return m_context; };
 
-    void SetPSParameter(const std::string& name, const MaterialVar& var) override { GetPSShader()->SetParameter(name, var); }
-    void SetVSParameter(const std::string& name, const MaterialVar& var) override { GetVSShader()->SetParameter(name, var); }
+    void SetPSVar(const std::string& name, const ShaderVar& var) override { GetPSShader()->SetVar(name, var); }
+    void SetVSVar(const std::string& name, const ShaderVar& var) override { GetVSShader()->SetVar(name, var); }
 
 private:
     void Compile(ShaderAsset* asset, ShaderType type);

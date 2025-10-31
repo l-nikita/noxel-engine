@@ -19,13 +19,6 @@ public:
     LightingPassPS(IShaderProgram* program)
         : DX11Shader(program)
     {
-        Init();
-    }
-
-    ~LightingPassPS() { Release(); }
-
-    void Init()
-    {
         D3D11_SAMPLER_DESC sampDesc = {};
         sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
         sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -44,12 +37,14 @@ public:
         cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         cbd.ByteWidth = sizeof(CBLightData);
 
-        hr = m_device->CreateBuffer(&cbd, nullptr, &m_LightBuffer);
+        hr = m_device->CreateBuffer(&cbd, nullptr, &m_lightBuffer);
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
     }
 
-    ShaderType GetType() { return PIXEL; }
+    ~LightingPassPS() { Release(); }
+
+    ShaderType GetType() override { return PIXEL; }
 
     void Bind()
     {
@@ -58,15 +53,18 @@ public:
 
         CBLightData data{};
         data.lightPos = glm::vec3(
-            sin(totalTime) * 5.0f,
-            5.0f,
-            cos(totalTime) * 5.0f
+            sin(totalTime) * 1.0f,
+            1.0f,
+            cos(totalTime) * 1.0f
         );
-        data.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+        //data.lightPos = glm::vec3(0.0f, 0.0f, 0.0f);
 
-        m_context->UpdateSubresource(m_LightBuffer, 0, nullptr, &data, 0, 0);
+        data.lightColor = glm::vec3(3.0f, 3.0f, 3.0f);
+        data.cameraPos = g_Renderer->GetCamera()->m_Transform.Position;
 
-        m_context->PSSetConstantBuffers(0, 1, &m_LightBuffer);
+        m_context->UpdateSubresource(m_lightBuffer, 0, nullptr, &data, 0, 0);
+
+        m_context->PSSetConstantBuffers(0, 1, &m_lightBuffer);
         m_context->PSSetSamplers(0, 1, &m_samplerState);
     }
 
@@ -74,6 +72,8 @@ public:
     {
         ID3D11SamplerState* nullSampler[1] = { nullptr };
         m_context->PSSetSamplers(0, 1, nullSampler);
+
+        m_context->PSSetConstantBuffers(0, 0, nullptr);
     }
 
     void Release()
@@ -83,11 +83,17 @@ public:
             m_samplerState->Release();
             m_samplerState = nullptr;
         }
+
+        if (m_lightBuffer)
+        {
+            m_lightBuffer->Release();
+            m_lightBuffer = nullptr;
+        }
     }
 
 private:
     ID3D11SamplerState* m_samplerState = nullptr;
-    ID3D11Buffer* m_LightBuffer = nullptr;
+    ID3D11Buffer* m_lightBuffer = nullptr;
 };
 
 REGISTER_SHADER("lightingpassPS", LightingPassPS);
@@ -100,31 +106,15 @@ class LightingPassVS : public DX11Shader
 public:
     LightingPassVS(IShaderProgram* program)
         : DX11Shader(program)
-    {
-        Init();
-    }
+    { }
 
     ~LightingPassVS() { Release(); }
 
-    void Init()
-    {
-    }
+    ShaderType GetType() override { return VERTEX; }
 
-    ShaderType GetType() { return VERTEX; }
-
-    void Bind()
-    {
-    }
-
-    void Unbind()
-    {
-        ID3D11Buffer* nullBuffer = nullptr;
-        m_context->VSSetConstantBuffers(0, 1, &nullBuffer);
-    }
-
-    void Release()
-    {
-    }
+    void Bind() { }
+    void Unbind() { }
+    void Release() { }
 };
 
 REGISTER_SHADER("lightingpassVS", LightingPassVS);

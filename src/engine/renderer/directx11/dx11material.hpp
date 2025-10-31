@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <unordered_map>
+#include <string>
 #include <d3d11.h>
 #include "renderer/imaterial.hpp"
 #include "renderer/ishader.hpp"
@@ -22,16 +24,16 @@ public:
     void Release() override;
 
     void SetShader(IShaderProgram* shader) override;
-    void SetTexture(std::uint32_t slot = 0, ITexture* texture = nullptr) override;
+    void SetTexture(std::string paramName, ITexture* texture = nullptr) override;
 
     IShaderProgram* GetShader() const override;
-    ITexture* GetTexture(std::uint32_t slot = 0) const override;
+    ITexture* GetTexture(std::string paramName) override;
 
 private:
     MaterialAsset* m_asset;
-    IShaderProgram* m_shader = nullptr;
 
-    ITexture* m_textures[MATERIAL_TEXTURES_SLOTS] = { nullptr }; // 8 slots by default
+    IShaderProgram* m_shader = nullptr;
+    std::unordered_map<std::string, ITexture*> m_textures;
 
 private:
     ID3D11DeviceContext* m_context;

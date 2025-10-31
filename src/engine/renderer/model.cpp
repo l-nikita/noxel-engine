@@ -45,7 +45,7 @@ void Model::Draw()
             continue;
         }
 
-        mat->GetShader()->SetVSParameter("model", m_Transform.GetTransformMatrix());
+        mat->GetShader()->SetVSVar("model", m_Transform.GetTransformMatrix());
         mat->Bind();
         g_Renderer->SetPrimitiveTopology(TRIANGLES);
         m_meshes[i]->Draw();

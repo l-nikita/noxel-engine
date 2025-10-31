@@ -19,16 +19,10 @@ public:
     GeometryPassPS(IShaderProgram* program)
         : DX11Shader(program)
     {
-        Init();
-    }
-
-    ~GeometryPassPS() { Release(); }
-
-    void Init()
-    {
         //D3D11_FILTER_MIN_MAG_MIP_LINEAR
+        //D3D11_FILTER_MIN_MAG_MIP_POINT
         D3D11_SAMPLER_DESC sampDesc = {};
-        sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+        sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
         sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
         sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
         sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -40,29 +34,44 @@ public:
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create sampler state", CMD::RENDERING);
 
-        m_texture = g_ErrorTexture;
+        m_vars["basetexture"] = g_ErrorTexture;
+        m_vars["normalmap"] = g_ErrorTexture;
     }
 
-    ShaderType GetType() { return PIXEL; }
+    ~GeometryPassPS() { Release(); }
+
+    ShaderType GetType() override { return PIXEL; }
 
     void Bind()
     {
-        MaterialVar* texVal = GetParameterValue("basetexture");
-        if (auto texPtr = std::get_if<ITexture*>(texVal))
-            m_texture = *texPtr;
-
-        if (m_texture)
-            m_texture->Bind();
+        ShaderVar& texVar = GetVar("basetexture");
+        if (auto texPtr = std::get_if<ITexture*>(&texVar))
+            (*texPtr)->Bind(0);
         else
-            g_ErrorTexture->Bind();
+            g_ErrorTexture->Bind(0);
+
+        ShaderVar& normVar = GetVar("normalmap");
+        if (auto normPtr = std::get_if<ITexture*>(&normVar))
+            (*normPtr)->Bind(1);
+        else
+            g_ErrorTexture->Bind(1);
 
         m_context->PSSetSamplers(0, 1, &m_samplerState);
     }
 
     void Unbind()
     {
-        ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-        m_context->PSSetShaderResources(0, 1, nullSRV);
+        ShaderVar& texVar = GetVar("basetexture");
+        if (auto texPtr = std::get_if<ITexture*>(&texVar))
+            (*texPtr)->Unbind(0);
+        else
+            g_ErrorTexture->Unbind(0);
+
+        ShaderVar& normVar = GetVar("normalmap");
+        if (auto normPtr = std::get_if<ITexture*>(&normVar))
+            (*normPtr)->Unbind(1);
+        else
+            g_ErrorTexture->Unbind(1);
 
         ID3D11SamplerState* nullSampler[1] = { nullptr };
         m_context->PSSetSamplers(0, 1, nullSampler);
@@ -75,17 +84,10 @@ public:
             m_samplerState->Release();
             m_samplerState = nullptr;
         }
-
-        if (m_texture && m_texture != g_ErrorTexture)
-        {
-            delete m_texture;
-            m_texture = nullptr;
-        }
     }
 
 private:
     ID3D11SamplerState* m_samplerState = nullptr;
-    ITexture* m_texture = nullptr;
 };
 
 REGISTER_SHADER("geometrypassPS", GeometryPassPS);
@@ -99,17 +101,12 @@ public:
     GeometryPassVS(IShaderProgram* program)
         : DX11Shader(program)
     {
-        Init();
-    }
-
-    ~GeometryPassVS() { Release(); }
-
-    void Init()
-    {
         // parameters, buffers, resources...
         D3D11_INPUT_ELEMENT_DESC layout[] = {
             { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Normal),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "TANGENT",   0, DXGI_FORMAT_R32G32B32_FLOAT,  0, offsetof(Vertex, Tangent),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "BINORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, Bitangent),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,      0, offsetof(Vertex, UV),       D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,0, offsetof(Vertex, Color),    D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
@@ -134,20 +131,23 @@ public:
         hr = m_device->CreateBuffer(&cbd, nullptr, &m_cbTransform);
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
+
+        m_vars["model"] = glm::mat4(1.0f);
     }
 
-    ShaderType GetType() { return VERTEX; }
+    ~GeometryPassVS() { Release(); }
+
+    ShaderType GetType() override { return VERTEX; }
 
     void Bind()
     {
         m_context->IASetInputLayout(m_inputLayout);
 
         auto* camera = g_Renderer->GetCamera();
-
         glm::mat4 model = glm::mat4(1.0f);
-        MaterialVar* varModel = GetParameterValue("model");
 
-        if (auto matPtr = std::get_if<glm::mat4>(varModel))
+        ShaderVar& varModel = GetVar("model");
+        if (auto matPtr = std::get_if<glm::mat4>(&varModel))
             model = *matPtr;
 
         CBTransform matricesCB
@@ -184,7 +184,8 @@ public:
     }
 
 private:
-    ID3D11Buffer* m_cbTransform;
+    ID3D11InputLayout* m_inputLayout = nullptr;
+    ID3D11Buffer* m_cbTransform = nullptr;
 };
 
 REGISTER_SHADER("geometrypassVS", GeometryPassVS);

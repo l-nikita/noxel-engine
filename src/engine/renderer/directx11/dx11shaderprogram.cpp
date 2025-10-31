@@ -5,7 +5,7 @@
 #include "dx11shaderprogram.hpp"
 #include "renderer/vertex.hpp"
 #include "renderer/shaderregistry.hpp"
-#include "assetsystem/assets.hpp"
+#include "assetsystem/shaderasset.hpp"
 
 DX11ShaderProgram::DX11ShaderProgram(ID3D11Device* device, ID3D11DeviceContext* context, ShaderAsset* asset)
     : m_device(device), m_context(context), m_vs(nullptr), m_ps(nullptr), m_vsBlob(nullptr), m_psBlob(nullptr)
@@ -61,6 +61,8 @@ void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
         src = asset->GetShaderSource(PIXEL);
         hr = D3DCompile(src.c_str(), src.length(), nullptr, nullptr, nullptr, "main", "ps_5_0", compileFlags, 0, &m_psBlob, &errorBlob);
     }
+    else
+        FATAL_ERROR("DX11: Unknown shader type!", CMD::RENDERING)
 
     if (FAILED(hr))
     {
@@ -72,11 +74,9 @@ void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
         }
 
         if (type == VERTEX)
-        {
-            FATAL_ERROR("DX11: Failed to compile vertex shader!", CMD::RENDERING);
-        }
+            FATAL_ERROR("DX11: Failed to compile vertex shader! " + asset->GetName(), CMD::RENDERING)
         else if (type == PIXEL)
-            FATAL_ERROR("DX11: Failed to compile pixel shader!", CMD::RENDERING);
+            FATAL_ERROR("DX11: Failed to compile pixel shader! " + asset->GetName(), CMD::RENDERING)
     }
 }
 

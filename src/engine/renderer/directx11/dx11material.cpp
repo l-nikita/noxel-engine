@@ -5,57 +5,40 @@
 #include "dx11material.hpp"
 #include "dx11factory.hpp"
 #include "dx11renderer.hpp"
-#include "assetsystem/assets.hpp"
+#include "assetsystem/materialasset.hpp"
 
 DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset)
     : m_device(device), m_context(context), m_asset(asset)
 {
-    auto texAsset = m_asset->TextureAsset();
-    if (texAsset != nullptr)  // TODO
-        m_textures[0] = g_Renderer->GetFactory()->CreateTexture(texAsset);
+    for (const auto [paramName, asset] : m_asset->GetTexturesAssets())
+        m_textures[paramName] = g_Renderer->GetFactory()->CreateTexture(asset);
 
-    auto shaderAsset = m_asset->ShaderAsset();
+    auto shaderAsset = m_asset->GetShaderAsset();
     if (shaderAsset != nullptr)
         m_shader = g_Renderer->GetFactory()->CreateShaderProgram(shaderAsset);
 }
 
 void DX11Material::Bind()
 {
-    for (std::uint32_t i = 0; i < MATERIAL_TEXTURES_SLOTS; ++i)
+    for (const auto& [paramName, texture] : m_textures)
     {
-        auto* tex = m_textures[i];
-        if (tex)
-        {
-            if (m_shader)
-                m_shader->SetPSParameter("basetexture", tex);
-        }
+        if (m_shader)
+            m_shader->SetPSVar(paramName, texture);
     }
 
-    if (m_shader) m_shader->Bind();
+    if (m_shader) 
+        m_shader->Bind();
 }
 
 void DX11Material::Unbind()
 {
     if (m_shader)
         m_shader->Unbind();
-
-    for (unsigned int i = 0; i < MATERIAL_TEXTURES_SLOTS; ++i)
-    {
-        if (m_textures[i])
-            m_textures[i]->Unbind(i);
-    }
 }
 
 void DX11Material::Release()
 {
-    delete m_shader;
-    m_shader = nullptr;
-
-    for (std::uint32_t i = 0; i < MATERIAL_TEXTURES_SLOTS; ++i)
-    {
-        delete m_textures[i];
-        m_textures[i] = nullptr;
-    }
+    m_textures.clear();
 }
 
 void DX11Material::SetShader(IShaderProgram* shader)
@@ -63,10 +46,9 @@ void DX11Material::SetShader(IShaderProgram* shader)
     m_shader = shader;
 }
 
-void DX11Material::SetTexture(std::uint32_t slot, ITexture* texture)
+void DX11Material::SetTexture(std::string paramName, ITexture* texture)
 {
-    if (slot < MATERIAL_TEXTURES_SLOTS)
-        m_textures[slot] = texture;
+    m_textures[paramName] = texture;
 }
 
 IShaderProgram* DX11Material::GetShader() const
@@ -75,10 +57,7 @@ IShaderProgram* DX11Material::GetShader() const
     return m_shader;
 }
 
-ITexture* DX11Material::GetTexture(std::uint32_t slot) const
+ITexture* DX11Material::GetTexture(std::string paramName)
 {
-    if (slot < MATERIAL_TEXTURES_SLOTS)
-        return m_textures[slot];
-
-    return nullptr;
+    return m_textures[paramName];
 }

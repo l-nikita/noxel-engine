@@ -9,11 +9,11 @@
 static void SteamNetDebugOutput(ESteamNetworkingSocketsDebugOutputType eType, const char* pszMsg)
 {
     if (eType == k_ESteamNetworkingSocketsDebugOutputType_Bug || eType == k_ESteamNetworkingSocketsDebugOutputType_Error)
-        CMD_ERROR(pszMsg, CMD::NETWORKING);
+        CMD_ERROR(pszMsg, CMD::NETWORKING)
     else if (eType == k_ESteamNetworkingSocketsDebugOutputType_Warning || eType == k_ESteamNetworkingSocketsDebugOutputType_Important)
-        CMD_WARNING(pszMsg, CMD::NETWORKING);
+        CMD_WARNING(pszMsg, CMD::NETWORKING)
     else
-        CMD_INFO(pszMsg, CMD::NETWORKING);
+        CMD_INFO(pszMsg, CMD::NETWORKING)
 }
 
 bool Networking::Init()

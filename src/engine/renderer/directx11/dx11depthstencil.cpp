@@ -13,7 +13,7 @@ DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* co
     depthDesc.Height = tex->GetHeight();
     depthDesc.MipLevels = 1;
     depthDesc.ArraySize = 1;
-    depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthDesc.Format = ToDXGIFormat(TextureFormat::DEPTH24STENCIL8);
     depthDesc.SampleDesc.Count = 1;
     depthDesc.Usage = D3D11_USAGE_DEFAULT;
     depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
@@ -27,7 +27,7 @@ DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* co
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to create Depth Stencil View.", CMD::RENDERING);
 
-    m_texture = new DX11Texture(m_device, m_context, depthTex);
+    m_texture = new DX11Texture(m_device, m_context, depthTex, TextureFormat::DEPTH24STENCIL8);
 }
 
 DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height)
@@ -38,7 +38,7 @@ DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* co
     depthDesc.Height = height;
     depthDesc.MipLevels = 1;
     depthDesc.ArraySize = 1;
-    depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthDesc.Format = ToDXGIFormat(TextureFormat::DEPTH24STENCIL8);
     depthDesc.SampleDesc.Count = 1;
     depthDesc.Usage = D3D11_USAGE_DEFAULT;
     depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
@@ -52,7 +52,7 @@ DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* co
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to create Depth Stencil View.", CMD::RENDERING);
 
-    m_texture = new DX11Texture(m_device, m_context, depthTex);
+    m_texture = new DX11Texture(m_device, m_context, depthTex, TextureFormat::DEPTH24STENCIL8);
 }
 
 void DX11DepthStencil::Clear()

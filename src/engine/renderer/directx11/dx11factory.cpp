@@ -8,7 +8,7 @@
 #include "dx11rendertexture.hpp"
 #include "dx11depthstencil.hpp"
 #include "dx11viewport.hpp"
-#include "assetsystem/assets.hpp"
+#include "assetsystem/materialasset.hpp"
 
 DX11Factory::DX11Factory(ID3D11Device* device, ID3D11DeviceContext* context) 
 	: m_device(device), m_context(context)
@@ -54,9 +54,9 @@ IMaterial* DX11Factory::CreateMaterial(std::string assetName)
     return new DX11Material(m_device, m_context, MaterialAsset::Get(assetName));
 }
 
-IRenderTexture* DX11Factory::CreateRenderTexture(int width, int height, bool depth)
+IRenderTexture* DX11Factory::CreateRenderTexture(int width, int height, bool depth, TextureFormat format)
 {
-    return new DX11RenderTexture(m_device, m_context, width, height, depth);
+    return new DX11RenderTexture(m_device, m_context, width, height, depth, format);
 }
 
 IDepthStencil* DX11Factory::CreateDepthStencil(IRenderTexture* rt)

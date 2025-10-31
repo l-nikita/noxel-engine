@@ -19,7 +19,7 @@ public:
     IMaterial* CreateMaterial(MaterialAsset* asset) override;
     IMaterial* CreateMaterial(std::string assetName) override;
 
-    IRenderTexture* CreateRenderTexture(int width, int height, bool depth) override;
+    IRenderTexture* CreateRenderTexture(int width, int height, bool depth, TextureFormat format = TextureFormat::RGBA32F) override;
     IDepthStencil* CreateDepthStencil(IRenderTexture* rt) override;
     IDepthStencil* CreateDepthStencil(int width, int height) override;
     IViewport* CreateViewport(int x, int y, int width, int height) override;

@@ -10,7 +10,7 @@
 #include "gui/igui.hpp"
 #include "engine/window.hpp"
 #include "engine/iengine.hpp"
-#include "assetsystem/assets.hpp"
+#include "assetsystem/materialasset.hpp"
 
 ITexture* g_ErrorTexture = nullptr;
 IMaterial* g_ErrorMaterial = nullptr;
@@ -18,6 +18,99 @@ IMaterial* g_ErrorMaterial = nullptr;
 static RenderCamera* g_Cam1;
 static RenderCamera* g_Cam2;
 static Model* g_TestModel;
+
+void GenerateFieldMesh(
+    int width, int height,       // количество точек по X и Z
+    float scale,                 // расстояние между вершинами
+    std::vector<Vertex>& vertices,
+    std::vector<uint32_t>& indices)
+{
+    vertices.clear();
+    indices.clear();
+
+    // --- Генерация вершин ---
+    for (int z = 0; z < height; ++z)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            Vertex v;
+            v.Position = glm::vec3(x * scale, 0.0f, z * scale); // плоское поле
+            v.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
+            v.UV = glm::vec2((float)x / (width - 1), (float)z / (height - 1));
+            v.Color = glm::vec4(1.0f); // белый
+            vertices.push_back(v);
+        }
+    }
+
+    // --- Индексы для треугольников ---
+    for (int z = 0; z < height - 1; ++z)
+    {
+        for (int x = 0; x < width - 1; ++x)
+        {
+            int i0 = z * width + x;
+            int i1 = i0 + 1;
+            int i2 = i0 + width;
+            int i3 = i2 + 1;
+
+            // два треугольника на квадрат
+            indices.push_back(i0);
+            indices.push_back(i2);
+            indices.push_back(i1);
+
+            indices.push_back(i1);
+            indices.push_back(i2);
+            indices.push_back(i3);
+        }
+    }
+}
+
+void CalculateTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
+{
+    // Обнуляем тангенты и битангеты
+    for (auto& v : vertices) 
+    {
+        v.Tangent = glm::vec3(0.0f);
+        v.Bitangent = glm::vec3(0.0f);
+    }
+
+    // Проходим по каждому треугольнику
+    for (size_t i = 0; i < indices.size(); i += 3) 
+    {
+        Vertex& v0 = vertices[indices[i + 0]];
+        Vertex& v1 = vertices[indices[i + 1]];
+        Vertex& v2 = vertices[indices[i + 2]];
+
+        glm::vec3 edge1 = v1.Position - v0.Position;
+        glm::vec3 edge2 = v2.Position - v0.Position;
+
+        glm::vec2 deltaUV1 = v1.UV - v0.UV;
+        glm::vec2 deltaUV2 = v2.UV - v0.UV;
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        glm::vec3 tangent;
+        glm::vec3 bitangent;
+
+        tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+
+        bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+
+        // Усреднение для вершин
+        v0.Tangent += tangent; v1.Tangent += tangent; v2.Tangent += tangent;
+        v0.Bitangent += bitangent; v1.Bitangent += bitangent; v2.Bitangent += bitangent;
+    }
+
+    // Ортогонализация TBN
+    for (auto& v : vertices) 
+    {
+        v.Tangent = glm::normalize(v.Tangent - v.Normal * glm::dot(v.Normal, v.Tangent));
+        v.Bitangent = glm::normalize(glm::cross(v.Normal, v.Tangent));
+    }
+}
 
 //-----------------------------------------------------------------------------
 //
@@ -33,40 +126,40 @@ void DeferredRenderPipeline::Init()
     std::vector<Vertex> cubeVertices
     {
         // Front (+Z)
-        {{-1, -1,  1}, {0, 0, 1}, {0,1}, {1,1,1,1}},
-        {{ 1, -1,  1}, {0, 0, 1}, {1,1}, {1,1,1,1}},
-        {{ 1,  1,  1}, {0, 0, 1}, {1,0}, {1,1,1,1}},
-        {{-1,  1,  1}, {0, 0, 1}, {0,0}, {1,1,1,1}},
+        {{-1, -1,  1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+        {{ 1, -1,  1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+        {{ 1,  1,  1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+        {{-1,  1,  1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
         // Back (-Z)
-        {{ 1, -1, -1}, {0, 0, -1}, {0,1}, {1,1,1,1}},
-        {{-1, -1, -1}, {0, 0, -1}, {1,1}, {1,1,1,1}},
-        {{-1,  1, -1}, {0, 0, -1}, {1,0}, {1,1,1,1}},
-        {{ 1,  1, -1}, {0, 0, -1}, {0,0}, {1,1,1,1}},
+        {{ 1, -1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+        {{-1, -1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+        {{-1,  1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+        {{ 1,  1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
         // Top (+Y)
-        {{-1,  1,  1}, {0, 1, 0}, {0,1}, {1,1,1,1}},
-        {{ 1,  1,  1}, {0, 1, 0}, {1,1}, {1,1,1,1}},
-        {{ 1,  1, -1}, {0, 1, 0}, {1,0}, {1,1,1,1}},
-        {{-1,  1, -1}, {0, 1, 0}, {0,0}, {1,1,1,1}},
+        {{-1,  1,  1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+        {{ 1,  1,  1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+        {{ 1,  1, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+        {{-1,  1, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
         // Bottom (-Y)
-        {{-1, -1, -1}, {0, -1, 0}, {0,1}, {1,1,1,1}},
-        {{ 1, -1, -1}, {0, -1, 0}, {1,1}, {1,1,1,1}},
-        {{ 1, -1,  1}, {0, -1, 0}, {1,0}, {1,1,1,1}},
-        {{-1, -1,  1}, {0, -1, 0}, {0,0}, {1,1,1,1}},
+        {{-1, -1, -1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+        {{ 1, -1, -1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+        {{ 1, -1,  1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+        {{-1, -1,  1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
         // Right (+X)
-        {{ 1, -1,  1}, {1, 0, 0}, {0,1}, {1,1,1,1}},
-        {{ 1, -1, -1}, {1, 0, 0}, {1,1}, {1,1,1,1}},
-        {{ 1,  1, -1}, {1, 0, 0}, {1,0}, {1,1,1,1}},
-        {{ 1,  1,  1}, {1, 0, 0}, {0,0}, {1,1,1,1}},
+        {{ 1, -1,  1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+        {{ 1, -1, -1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+        {{ 1,  1, -1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+        {{ 1,  1,  1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
         // Left (-X)
-        {{-1, -1, -1}, {-1, 0, 0}, {0,1}, {1,1,1,1}},
-        {{-1, -1,  1}, {-1, 0, 0}, {1,1}, {1,1,1,1}},
-        {{-1,  1,  1}, {-1, 0, 0}, {1,0}, {1,1,1,1}},
-        {{-1,  1, -1}, {-1, 0, 0}, {0,0}, {1,1,1,1}},
+        {{-1, -1, -1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+        {{-1, -1,  1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+        {{-1,  1,  1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+        {{-1,  1, -1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
     };
 
     std::vector<std::uint32_t> cubeIndices
@@ -84,6 +177,8 @@ void DeferredRenderPipeline::Init()
         // Left
         20,21,22, 22,23,20
     };
+
+    CalculateTangents(cubeVertices, cubeIndices);
 
 	// TODO: Memory leak, make resource manager
 	auto* mat = factory->CreateMaterial("dirt");
@@ -115,6 +210,20 @@ void DeferredRenderPipeline::Init()
 	auto model3 = new Model(mesh, mat);
 	model3->m_Transform.Position = glm::vec3(0, 5, 8);
 	m_Models.push_back(model3);
+
+
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
+
+    CalculateTangents(vertices, indices);
+
+    GenerateFieldMesh(64, 64, 1.0f, vertices, indices);
+    auto* mesh2 = factory->CreateMesh(MeshData{ vertices, indices });
+
+    auto field = new Model(mesh2, mat);
+    field->m_Transform.Position = glm::vec3(-32, -5, -32);
+    m_Models.push_back(field);
+
 
     g_TestModel = new Model(mesh, mat);
 
@@ -160,6 +269,7 @@ void DeferredRenderPipeline::DoGeometryPass()
     for (auto model : m_Models)
         model->Draw();
 
+    /*
     static float totalTime = 0.0f;
     totalTime += g_Engine->DeltaTime();
 
@@ -171,7 +281,7 @@ void DeferredRenderPipeline::DoGeometryPass()
 
     static float angle2 = 0.0f;
     angle2 += g_Engine->DeltaTime() * 5.0f;
-    g_TestModel->m_Transform.Rotation = glm::angleAxis(angle2, glm::vec3(0.0f, 1.0f, 0.0f));
+    g_TestModel->m_Transform.Rotation = glm::angleAxis(angle2, glm::vec3(0.0f, 1.0f, 0.0f));*/
 
     g_TestModel->m_Transform.Scale = glm::vec3(0.5f);
     g_TestModel->Draw();

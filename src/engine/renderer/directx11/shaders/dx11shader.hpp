@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include <unordered_map>
 #include "renderer/directx11/dx11shaderprogram.hpp"
+#include "dbg/debug.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -11,35 +12,38 @@ class DX11Shader : public IShader
 {
 public:
     DX11Shader(IShaderProgram* program)
-        : m_program(static_cast<DX11ShaderProgram*>(program)), m_device(m_program->GetDevice()), m_context(m_program->GetContext()), m_inputLayout(nullptr)
-    {}
+        : m_program(static_cast<DX11ShaderProgram*>(program)), m_device(m_program->GetDevice()), m_context(m_program->GetContext())
+    { }
 
     virtual ShaderType GetType() = 0;
 
-    virtual void Init() = 0;
     virtual void Bind() = 0;
     virtual void Unbind() = 0;
     virtual void Release() = 0;
 
-    void SetParameter(const std::string& name, const MaterialVar& var) override
+    void SetVar(const std::string& name, const ShaderVar& var) override
     {
-        m_params[name] = var;
+        if (m_vars.find(name) == m_vars.end())
+        {
+            CMD_ERROR("Unknown shader variable [" + name + "].", CMD::RENDERING);
+            return;
+        }
+
+        m_vars[name] = var;
     }
 
-    MaterialVar* GetParameterValue(const std::string& name) override
+    ShaderVar& GetVar(const std::string& name) override
     {
-        auto it = m_params.find(name);
-        if (it != m_params.end())
-            return &it->second;
+        if (m_vars.find(name) == m_vars.end())
+            FATAL_ERROR("Unknown shader variable [" + name + "].", CMD::RENDERING)
 
-        return nullptr;
+        return m_vars[name];
     }
 
 protected:
     DX11ShaderProgram* m_program;
 
-    ID3D11InputLayout* m_inputLayout;
-    std::unordered_map<std::string, MaterialVar> m_params;
+    std::unordered_map<std::string, ShaderVar> m_vars;
 
 protected:
     ID3D11Device* m_device;

@@ -22,6 +22,7 @@ namespace Gizmos
 
 	void Init()
 	{
+        /*
         auto factory = g_Renderer->GetFactory();
         g_Material = factory->CreateMaterial("gizmos");
 
@@ -131,7 +132,7 @@ namespace Gizmos
             {{0, 1, 0}, {1,1,1}, {0,0}, {1,1,1,1}},
         };
 
-        g_TriangleMesh = factory->CreateMesh(MeshData{ verticesTriangle, triangleIndices });
+        g_TriangleMesh = factory->CreateMesh(MeshData{ verticesTriangle, triangleIndices });*/
 	}
 
     void Line(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color)
@@ -149,8 +150,8 @@ namespace Gizmos
             glm::scale(glm::mat4(1.0f), glm::vec3(length, 1.0f, 1.0f));
 
         auto* shader = g_Material->GetShader();
-        shader->SetVSParameter("model", model);
-        shader->SetPSParameter("color", color);
+        shader->SetVSVar("model", model);
+        shader->SetPSVar("color", color);
 
         shader->Bind();
 
@@ -168,8 +169,8 @@ namespace Gizmos
             * glm::scale(glm::mat4(1.0f), scale);
 
         auto* shader = g_Material->GetShader();
-        shader->SetVSParameter("model", model);
-        shader->SetPSParameter("color", glm::vec4(color.r, color.g, color.b, 1));
+        shader->SetVSVar("model", model);
+        shader->SetPSVar("color", glm::vec4(color.r, color.g, color.b, 1));
 
         shader->Bind();
 
@@ -181,7 +182,7 @@ namespace Gizmos
 
         if (color.a > 0)
         {
-            shader->SetPSParameter("color", color);
+            shader->SetPSVar("color", color);
             shader->Bind();
             g_Renderer->SetPrimitiveTopology(TRIANGLES);
             g_BoxMesh->Draw();
@@ -203,8 +204,8 @@ namespace Gizmos
         model *= glm::translate(glm::mat4(1.0f), position);
 
         auto* shader = g_Material->GetShader();
-        shader->SetVSParameter("model", glm::mat4(1.0f));
-        shader->SetPSParameter("color", color);
+        shader->SetVSVar("model", glm::mat4(1.0f));
+        shader->SetPSVar("color", color);
 
         shader->Bind();
 

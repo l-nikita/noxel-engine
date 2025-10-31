@@ -25,6 +25,6 @@ public:
     virtual IShader* GetPSShader() = 0;
     virtual IShader* GetVSShader() = 0;
 
-    virtual void SetPSParameter(const std::string& name, const MaterialVar& var) = 0;
-    virtual void SetVSParameter(const std::string& name, const MaterialVar& var) = 0;
+    virtual void SetPSVar(const std::string& name, const ShaderVar& var) = 0;
+    virtual void SetVSVar(const std::string& name, const ShaderVar& var) = 0;
 };

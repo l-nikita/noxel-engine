@@ -5,7 +5,7 @@
 #include "dx11factory.hpp"
 #include "dbg/debug.hpp"
 
-DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height, bool depth)
+DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height, bool depth, TextureFormat format)
     : m_device(device), m_context(context)
 {
     D3D11_TEXTURE2D_DESC texDesc = {};
@@ -13,7 +13,7 @@ DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* 
     texDesc.Height = height;
     texDesc.MipLevels = 1;
     texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    texDesc.Format = ToDXGIFormat(format);
     texDesc.SampleDesc.Count = 1;
     texDesc.Usage = D3D11_USAGE_DEFAULT;
     texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE; // важно
@@ -28,20 +28,20 @@ DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* 
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to create render target.", CMD::RENDERING);
 
-    m_texture = new DX11Texture(m_device, m_context, renderTex);
+    m_texture = new DX11Texture(m_device, m_context, renderTex, format);
 
     if (depth)
         m_depthStencil = g_Renderer->GetFactory()->CreateDepthStencil(this);
 }
 
-DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture, bool depth)
+DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture, bool depth, TextureFormat format)
     : m_device(device), m_context(context)
 {
     HRESULT hr = m_device->CreateRenderTargetView(texture, nullptr, &m_rtv);
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to create render target from Texture2D.", CMD::RENDERING);
 
-    m_texture = new DX11Texture(m_device, m_context, texture);
+    m_texture = new DX11Texture(m_device, m_context, texture, format);
 
     if (depth)
         m_depthStencil = g_Renderer->GetFactory()->CreateDepthStencil(this);

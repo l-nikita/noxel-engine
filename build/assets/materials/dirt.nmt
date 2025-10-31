@@ -1,4 +1,8 @@
 {
-	"shader" : "geometrypass",
-	"basetexture" : "dirt.png"
+	"shader": "geometrypass",
+	"parameters": 
+	{
+		"basetexture": "ground_color.jpg",
+		"normalmap": "ground_normal.jpg"
+	}
 }

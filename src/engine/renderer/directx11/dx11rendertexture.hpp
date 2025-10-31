@@ -11,8 +11,8 @@
 class DX11RenderTexture : public IRenderTexture
 {
 public:
-    DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* context, int width, int, bool depth);
-    DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture, bool depth);
+    DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* context, int width, int, bool depth, TextureFormat format);
+    DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture, bool depth, TextureFormat format);
     ~DX11RenderTexture() { Release(); }
 
     void Clear(glm::vec4 color) override;
