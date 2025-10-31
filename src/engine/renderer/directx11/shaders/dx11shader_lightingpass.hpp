@@ -52,12 +52,12 @@ public:
         totalTime += g_Engine->DeltaTime();
 
         CBLightData data{};
-        data.lightPos = glm::vec3(
-            sin(totalTime) * 5.0f,
-            2.0f,
-            cos(totalTime) * 5.0f
-        );
-        //data.lightPos = glm::vec3(0.0f, 0.0f, 0.0f);
+        //data.lightPos = glm::vec3(
+        //    sin(totalTime) * 5.0f,
+        //    2.0f,
+        //    cos(totalTime) * 5.0f
+        //);
+        data.lightPos = glm::vec3(0.0f, -3.0f, 0.0f);
 
         data.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
         data.cameraPos = g_Renderer->GetCamera()->m_Transform.Position;
