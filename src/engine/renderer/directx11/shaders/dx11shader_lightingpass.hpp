@@ -35,7 +35,7 @@ public:
         D3D11_BUFFER_DESC cbd = {};
         cbd.Usage = D3D11_USAGE_DEFAULT;
         cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        cbd.ByteWidth = sizeof(CBLightData);
+        cbd.ByteWidth = sizeof(CBLightsData);
 
         hr = m_device->CreateBuffer(&cbd, nullptr, &m_lightBuffer);
         if (FAILED(hr))
@@ -51,16 +51,26 @@ public:
         static float totalTime = 0.0f;
         totalTime += g_Engine->DeltaTime();
 
-        CBLightData data{};
-        //data.lightPos = glm::vec3(
-        //    sin(totalTime) * 5.0f,
-        //    2.0f,
-        //    cos(totalTime) * 5.0f
-        //);
-        data.lightPos = glm::vec3(0.0f, -3.0f, 0.0f);
+        CBLightsData data{};
 
-        data.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-        data.cameraPos = g_Renderer->GetCamera()->m_Transform.Position;
+        data.Lights[0].Type = LIGHT_POINT;
+        data.Lights[0].Pos = glm::vec3(sin(totalTime) * 5.0f, -3.0f, cos(totalTime) * 5.0f);
+        data.Lights[0].Color = glm::vec3(1.0f, 0.0f, 0.0f);
+        data.Lights[0].Radius = 3.0f;
+        data.Lights[0].Cutoff = 0.0f;
+
+        data.Lights[1].Type = LIGHT_SPOT;
+        data.Lights[1].Pos = g_Renderer->GetCamera()->m_Transform.Position;
+        data.Lights[1].Dir = g_Renderer->GetCamera()->m_Transform.Forward(); // вниз
+        data.Lights[1].Color = glm::vec3(1.0f, 1.0f, 1.0f);
+        data.Lights[1].Radius = 25.0f;
+        data.Lights[1].Cutoff = cos(glm::radians(35.0f)); // угол конуса 30°
+
+        //data.Lights[2].Type = LIGHT_DIRECTIONAL;
+        //data.Lights[2].Dir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
+        //data.Lights[2].Color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        data.ViewPos = g_Renderer->GetCamera()->m_Transform.Position;
 
         m_context->UpdateSubresource(m_lightBuffer, 0, nullptr, &data, 0, 0);
 

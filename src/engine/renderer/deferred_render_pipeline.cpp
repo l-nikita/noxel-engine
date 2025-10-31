@@ -218,13 +218,13 @@ void DeferredRenderPipeline::DoGeometryPass()
 	static float totalTime = 0.0f;
 	totalTime += g_Engine->DeltaTime();
 
-	//g_TestModel->m_Transform.Position = glm::vec3(
-	//	sin(totalTime) * 5.0f,
-	//	2.0f,
-	//	cos(totalTime) * 5.0f
-	//);
+	g_TestModel->m_Transform.Position = glm::vec3(
+		sin(totalTime) * 5.0f,
+		-3.0f,
+		cos(totalTime) * 5.0f
+	);
 
-	g_TestModel->m_Transform.Position = glm::vec3(0, -3.0f, 0);
+	//g_TestModel->m_Transform.Position = glm::vec3(0, -3.0f, 0);
 
 	g_TestModel->m_Transform.Scale = glm::vec3(0.5f);
 
