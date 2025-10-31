@@ -74,9 +74,9 @@ void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
         }
 
         if (type == VERTEX)
-            FATAL_ERROR("DX11: Failed to compile vertex shader! " + asset->GetName(), CMD::RENDERING)
+            FATAL_ERROR("DX11: Failed to compile vertex shader! [" + asset->GetName() + "]", CMD::RENDERING)
         else if (type == PIXEL)
-            FATAL_ERROR("DX11: Failed to compile pixel shader! " + asset->GetName(), CMD::RENDERING)
+            FATAL_ERROR("DX11: Failed to compile pixel shader! [" + asset->GetName() + "]", CMD::RENDERING)
     }
 }
 

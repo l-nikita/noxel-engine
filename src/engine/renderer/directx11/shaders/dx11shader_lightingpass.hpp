@@ -53,13 +53,13 @@ public:
 
         CBLightData data{};
         data.lightPos = glm::vec3(
-            sin(totalTime) * 1.0f,
-            1.0f,
-            cos(totalTime) * 1.0f
+            sin(totalTime) * 5.0f,
+            2.0f,
+            cos(totalTime) * 5.0f
         );
         //data.lightPos = glm::vec3(0.0f, 0.0f, 0.0f);
 
-        data.lightColor = glm::vec3(3.0f, 3.0f, 3.0f);
+        data.lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
         data.cameraPos = g_Renderer->GetCamera()->m_Transform.Position;
 
         m_context->UpdateSubresource(m_lightBuffer, 0, nullptr, &data, 0, 0);

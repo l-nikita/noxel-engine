@@ -18,51 +18,7 @@ IMaterial* g_ErrorMaterial = nullptr;
 static RenderCamera* g_Cam1;
 static RenderCamera* g_Cam2;
 static Model* g_TestModel;
-
-void GenerateFieldMesh(
-    int width, int height,       // количество точек по X и Z
-    float scale,                 // расстояние между вершинами
-    std::vector<Vertex>& vertices,
-    std::vector<uint32_t>& indices)
-{
-    vertices.clear();
-    indices.clear();
-
-    // --- Генерация вершин ---
-    for (int z = 0; z < height; ++z)
-    {
-        for (int x = 0; x < width; ++x)
-        {
-            Vertex v;
-            v.Position = glm::vec3(x * scale, 0.0f, z * scale); // плоское поле
-            v.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
-            v.UV = glm::vec2((float)x / (width - 1), (float)z / (height - 1));
-            v.Color = glm::vec4(1.0f); // белый
-            vertices.push_back(v);
-        }
-    }
-
-    // --- Индексы для треугольников ---
-    for (int z = 0; z < height - 1; ++z)
-    {
-        for (int x = 0; x < width - 1; ++x)
-        {
-            int i0 = z * width + x;
-            int i1 = i0 + 1;
-            int i2 = i0 + width;
-            int i3 = i2 + 1;
-
-            // два треугольника на квадрат
-            indices.push_back(i0);
-            indices.push_back(i2);
-            indices.push_back(i1);
-
-            indices.push_back(i1);
-            indices.push_back(i2);
-            indices.push_back(i3);
-        }
-    }
-}
+static Model* g_TestModel2;
 
 void CalculateTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
 {
@@ -211,21 +167,11 @@ void DeferredRenderPipeline::Init()
 	model3->m_Transform.Position = glm::vec3(0, 5, 8);
 	m_Models.push_back(model3);
 
-
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-
-    CalculateTangents(vertices, indices);
-
-    GenerateFieldMesh(64, 64, 1.0f, vertices, indices);
-    auto* mesh2 = factory->CreateMesh(MeshData{ vertices, indices });
-
-    auto field = new Model(mesh2, mat);
-    field->m_Transform.Position = glm::vec3(-32, -5, -32);
-    m_Models.push_back(field);
-
-
     g_TestModel = new Model(mesh, mat);
+
+    g_TestModel2 = new Model(mesh, mat);
+    g_TestModel2->m_Transform.Position = glm::vec3(0, -5, 0);
+    g_TestModel2->m_Transform.Scale = glm::vec3(10, 1, 10);
 
     int width, height;
     g_Engine->GetWindow()->GetSize(&width, &height);
@@ -269,22 +215,18 @@ void DeferredRenderPipeline::DoGeometryPass()
     for (auto model : m_Models)
         model->Draw();
 
-    /*
     static float totalTime = 0.0f;
     totalTime += g_Engine->DeltaTime();
 
     g_TestModel->m_Transform.Position = glm::vec3(
         sin(totalTime) * 5.0f,
-        5.0f,
+        2.0f,
         cos(totalTime) * 5.0f
     );
 
-    static float angle2 = 0.0f;
-    angle2 += g_Engine->DeltaTime() * 5.0f;
-    g_TestModel->m_Transform.Rotation = glm::angleAxis(angle2, glm::vec3(0.0f, 1.0f, 0.0f));*/
-
     g_TestModel->m_Transform.Scale = glm::vec3(0.5f);
     g_TestModel->Draw();
+    g_TestModel2->Draw();
 }
 
 void DeferredRenderPipeline::DoLightingPass()
