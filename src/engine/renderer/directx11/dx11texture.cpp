@@ -2,68 +2,49 @@
 #include <string>
 #include <d3d11.h>
 #include "dx11texture.hpp"
+#include "dx11helper.hpp"
 #include "assetsystem/textureasset.hpp"
 
-DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, TextureAsset* asset)
-    : m_context(context)
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, const TextureDesc& desc)
+    : m_device(device), m_context(context)
 {
-    assert(asset);
+    D3D11_TEXTURE2D_DESC texDesc = DX11Helper::CreateTexture2DDesc(desc);
 
-    TextureData* data = asset->Load();
-
-    D3D11_TEXTURE2D_DESC desc = {};
-    desc.Width = data->Width;
-    desc.Height = data->Height;
-    desc.MipLevels = 1;
-    desc.ArraySize = 1;
-    desc.Format = ToDXGIFormat(m_format); // Use correct DXGI_FORMAT
-    desc.SampleDesc.Count = 1;
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = data->Image;
-    initData.SysMemPitch = data->Width * 4;
-
-    HRESULT hr = device->CreateTexture2D(&desc, &initData, &m_texture);
-    if (FAILED(hr)) 
-        FATAL_ERROR("DX11: Failed to create Texture2D.", CMD::RENDERING);
-
-    hr = device->CreateShaderResourceView(m_texture, nullptr, &m_srv);
-    if (FAILED(hr)) 
+    if (desc.Data)
     {
-        m_texture->Release();
-        FATAL_ERROR("DX11: Failed to create shader resource view.", CMD::RENDERING);
+        D3D11_SUBRESOURCE_DATA data = {};
+        data.pSysMem = desc.Data;
+        data.SysMemPitch = desc.Width * 4;
+
+        DX11Helper::CreateTexture2D(device, &texDesc, &data, &m_texture);
     }
+    else
+        DX11Helper::CreateTexture2D(device, &texDesc, nullptr, &m_texture);
+
+    DX11Helper::CreateShaderResourceViewForTexture2D(device, m_texture, &m_srv, texDesc.Format);
 
     m_width = desc.Width;
     m_height = desc.Height;
-
-    delete data;
+    m_format = desc.Format;
 }
 
-DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture, TextureFormat format)
-    : m_context(context), m_texture(texture)
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture)
+    : m_device(device), m_context(context), m_texture(texture)
 {
-    assert(texture);
-
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = ToDXGIFormat(format);
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = 1;
-
     D3D11_TEXTURE2D_DESC desc;
     m_texture->GetDesc(&desc);
 
-    if (desc.BindFlags & D3D11_BIND_SHADER_RESOURCE)
-    {
-        HRESULT hr = device->CreateShaderResourceView(m_texture, &srvDesc, &m_srv);
-        if (FAILED(hr))
-            FATAL_ERROR("DX11: Failed to create shader resource for Texture2D.", CMD::RENDERING);
-    }
+    DX11Helper::CreateShaderResourceViewForTexture2D(device, m_texture, &m_srv, desc.Format);
 
     m_width = desc.Width;
     m_height = desc.Height;
+    m_format = DX11Helper::ToTextureFormat(desc.Format);
 }
 
 void DX11Texture::Release()

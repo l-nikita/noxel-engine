@@ -1,0 +1,7 @@
+{
+	"shader": "skyboxpass",
+	"parameters": 
+	{
+		"skytexture": "skybox.png"
+	}
+}

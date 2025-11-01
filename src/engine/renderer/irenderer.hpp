@@ -39,8 +39,8 @@ public:
 	virtual void SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, IDepthStencil* depthStencil) = 0;
 	virtual void BindRenderTextures(IRenderTexture* rts[], std::uint32_t num) = 0;
 
-	virtual IRenderFactory* GetFactory() = 0;
-	virtual RenderCamera* GetCamera() = 0;
+	virtual IRenderFactory* GetFactory() const = 0;
+	virtual RenderCamera* GetCamera() const = 0;
 	virtual void SetCamera(RenderCamera* camera) = 0;
 
 	virtual bool IsVSyncEnabled() = 0;

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include "irenderresource.hpp"
 
 class IShaderProgram;
 class ITexture;
@@ -11,14 +12,13 @@ constexpr auto MATERIAL_TEXTURES_SLOTS = 8;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class IMaterial
+class IMaterial : public IRenderResource
 {
 public:
     virtual ~IMaterial() = default;
 
     virtual void Bind() = 0;
     virtual void Unbind() = 0;
-    virtual void Release() = 0;
 
     // Set a texture to a slot (e.g. diffuse, normal map, etc.)
     virtual void SetTexture(std::string paramName, ITexture* texture = nullptr) = 0;

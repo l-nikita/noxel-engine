@@ -12,9 +12,8 @@ class TextureAsset;
 class DX11Texture : public ITexture 
 {
 public:
-    DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, TextureAsset* asset);
-    DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture, TextureFormat format);
-    DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height, TextureFormat format); // Render texture
+    DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, const TextureDesc& desc);
+    DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture);
     ~DX11Texture() { Release(); }
 
     void Bind(std::uint32_t slot = 0) override;
@@ -34,19 +33,9 @@ private:
 
     std::uint32_t m_width = 0;
     std::uint32_t m_height = 0;
-    TextureFormat m_format = TextureFormat::RGBA8;
+    TextureFormat m_format = TextureFormat::INVALID;
 
 private:
+    ID3D11Device* m_device = nullptr;
     ID3D11DeviceContext* m_context = nullptr;
 };
-
-static DXGI_FORMAT ToDXGIFormat(TextureFormat format)
-{
-    switch (format)
-    {
-        case TextureFormat::RGBA8:              return DXGI_FORMAT_R8G8B8A8_UNORM;
-        case TextureFormat::RGBA32F:            return DXGI_FORMAT_R32G32B32A32_FLOAT;
-        case TextureFormat::DEPTH24STENCIL8:    return DXGI_FORMAT_D24_UNORM_S8_UINT;
-        default:                                return DXGI_FORMAT_UNKNOWN;
-    }
-}

@@ -24,6 +24,7 @@ void AssetSystem::Init()
 	//ShaderAsset::CreateNew("gizmos", (m_assetsPath / "shaders\\gizmos.hlsl").string());
 	ShaderAsset::CreateNew("geometrypass", (m_assetsPath / "shaders\\geometrypass").string());
 	ShaderAsset::CreateNew("lightingpass", (m_assetsPath / "shaders\\lightingpass").string());
+	ShaderAsset::CreateNew("skyboxpass", (m_assetsPath / "shaders\\skyboxpass").string());
 
 	TextureAsset::m_error = TextureAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.png").string());
 	MaterialAsset::m_error = MaterialAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.nmt").string());
@@ -33,6 +34,7 @@ void AssetSystem::Init()
 	//MaterialAsset::CreateNew("gizmos", (m_assetsPath / "materials\\engine\\gizmos.nmt").string());
 
 	MaterialAsset::CreateNew("dirt", (m_assetsPath / "materials\\dirt.nmt").string());
+	MaterialAsset::CreateNew("skybox", (m_assetsPath / "materials\\skybox.nmt").string());
 	//MaterialAsset::CreateNew("atlas", (m_assetsPath / "materials\\atlas.nmt").string());
 
 	CMD_INFO("Asset system initialized", CMD::ASSETSYSTEM);

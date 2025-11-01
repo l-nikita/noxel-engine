@@ -51,6 +51,8 @@ public:
         static float totalTime = 0.0f;
         totalTime += g_Engine->DeltaTime();
 
+        auto& camTransform = g_Renderer->GetCamera()->GetTransform();
+
         CBLightsData data{};
 
         data.Lights[0].Type = LIGHT_POINT;
@@ -60,17 +62,23 @@ public:
         data.Lights[0].Cutoff = 0.0f;
 
         data.Lights[1].Type = LIGHT_SPOT;
-        data.Lights[1].Pos = g_Renderer->GetCamera()->m_Transform.Position;
-        data.Lights[1].Dir = g_Renderer->GetCamera()->m_Transform.Forward(); // вниз
+        data.Lights[1].Pos = glm::vec3(0.0f, -3.0f, 6.0f);
+        data.Lights[1].Dir = glm::normalize(camTransform.Position - data.Lights[1].Pos);
         data.Lights[1].Color = glm::vec3(1.0f, 1.0f, 1.0f);
         data.Lights[1].Radius = 25.0f;
-        data.Lights[1].Cutoff = cos(glm::radians(35.0f)); // угол конуса 30°
+        data.Lights[1].Cutoff = cos(glm::radians(35.0f));
+
+        data.Lights[3].Type = LIGHT_POINT;
+        data.Lights[3].Pos = glm::vec3(0.0f, -3.0f, 0.0f);
+        data.Lights[3].Color = glm::vec3(0.0f, 0.0f, 1.0f);
+        data.Lights[3].Radius = 10.0f;
+        data.Lights[3].Cutoff = 0.0f;
 
         //data.Lights[2].Type = LIGHT_DIRECTIONAL;
         //data.Lights[2].Dir = glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f));
         //data.Lights[2].Color = glm::vec3(1.0f, 1.0f, 1.0f);
 
-        data.ViewPos = g_Renderer->GetCamera()->m_Transform.Position;
+        data.ViewPos = camTransform.Position;
 
         m_context->UpdateSubresource(m_lightBuffer, 0, nullptr, &data, 0, 0);
 

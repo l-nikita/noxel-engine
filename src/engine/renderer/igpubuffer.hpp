@@ -16,7 +16,7 @@ enum class GPUBufferType
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class IGPUBuffer 
+class IGPUBuffer
 {
 public:
     virtual ~IGPUBuffer() = default;

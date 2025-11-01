@@ -11,7 +11,6 @@
 class DX11DepthStencil : public IDepthStencil
 {
 public:
-    DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* context, IRenderTexture* rt);
     DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height);
     ~DX11DepthStencil() { Release(); }
 

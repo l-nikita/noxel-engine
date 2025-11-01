@@ -22,6 +22,7 @@
 //include "shaders/dx11shader_gizmos.hpp"
 #include "shaders/dx11shader_geometrypass.hpp"
 #include "shaders/dx11shader_lightingpass.hpp"
+#include "shaders/dx11shader_skyboxpass.hpp"
 
 #define INITGUID
 #include <d3d11.h>
@@ -108,6 +109,7 @@ void DX11Renderer::Init()
     if (FAILED(hr))
         FATAL_ERROR("DX11: Failed to get back buffer.", CMD::RENDERING);
 
+    // TODO: make from factory
     m_backBuffer = new DX11RenderTexture(m_device, m_context, backBufferTex, false, TextureFormat::RGBA32F);
 
     int width, height;
@@ -139,7 +141,11 @@ void DX11Renderer::SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, I
     for (int i = 0; i < num; ++i)
         rtvs[i] = static_cast<ID3D11RenderTargetView*>(rts[i]->GetResource());
 
-    m_context->OMSetRenderTargets(num, rtvs, static_cast<ID3D11DepthStencilView*>(depthStencil->GetResource()));
+    ID3D11DepthStencilView* dsv = nullptr;
+    if (depthStencil)
+        dsv = static_cast<ID3D11DepthStencilView*>(depthStencil->GetResource());
+
+    m_context->OMSetRenderTargets(num, rtvs, dsv);
 }
 
 void DX11Renderer::BindRenderTextures(IRenderTexture* rts[], std::uint32_t num)
@@ -208,6 +214,8 @@ void DX11Renderer::Shutdown()
         m_device->Release();
         m_device = nullptr;
     }
+
+    delete m_factory;
 }
 
 //-----------------------------------------------------------------------------

@@ -2,13 +2,14 @@
 
 #include <glm/glm.hpp>
 
-#include "renderer/itexture.hpp"
-#include "renderer/idepthstencil.hpp"
+#include "itexture.hpp"
+#include "idepthstencil.hpp"
+#include "irenderresource.hpp"
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class IRenderTexture
+class IRenderTexture : public IRenderResource
 {
 public:
     virtual ~IRenderTexture() = default;

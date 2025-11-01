@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include "ishader.hpp"
+#include "irenderresource.hpp"
 
 enum ShaderType
 {
@@ -13,7 +14,7 @@ enum ShaderType
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class IShaderProgram
+class IShaderProgram : public IRenderResource
 {
 public:
     virtual ~IShaderProgram() = default;

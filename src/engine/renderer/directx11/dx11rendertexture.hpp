@@ -29,6 +29,8 @@ private:
     IDepthStencil* m_depthStencil = nullptr;
     ITexture* m_texture = nullptr;
 
+    bool m_fromFactory = false;
+
 private:
     ID3D11Device* m_device = nullptr;
     ID3D11DeviceContext* m_context = nullptr;

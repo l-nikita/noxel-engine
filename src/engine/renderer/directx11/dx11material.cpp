@@ -10,12 +10,13 @@
 DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset)
     : m_device(device), m_context(context), m_asset(asset)
 {
+    auto factory = g_Renderer->GetFactory();
     for (const auto [paramName, asset] : m_asset->GetTexturesAssets())
-        m_textures[paramName] = g_Renderer->GetFactory()->CreateTexture(asset);
+        m_textures[paramName] = factory->CreateTexture(asset);
 
     auto shaderAsset = m_asset->GetShaderAsset();
     if (shaderAsset != nullptr)
-        m_shader = g_Renderer->GetFactory()->CreateShaderProgram(shaderAsset);
+        m_shader = factory->CreateShaderProgram(shaderAsset);
 }
 
 void DX11Material::Bind()
@@ -38,6 +39,11 @@ void DX11Material::Unbind()
 
 void DX11Material::Release()
 {
+    auto factory = g_Renderer->GetFactory();
+    for (const auto& [paramName, texture] : m_textures)
+        factory->Release(texture);
+
+    factory->Release(m_shader);
     m_textures.clear();
 }
 

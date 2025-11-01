@@ -6,6 +6,7 @@
 #include "irender_pipeline.hpp"
 #include "ishaderprogram.hpp"
 #include "idepthstencil.hpp"
+#include "irenderfactory.hpp"
 
 class Model;
 
@@ -15,7 +16,35 @@ struct GBuffer
 	IRenderTexture* Color;
 	IRenderTexture* Normal;
 	IRenderTexture* Position;
-	IRenderTexture* Material;
+
+	void Release()
+	{
+		auto factory = g_Renderer->GetFactory();
+
+		if (DepthStencil) 
+		{ 
+			factory->Release(DepthStencil);
+			DepthStencil = nullptr;
+		}
+
+		if (Color) 
+		{
+			factory->Release(Color);
+			Color = nullptr;
+		}
+
+		if (Normal) 
+		{
+			factory->Release(Normal);
+			Normal = nullptr;
+		}
+
+		if (Position) 
+		{
+			factory->Release(Position);
+			Position = nullptr;
+		}
+	}
 };
 
 //-----------------------------------------------------------------------------
@@ -31,6 +60,7 @@ public:
 
 	void DoGeometryPass();
 	void DoLightingPass();
+	void DoSkyboxPass();
 
 #ifdef _DEBUG
 	void AddDrawCallCount() { m_DrawCallCount++; }
@@ -45,6 +75,7 @@ public:
 	std::vector<Model*> m_Models;
 
 private:
+	void InitGBuffer(int width, int height);
 	GBuffer m_GBuffer;
 	IShaderProgram* m_lightingShader;
 

@@ -11,7 +11,7 @@
 
 #define CMD_INFO(msg, category) CMD_LOG(msg, CMD::INFO, category)
 #define CMD_WARNING(msg, category) CMD_LOG(msg, CMD::WARNING, category)
-#define CMD_ERROR(msg, category) CMD_LOG_WITH_FILE(msg, CMD::ERROR, category)
+#define CMD_ERROR(msg, category) CMD_LOG(msg, CMD::ERROR, category)
 
 #define FATAL_ERROR(msg, category) \
 { \
