@@ -15,6 +15,7 @@ public:
 
     ITexture* CreateTexture(TextureAsset* asset) override;
     ITexture* CreateTexture(const TextureDesc& desc) override;
+    ITexture* CreateCubemap(MaterialAsset* asset) override;
 
     IMaterial* CreateMaterial(MaterialAsset* asset) override;
     IMaterial* CreateMaterial(std::string assetName) override;

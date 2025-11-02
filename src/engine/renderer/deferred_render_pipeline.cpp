@@ -351,7 +351,7 @@ void DeferredRenderPipeline::Render()
 
 	g_Renderer->SetRenderTextures(&backBuffer, 1, nullptr);
 	DoLightingPass();
-	//DoSkyboxPass();
+	DoSkyboxPass();
 
 	g_Gui->Render();
 

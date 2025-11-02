@@ -12,59 +12,7 @@ DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, M
 {
     auto factory = g_Renderer->GetFactory();
     if (asset->IsCubemap())
-    {
-        std::vector<void*> datas;
-        int width = 0, height = 0;
-
-        for (const auto& faceName : CUBEMAP_FACES_ORDER)
-        {
-            TextureAsset* faceAsset = nullptr;
-
-            for (const auto& [paramName, asset] : m_asset->GetTexturesAssets())
-            {
-                if (paramName == faceName)
-                    faceAsset = asset;
-            }
-
-            if (!faceAsset)
-            {
-                CMD_ERROR("Cubemap missing face: " + faceName, CMD::RENDERING);
-                continue;
-            }
-
-            TextureData* data = faceAsset->Load();
-            if (!data || !data->Image)
-            {
-                CMD_ERROR("Failed to load cubemap face: " + faceName, CMD::RENDERING);
-                continue;
-            }
-
-            width = data->Width;
-            height = data->Height;
-            datas.push_back(data->Image);
-        }
-
-        if (datas.size() < CUBEMAP_FACES_COUNT)
-        {
-            CMD_ERROR("Failed to load cubemap.", CMD::RENDERING);
-            return;
-        }
-
-        TextureDesc desc = {};
-        desc.Width = width;
-        desc.Height = height;
-        desc.Format = TextureFormat::RGBA8;
-        desc.Usage = TextureUsage::SHADER_RESOURCE;
-        desc.Data = datas;
-        desc.IsCubemap = true;
-        desc.MipLevels = 1;
-
-        auto tex = factory->CreateTexture(desc);
-        m_textures["cubemap"] = tex;
-
-        for (auto data : datas)
-            delete data;
-    }
+        m_textures["cubemap"] = factory->CreateCubemap(asset);
     else
     {
         for (const auto& [paramName, asset] : m_asset->GetTexturesAssets())
@@ -78,14 +26,16 @@ DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, M
 
 void DX11Material::Bind()
 {
-    for (const auto& [paramName, texture] : m_textures)
+    if (m_shader)
     {
-        if (m_shader)
-            m_shader->SetPSVar(paramName, texture);
-    }
+        for (const auto& [paramName, texture] : m_textures)
+        {
+            if (texture)
+                m_shader->SetPSVar(paramName, texture);
+        }
 
-    if (m_shader) 
         m_shader->Bind();
+    }
 }
 
 void DX11Material::Unbind()

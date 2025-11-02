@@ -22,6 +22,7 @@ class IRenderFactory
 public:
     virtual ITexture* CreateTexture(TextureAsset* asset) = 0;
     virtual ITexture* CreateTexture(const TextureDesc& desc) = 0;
+    virtual ITexture* CreateCubemap(MaterialAsset* asset) = 0;
 
     virtual IMaterial* CreateMaterial(MaterialAsset* asset) = 0;
     virtual IMaterial* CreateMaterial(std::string assetName) = 0;

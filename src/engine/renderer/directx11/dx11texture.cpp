@@ -37,6 +37,7 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, con
     m_width = desc.Width;
     m_height = desc.Height;
     m_format = desc.Format;
+    m_isCubemap = desc.IsCubemap;
 }
 
 //-----------------------------------------------------------------------------
@@ -53,6 +54,7 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3
     m_width = desc.Width;
     m_height = desc.Height;
     m_format = DX11Helper::ToTextureFormat(desc.Format);
+    m_isCubemap = desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE;
 }
 
 void DX11Texture::Release()

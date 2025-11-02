@@ -59,6 +59,7 @@ public:
     virtual std::uint32_t GetWidth() const = 0;
     virtual std::uint32_t GetHeight() const = 0;
     virtual TextureFormat GetFormat() const = 0;
+    virtual bool IsCubemap() const = 0;
 };
 
 extern ITexture* g_ErrorTexture;

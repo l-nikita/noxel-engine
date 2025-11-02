@@ -23,6 +23,7 @@ public:
     std::uint32_t GetWidth() const override { return m_width; }
     std::uint32_t GetHeight() const override { return m_height; }
     TextureFormat GetFormat() const override { return m_format; }
+    bool IsCubemap() const override { return m_isCubemap; }
 
     ID3D11Texture2D* GetResource() { return m_texture; }
     ID3D11ShaderResourceView* GetSRV() { return m_srv; }
@@ -34,6 +35,7 @@ private:
     std::uint32_t m_width = 0;
     std::uint32_t m_height = 0;
     TextureFormat m_format = TextureFormat::INVALID;
+    bool m_isCubemap = false;
 
 private:
     ID3D11Device* m_device = nullptr;

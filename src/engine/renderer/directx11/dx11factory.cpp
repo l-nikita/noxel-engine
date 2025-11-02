@@ -67,6 +67,67 @@ ITexture* DX11Factory::CreateTexture(const TextureDesc& desc)
     return tex;
 }
 
+ITexture* DX11Factory::CreateCubemap(MaterialAsset* asset)
+{
+    if (!asset->IsCubemap())
+    {
+        CMD_ERROR("DX11 Factory: Failed to create cubemap because material [" + asset->GetName() + "] isn't cubemap.", CMD::RENDERING);
+        return nullptr;
+    }
+
+    std::vector<void*> datas;
+    int width = 0, height = 0;
+
+    for (const auto& faceName : CUBEMAP_FACES_ORDER)
+    {
+        TextureAsset* faceAsset = nullptr;
+
+        for (const auto& [paramName, asset] : asset->GetTexturesAssets())
+        {
+            if (paramName == faceName)
+                faceAsset = asset;
+        }
+
+        if (!faceAsset)
+        {
+            CMD_ERROR("Cubemap missing face: " + faceName, CMD::RENDERING);
+            continue;
+        }
+
+        TextureData* data = faceAsset->Load();
+        if (!data || !data->Image)
+        {
+            CMD_ERROR("Failed to load cubemap face: " + faceName, CMD::RENDERING);
+            continue;
+        }
+
+        width = data->Width;
+        height = data->Height;
+        datas.push_back(data->Image);
+    }
+
+    if (datas.size() < CUBEMAP_FACES_COUNT)
+    {
+        CMD_ERROR("Failed to load cubemap.", CMD::RENDERING);
+        return nullptr;
+    }
+
+    TextureDesc desc = {};
+    desc.Width = width;
+    desc.Height = height;
+    desc.Format = TextureFormat::RGBA8;
+    desc.Usage = TextureUsage::SHADER_RESOURCE;
+    desc.Data = datas;
+    desc.IsCubemap = true;
+    desc.MipLevels = 1;
+
+    auto tex = CreateTexture(desc);
+    for (auto data : datas)
+        delete data;
+
+    return tex;
+}
+
 IMaterial* DX11Factory::CreateMaterial(MaterialAsset* asset)
 {
     assert(asset);
