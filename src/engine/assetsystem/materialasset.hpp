@@ -13,17 +13,22 @@
 struct MaterialData
 {
     std::string Shader;
+    bool IsCubemap;
     nlohmann::json Parameters;
 };
 
 inline void from_json(const nlohmann::json& json, MaterialData& data)
 {
-    data.Shader = json.value("shader", "geomtrypass");
+    data.Shader = json.value("shader", "geometrypass");
+    data.IsCubemap = json.value("iscubemap", false);
 
     if (json.contains("parameters"))
         data.Parameters = json["parameters"];
 }
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 using TextureList = std::unordered_map<std::string, TextureAsset*>;
 
 class MaterialAsset : public BaseAsset
@@ -60,7 +65,7 @@ public:
         }
         catch (const nlohmann::json::exception& e)
         {
-            CMD_ERROR(std::string("JSON parse error: ") + e.what(), CMD::ASSETSYSTEM);
+            CMD_ERROR("JSON parse error: " + std::string(e.what()), CMD::ASSETSYSTEM);
             return;
         }
 
@@ -82,7 +87,7 @@ public:
                 else
                 {
                     CMD_ERROR("Texture not found: " + fullPath.string(), CMD::ASSETSYSTEM)
-                    texAsset = TextureAsset::GetError();
+                        texAsset = TextureAsset::GetError();
                 }
 
                 m_textureAssets[name] = texAsset;
@@ -102,15 +107,11 @@ public:
         return m_shaderAsset;
     }
 
-    MaterialData& GetData()
-    { 
-        return m_data;
-    }
+    MaterialData& GetData() {  return m_data; }
+    bool IsCubemap() const { return m_data.IsCubemap; }
+    std::string GetShaderName() const { return m_data.Shader; }
 
-    TextureList GetTexturesAssets()
-    {
-        return m_textureAssets;
-    }
+    TextureList GetTexturesAssets() { return m_textureAssets; }
 
 #pragma region CreateNew/Get
     static MaterialAsset* CreateNew(const std::string& name, const std::string& assetPath)

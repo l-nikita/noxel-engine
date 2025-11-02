@@ -48,7 +48,7 @@ public:
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create depth stencil state.", CMD::RENDERING);
 
-        m_vars["skytexture"] = g_ErrorTexture;
+        m_vars["cubemap"] = g_ErrorTexture;
     }
 
     ~SkyboxPassPS() { Release(); }
@@ -60,7 +60,7 @@ public:
         m_context->OMSetDepthStencilState(m_depthState, 0);
         m_context->RSSetState(m_rasterState);
 
-        ShaderVar& texVar = GetVar("skytexture");
+        ShaderVar& texVar = GetVar("cubemap");
         if (auto texPtr = std::get_if<ITexture*>(&texVar))
             (*texPtr)->Bind(0);
         else
@@ -74,7 +74,7 @@ public:
         m_context->OMSetDepthStencilState(nullptr, 0);
         m_context->RSSetState(nullptr);
 
-        ShaderVar& texVar = GetVar("skytexture");
+        ShaderVar& texVar = GetVar("cubemap");
         if (auto texPtr = std::get_if<ITexture*>(&texVar))
             (*texPtr)->Unbind(0);
         else

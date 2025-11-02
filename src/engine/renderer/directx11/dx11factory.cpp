@@ -51,7 +51,7 @@ ITexture* DX11Factory::CreateTexture(TextureAsset* asset)
     desc.Height = data->Height;
     desc.Format = TextureFormat::RGBA8;
     desc.Usage = TextureUsage::SHADER_RESOURCE;
-    desc.Data = data->Image;
+    desc.Data = { data->Image };
     desc.MipLevels = 1;
 
     auto tex = CreateTexture(desc);

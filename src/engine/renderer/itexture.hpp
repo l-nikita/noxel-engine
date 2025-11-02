@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
+#include <string>
 #include "irenderresource.hpp"
 
 //-----------------------------------------------------------------------------
@@ -30,10 +32,17 @@ struct TextureDesc
     std::uint32_t Width = 0;
     std::uint32_t Height = 0;
     std::uint32_t MipLevels = 1;
+    bool IsCubemap = 0;
     TextureFormat Format = TextureFormat::RGBA8;
     TextureUsage Usage = TextureUsage::DEFAULT;
-    void* Data = nullptr;
+    std::vector<void*> Data;
 };
+
+static const std::string CUBEMAP_FACES_ORDER[] = {
+    "px", "nx", "py", "ny", "pz", "nz"
+};
+
+constexpr auto CUBEMAP_FACES_COUNT = 6;
 
 //-----------------------------------------------------------------------------
 //

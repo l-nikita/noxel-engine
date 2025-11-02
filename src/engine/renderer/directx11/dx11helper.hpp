@@ -34,10 +34,11 @@ namespace DX11Helper
         texDesc.Width = desc.Width;
         texDesc.Height = desc.Height;
         texDesc.MipLevels = desc.MipLevels;
-        texDesc.ArraySize = 1;
+        texDesc.ArraySize = std::max<std::uint32_t>(1, desc.Data.size());
         texDesc.Format = ToDXGIFormat(desc.Format);
         texDesc.SampleDesc.Count = 1;
         texDesc.Usage = D3D11_USAGE_DEFAULT;
+        texDesc.MiscFlags = (desc.Data.size() == 6) ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
 
         if (desc.Usage == TextureUsage::SHADER_RESOURCE)
             texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -63,8 +64,9 @@ namespace DX11Helper
     static void CreateShaderResourceViewForTexture2D(
         ID3D11Device* device, 
         ID3D11Texture2D* texture, 
-        ID3D11ShaderResourceView** srv, 
-        DXGI_FORMAT format)
+        ID3D11ShaderResourceView** srv,
+        DXGI_FORMAT format,
+        D3D11_SRV_DIMENSION srvDimension = D3D11_SRV_DIMENSION_TEXTURE2D)
     {
         D3D11_TEXTURE2D_DESC desc;
         texture->GetDesc(&desc);
@@ -73,7 +75,7 @@ namespace DX11Helper
         {
             D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
             srvDesc.Format = format;
-            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.ViewDimension = srvDimension;
             srvDesc.Texture2D.MipLevels = desc.MipLevels;
 
             HRESULT hr = device->CreateShaderResourceView(texture, &srvDesc, srv);

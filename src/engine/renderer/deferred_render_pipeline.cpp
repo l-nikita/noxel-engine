@@ -15,13 +15,8 @@
 ITexture* g_ErrorTexture = nullptr;
 IMaterial* g_ErrorMaterial = nullptr;
 
-static RenderCamera* g_Cam1;
-static RenderCamera* g_Cam2;
 static Model* g_TestModel;
 static Model* g_TestModel2;
-
-static IMaterial* g_SkyboxMat;
-static IMesh* g_SkyboxMesh;
 
 void CalculateTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
 {
@@ -82,6 +77,7 @@ void DeferredRenderPipeline::Init()
 	g_ErrorTexture = factory->CreateTexture(TextureAsset::GetError());
 	g_ErrorMaterial = factory->CreateMaterial(MaterialAsset::GetError());
 
+	//----------------------------------------------------
 	std::vector<Vertex> cubeVertices
 	{
 		// Front (+Z)
@@ -139,6 +135,7 @@ void DeferredRenderPipeline::Init()
 
 	CalculateTangents(cubeVertices, cubeIndices);
 
+	//----------------------------------------------------
 	// TODO: Memory leak, make resource manager
 	auto* mat = factory->CreateMaterial("dirt");
 	auto* mesh = factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
@@ -177,19 +174,18 @@ void DeferredRenderPipeline::Init()
 	g_TestModel2->m_Transform.Position = glm::vec3(0, -5, 0);
 	g_TestModel2->m_Transform.Scale = glm::vec3(20, 1, 20);
 
-	g_SkyboxMat = factory->CreateMaterial("skybox");
-	g_SkyboxMesh = factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
-
+	//----------------------------------------------------
 	int width, height;
 	g_Engine->GetWindow()->GetSize(&width, &height);
 
 	m_backBufferViewport = factory->CreateViewport(0, 0, width, height);
-	g_Cam1 = new RenderCamera(width, height);
+	m_mainCamera = new RenderCamera(width, height);
 
-	g_Renderer->SetCamera(g_Cam1);
+	g_Renderer->SetCamera(m_mainCamera);
 	g_Renderer->SetViewport(m_backBufferViewport);
 
-	InitGBuffer(width, height);
+	SetupGBuffer(width, height);
+	SetupSkybox();
 
 	m_lightingShader = factory->CreateShaderProgram(ShaderAsset::Get("lightingpass"));
 
@@ -199,7 +195,7 @@ void DeferredRenderPipeline::Init()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void DeferredRenderPipeline::InitGBuffer(int width, int height)
+void DeferredRenderPipeline::SetupGBuffer(int width, int height)
 {
 	auto factory = g_Renderer->GetFactory();
 
@@ -207,6 +203,69 @@ void DeferredRenderPipeline::InitGBuffer(int width, int height)
 	m_GBuffer.Color = factory->CreateRenderTexture(width, height, false);
 	m_GBuffer.Normal = factory->CreateRenderTexture(width, height, false);
 	m_GBuffer.Position = factory->CreateRenderTexture(width, height, false);
+}
+
+void DeferredRenderPipeline::SetupSkybox()
+{
+	auto factory = g_Renderer->GetFactory();
+
+	std::vector<Vertex> cubeVertices
+	{
+		// Front (+Z)
+		{{-1, -1,  1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+		{{ 1, -1,  1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+		{{ 1,  1,  1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+		{{-1,  1,  1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+
+		// Back (-Z)
+		{{ 1, -1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+		{{-1, -1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+		{{-1,  1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+		{{ 1,  1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+
+		// Top (+Y)
+		{{-1,  1,  1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+		{{ 1,  1,  1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+		{{ 1,  1, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+		{{-1,  1, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+
+		// Bottom (-Y)
+		{{-1, -1, -1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+		{{ 1, -1, -1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+		{{ 1, -1,  1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+		{{-1, -1,  1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+
+		// Right (+X)
+		{{ 1, -1,  1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+		{{ 1, -1, -1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+		{{ 1,  1, -1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+		{{ 1,  1,  1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+
+		// Left (-X)
+		{{-1, -1, -1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+		{{-1, -1,  1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+		{{-1,  1,  1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+		{{-1,  1, -1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+	};
+
+	std::vector<std::uint32_t> cubeIndices
+	{
+		// Front
+		0, 1, 2,  2, 3, 0,
+		// Back
+		4, 5, 6,  6, 7, 4,
+		// Top
+		8, 9,10, 10,11, 8,
+		// Bottom
+		12,13,14, 14,15,12,
+		// Right
+		16,17,18, 18,19,16,
+		// Left
+		20,21,22, 22,23,20
+	};
+
+	m_skyboxMat = factory->CreateMaterial("skybox");
+	m_skyboxMesh = factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
 }
 
 //-----------------------------------------------------------------------------
@@ -275,12 +334,12 @@ void DeferredRenderPipeline::DoLightingPass()
 void DeferredRenderPipeline::DoSkyboxPass()
 {
 	auto backBuffer = g_Renderer->GetBackBufferRT();
-
 	g_Renderer->SetRenderTextures(&backBuffer, 1, m_GBuffer.DepthStencil);
+
 	g_Renderer->SetPrimitiveTopology(TRIANGLES);
-	g_SkyboxMat->Bind();
-	g_SkyboxMesh->Draw();
-	g_SkyboxMat->Unbind();
+	m_skyboxMat->Bind();
+	m_skyboxMesh->Draw();
+	m_skyboxMat->Unbind();
 }
 
 void DeferredRenderPipeline::Render()
@@ -292,7 +351,7 @@ void DeferredRenderPipeline::Render()
 
 	g_Renderer->SetRenderTextures(&backBuffer, 1, nullptr);
 	DoLightingPass();
-	DoSkyboxPass();
+	//DoSkyboxPass();
 
 	g_Gui->Render();
 
@@ -313,10 +372,36 @@ void DeferredRenderPipeline::Shutdown()
 	m_Models.clear();
 	m_GBuffer.Release();
 
-	if (g_Cam1)
+	if (m_mainCamera)
 	{
-		delete g_Cam1;
-		g_Cam1 = nullptr;
+		delete m_mainCamera;
+		m_mainCamera = nullptr;
+	}
+
+	if (m_backBufferViewport)
+	{
+		delete m_backBufferViewport;
+		m_backBufferViewport = nullptr;
+	}
+
+	auto factory = g_Renderer->GetFactory();
+
+	if (m_lightingShader)
+	{
+		factory->Release(m_lightingShader);
+		m_lightingShader = nullptr;
+	}
+
+	if (m_skyboxMat)
+	{
+		factory->Release(m_skyboxMat);
+		m_skyboxMat = nullptr;
+	}
+
+	if (m_skyboxMesh)
+	{
+		factory->Release(m_skyboxMesh);
+		m_skyboxMesh = nullptr;
 	}
 
 	g_Renderer->Shutdown();
@@ -334,6 +419,6 @@ void DeferredRenderPipeline::OnWindowResize(int width, int height)
 	m_backBufferViewport->Resize(width, height);
 	g_Renderer->SetViewport(m_backBufferViewport);
 
-	InitGBuffer(width, height);
-	g_Cam1->OnFrameBufferResize(width, height);
+	SetupGBuffer(width, height);
+	m_mainCamera->OnFrameBufferResize(width, height);
 }

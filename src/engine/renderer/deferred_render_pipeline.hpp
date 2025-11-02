@@ -75,9 +75,16 @@ public:
 	std::vector<Model*> m_Models;
 
 private:
-	void InitGBuffer(int width, int height);
-	GBuffer m_GBuffer;
-	IShaderProgram* m_lightingShader;
+	void SetupGBuffer(int width, int height);
+	void SetupSkybox();
 
-	IViewport* m_backBufferViewport;
+private:
+	IMesh* m_skyboxMesh = nullptr;
+	IMaterial* m_skyboxMat = nullptr;
+
+	GBuffer m_GBuffer;
+	IShaderProgram* m_lightingShader = nullptr;
+
+	RenderCamera* m_mainCamera = nullptr;
+	IViewport* m_backBufferViewport = nullptr;
 };

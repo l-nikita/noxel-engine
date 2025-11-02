@@ -13,18 +13,26 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, con
 {
     D3D11_TEXTURE2D_DESC texDesc = DX11Helper::CreateTexture2DDesc(desc);
 
-    if (desc.Data)
+    if (desc.Data.size() > 0)
     {
-        D3D11_SUBRESOURCE_DATA data = {};
-        data.pSysMem = desc.Data;
-        data.SysMemPitch = desc.Width * 4;
+        std::vector<D3D11_SUBRESOURCE_DATA> res(desc.Data.size());
+        for (size_t i = 0; i < desc.Data.size(); i++)
+        {
+            res[i].pSysMem = desc.Data[i];
+            res[i].SysMemPitch = desc.Width * 4; // RGBA8
+            res[i].SysMemSlicePitch = 0;
+        }
 
-        DX11Helper::CreateTexture2D(device, &texDesc, &data, &m_texture);
+        DX11Helper::CreateTexture2D(device, &texDesc, res.data(), &m_texture);
     }
     else
         DX11Helper::CreateTexture2D(device, &texDesc, nullptr, &m_texture);
 
-    DX11Helper::CreateShaderResourceViewForTexture2D(device, m_texture, &m_srv, texDesc.Format);
+    D3D11_SRV_DIMENSION srvDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    if (desc.IsCubemap)
+        srvDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+
+    DX11Helper::CreateShaderResourceViewForTexture2D(device, m_texture, &m_srv, texDesc.Format, srvDimension);
 
     m_width = desc.Width;
     m_height = desc.Height;
