@@ -197,6 +197,8 @@ void DX11Renderer::Shutdown()
         m_backBuffer = nullptr;
     }
 
+    delete m_factory;
+
     if (m_swapChain)
     {
         m_swapChain->Release();
@@ -214,8 +216,6 @@ void DX11Renderer::Shutdown()
         m_device->Release();
         m_device = nullptr;
     }
-
-    delete m_factory;
 }
 
 //-----------------------------------------------------------------------------
