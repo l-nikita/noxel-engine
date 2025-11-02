@@ -4,7 +4,7 @@
 #include "iengine.hpp"
 #include "dev_menu.hpp"
 #include "renderer/irenderer.hpp"
-#include "renderer/render_camera.hpp"
+#include "renderer/rendercamera.hpp"
 
 DevPanel::DevPanel()
 {

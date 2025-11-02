@@ -6,7 +6,7 @@
 #include "dx11cbuffers.hpp"
 #include "renderer/directx11/dx11renderer.hpp"
 #include "renderer/vertex.hpp"
-#include "renderer/render_camera.hpp"
+#include "renderer/rendercamera.hpp"
 #include "renderer/shaderregistry.hpp"
 #include "dbg/debug.hpp"
 

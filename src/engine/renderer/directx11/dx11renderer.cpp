@@ -12,7 +12,7 @@
 #include "iengine.hpp"
 #include "window.hpp"
 #include "renderer/imaterial.hpp"
-#include "renderer/render_camera.hpp"
+#include "renderer/rendercamera.hpp"
 #include "renderer/vertex.hpp"
 #include "gui/igui.hpp"
 #include "dbg/cmd/cmd.hpp"

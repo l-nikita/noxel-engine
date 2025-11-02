@@ -5,7 +5,7 @@
 #include "irenderfactory.hpp"
 #include "gizmos.hpp"
 #include "model.hpp"
-#include "render_camera.hpp"
+#include "rendercamera.hpp"
 
 #include "gui/igui.hpp"
 #include "engine/window.hpp"
