@@ -1,6 +1,7 @@
 #include <d3d11.h>
 #include "dx11buffer.hpp"
 #include "renderer/vertex.hpp"
+#include "dbg/debug.hpp"
 
 DX11Buffer::DX11Buffer(ID3D11Device* device, ID3D11DeviceContext* context, GPUBufferType type, size_t size, const void* initialData, std::uint32_t stride)
     : m_device(device), m_context(context), m_type(type), m_stride(stride)
@@ -13,7 +14,9 @@ DX11Buffer::DX11Buffer(ID3D11Device* device, ID3D11DeviceContext* context, GPUBu
     D3D11_SUBRESOURCE_DATA data = {};
     data.pSysMem = initialData;
 
-    device->CreateBuffer(&desc, initialData ? &data : nullptr, &m_buffer);
+    HRESULT hr = device->CreateBuffer(&desc, initialData ? &data : nullptr, &m_buffer);
+    if (FAILED(hr))
+        FATAL_ERROR("DX11: Failed to create Buffer.", CMD::RENDERING);
 }
 
 void DX11Buffer::Bind(std::uint32_t slot)

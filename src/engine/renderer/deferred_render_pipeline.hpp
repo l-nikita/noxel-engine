@@ -59,6 +59,7 @@ public:
 	void OnWindowResize(int width, int height) override;
 
 	void DoGeometryPass();
+	void DoShadowPass();
 	void DoLightingPass();
 	void DoSkyboxPass();
 
@@ -76,6 +77,7 @@ public:
 
 private:
 	void SetupGBuffer(int width, int height);
+	void SetupShadows();
 	void SetupSkybox();
 
 private:
@@ -83,6 +85,8 @@ private:
 	IMaterial* m_skyboxMat = nullptr;
 
 	GBuffer m_GBuffer;
+	IDepthStencil* m_shadowMap = nullptr;
+	IShaderProgram* m_shadowsShader = nullptr;
 	IShaderProgram* m_lightingShader = nullptr;
 
 	RenderCamera* m_mainCamera = nullptr;

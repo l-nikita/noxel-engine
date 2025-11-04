@@ -23,6 +23,7 @@
 #include "shaders/dx11shader_geometrypass.hpp"
 #include "shaders/dx11shader_lightingpass.hpp"
 #include "shaders/dx11shader_skyboxpass.hpp"
+#include "shaders/dx11shader_shadowspass.hpp"
 
 #define INITGUID
 #include <d3d11.h>
@@ -137,7 +138,7 @@ void DX11Renderer::SetViewport(IViewport* viewport)
 
 void DX11Renderer::SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, IDepthStencil* depthStencil)
 {
-    ID3D11RenderTargetView* rtvs[8];
+    ID3D11RenderTargetView* rtvs[8] = { nullptr };
     for (int i = 0; i < num; ++i)
         rtvs[i] = static_cast<ID3D11RenderTargetView*>(rts[i]->GetResource());
 

@@ -13,6 +13,9 @@ namespace DX11Helper
         case TextureFormat::RGBA8:              return DXGI_FORMAT_R8G8B8A8_UNORM;
         case TextureFormat::RGBA32F:            return DXGI_FORMAT_R32G32B32A32_FLOAT;
         case TextureFormat::DEPTH24STENCIL8:    return DXGI_FORMAT_D24_UNORM_S8_UINT;
+        case TextureFormat::R32_TYPELESS:       return DXGI_FORMAT_R32_TYPELESS;
+        case TextureFormat::R32_FLOAT:          return DXGI_FORMAT_R32_FLOAT;
+        case TextureFormat::D32_FLOAT:          return DXGI_FORMAT_D32_FLOAT;
         default:                                return DXGI_FORMAT_UNKNOWN;
         }
     }
@@ -24,6 +27,9 @@ namespace DX11Helper
         case DXGI_FORMAT_R8G8B8A8_UNORM:       return TextureFormat::RGBA8;
         case DXGI_FORMAT_R32G32B32A32_FLOAT:   return TextureFormat::RGBA32F;
         case DXGI_FORMAT_D24_UNORM_S8_UINT:    return TextureFormat::DEPTH24STENCIL8;
+        case DXGI_FORMAT_R32_TYPELESS:         return TextureFormat::R32_TYPELESS;
+        case DXGI_FORMAT_R32_FLOAT:            return TextureFormat::R32_FLOAT;
+        case DXGI_FORMAT_D32_FLOAT:            return TextureFormat::D32_FLOAT;
         default:                               return TextureFormat::INVALID;
         }
     }
@@ -37,15 +43,35 @@ namespace DX11Helper
         texDesc.ArraySize = std::max<std::uint32_t>(1, desc.Data.size());
         texDesc.Format = ToDXGIFormat(desc.Format);
         texDesc.SampleDesc.Count = 1;
-        texDesc.Usage = D3D11_USAGE_DEFAULT;
-        texDesc.MiscFlags = (desc.Data.size() == 6) ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
+        texDesc.SampleDesc.Quality = 0;
+        texDesc.MiscFlags = desc.IsCubemap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
+        texDesc.BindFlags = 0;
+        texDesc.CPUAccessFlags = 0;
 
-        if (desc.Usage == TextureUsage::SHADER_RESOURCE)
-            texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-        else if (desc.Usage == TextureUsage::RENDER_TARGET)
-            texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-        else if (desc.Usage == TextureUsage::DEPTH_STENCIL)
-            texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+        switch (desc.Usage)
+        {
+        case TextureUsage::DEFAULT:
+            texDesc.Usage = D3D11_USAGE_DEFAULT;
+            break;
+        case TextureUsage::IMMUTABLE:
+            texDesc.Usage = D3D11_USAGE_IMMUTABLE;
+            break;
+        case TextureUsage::DYNAMIC:
+            texDesc.Usage = D3D11_USAGE_DYNAMIC;
+            texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+            break;
+        case TextureUsage::STAGING:
+            texDesc.Usage = D3D11_USAGE_STAGING;
+            texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+            break;
+        }
+
+        if (desc.BindFlags & TextureBindFlags::SHADER_RESOURCE)
+            texDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+        if (desc.BindFlags & TextureBindFlags::RENDER_TARGET)
+            texDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+        if (desc.BindFlags & TextureBindFlags::DEPTH_STENCIL)
+            texDesc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
 
         return texDesc;
     }

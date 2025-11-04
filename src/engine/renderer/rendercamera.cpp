@@ -36,6 +36,21 @@ glm::mat4 RenderCamera::GetViewMatrix() const
 
 glm::mat4 RenderCamera::GetProjectionMatrix() const
 {
-	auto proj = glm::perspectiveLH(glm::radians(CAMERA_FOV), m_screenAspect, DEPTH_NEAR, DEPTH_FAR);
 	return glm::perspectiveLH(glm::radians(CAMERA_FOV), m_screenAspect, DEPTH_NEAR, DEPTH_FAR);
+}
+
+glm::mat4 RenderCamera::GetOrthoProjectionMatrix() const
+{
+	float viewWidth = 30.0f;
+	float viewHeight = viewWidth / m_screenAspect;
+
+	float left = -viewWidth / 2.0f;
+	float right = viewWidth / 2.0f;
+	float bottom = -viewHeight / 2.0f;
+	float top = viewHeight / 2.0f;
+
+	float nearPlane = DEPTH_NEAR;
+	float farPlane = DEPTH_FAR;
+
+	return glm::orthoLH_ZO(left, right, bottom, top, nearPlane, farPlane);
 }

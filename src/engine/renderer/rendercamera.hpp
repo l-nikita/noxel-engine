@@ -16,6 +16,7 @@ public:
 
 	glm::mat4 GetViewMatrix() const;
 	glm::mat4 GetProjectionMatrix() const;
+	glm::mat4 GetOrthoProjectionMatrix() const;
 
 private:
 	int m_screenWidth;

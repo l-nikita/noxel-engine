@@ -18,11 +18,6 @@ namespace CMD
 
 	class CMD : public Singleton<CMD>
 	{
-	private:
-		std::vector<std::unique_ptr<Log>> m_logs;
-		Commands m_commands;
-		Vars m_vars;
-
 	public:
 		void Setup();
 
@@ -46,6 +41,11 @@ namespace CMD
 		std::vector<std::unique_ptr<Log>>& GetLogs() { return m_logs; }
 
 		void LogHelp();
+
+	private:
+		std::vector<std::unique_ptr<Log>> m_logs;
+		Commands m_commands;
+		Vars m_vars;
 	};
 
 	static void RegisterCommand(const std::string& name, const std::string& desc, const std::function<void()>& func)

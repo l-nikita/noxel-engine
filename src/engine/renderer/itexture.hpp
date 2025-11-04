@@ -14,15 +14,36 @@ enum class TextureFormat
     RGBA8,
     RGBA32F,
     DEPTH24STENCIL8,
+    R32_TYPELESS,
+    R32_FLOAT,
+    D32_FLOAT,
 };
 
 enum class TextureUsage
 {
-    DEFAULT,
-    RENDER_TARGET,
-    DEPTH_STENCIL,
-    SHADER_RESOURCE,
+    DEFAULT,    // GPU read/write
+    IMMUTABLE,  // Read-only (created once)
+    DYNAMIC,    // CPU can update
+    STAGING,    // Used to copy CPU <-> GPU.
 };
+
+enum class TextureBindFlags : std::uint32_t
+{
+    NONE = 0,
+    SHADER_RESOURCE = 1 << 0,
+    RENDER_TARGET = 1 << 1,
+    DEPTH_STENCIL = 1 << 2,
+};
+
+inline TextureBindFlags operator|(TextureBindFlags a, TextureBindFlags b)
+{
+    return static_cast<TextureBindFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+}
+
+inline bool operator&(TextureBindFlags a, TextureBindFlags b)
+{
+    return static_cast<uint32_t>(a) & static_cast<uint32_t>(b);
+}
 
 //-----------------------------------------------------------------------------
 //
@@ -34,7 +55,9 @@ struct TextureDesc
     std::uint32_t MipLevels = 1;
     bool IsCubemap = 0;
     TextureFormat Format = TextureFormat::RGBA8;
+    TextureFormat ShaderFormat = TextureFormat::RGBA8;
     TextureUsage Usage = TextureUsage::DEFAULT;
+    TextureBindFlags BindFlags = TextureBindFlags::NONE;
     std::vector<void*> Data;
 };
 

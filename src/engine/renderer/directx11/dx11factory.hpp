@@ -24,7 +24,7 @@ public:
     IShaderProgram* CreateShaderProgram(ShaderAsset* asset) override;
 
     IRenderTexture* CreateRenderTexture(int width, int height, bool depth, TextureFormat format = TextureFormat::RGBA32F) override;
-    IDepthStencil* CreateDepthStencil(int width, int height) override;
+    IDepthStencil* CreateDepthStencil(int width, int height, bool bindable = false) override;
 
     IViewport* CreateViewport(int x, int y, int width, int height) override;
 

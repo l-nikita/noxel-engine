@@ -32,7 +32,7 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, con
     if (desc.IsCubemap)
         srvDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 
-    DX11Helper::CreateShaderResourceViewForTexture2D(device, m_texture, &m_srv, texDesc.Format, srvDimension);
+    DX11Helper::CreateShaderResourceViewForTexture2D(device, m_texture, &m_srv, DX11Helper::ToDXGIFormat(desc.ShaderFormat), srvDimension);
 
     m_width = desc.Width;
     m_height = desc.Height;

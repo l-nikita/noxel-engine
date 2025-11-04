@@ -3,6 +3,9 @@ Texture2D gNormal : register(t1);
 Texture2D gPosition : register(t2);
 SamplerState Samp : register(s0);
 
+Texture2D shadowMap : register(t3);
+SamplerComparisonState shadowSampler : register(s1);
+
 #define NUM_LIGHTS 4
 
 #define LIGHT_POINT 0

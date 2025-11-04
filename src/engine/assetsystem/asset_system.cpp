@@ -25,6 +25,7 @@ void AssetSystem::Init()
 	ShaderAsset::CreateNew("geometrypass", (m_assetsPath / "shaders\\geometrypass").string());
 	ShaderAsset::CreateNew("lightingpass", (m_assetsPath / "shaders\\lightingpass").string());
 	ShaderAsset::CreateNew("skyboxpass", (m_assetsPath / "shaders\\skyboxpass").string());
+	ShaderAsset::CreateNew("shadowspass", (m_assetsPath / "shaders\\shadowspass").string());
 
 	TextureAsset::m_error = TextureAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.png").string());
 	MaterialAsset::m_error = MaterialAsset::CreateNew("error", (m_assetsPath / "materials\\engine\\error.nmt").string());

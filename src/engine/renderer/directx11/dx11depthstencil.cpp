@@ -9,20 +9,41 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height)
+DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height, bool bindable)
     : m_device(device), m_context(context)
 {
+    auto factory = g_Renderer->GetFactory();
+
     TextureDesc desc = {};
     desc.Width = width;
     desc.Height = height;
-    desc.Format = TextureFormat::DEPTH24STENCIL8;
-    desc.Usage = TextureUsage::DEPTH_STENCIL;
     desc.MipLevels = 1;
 
-    m_texture = g_Renderer->GetFactory()->CreateTexture(desc);
-    auto res = static_cast<DX11Texture*>(m_texture)->GetResource();
+    if (!bindable)
+    {
+        desc.Format = TextureFormat::DEPTH24STENCIL8;
+        desc.BindFlags = TextureBindFlags::DEPTH_STENCIL;
 
-    DX11Helper::CreateDepthStencilView(m_device, res, nullptr, &m_dsv);
+        m_texture = factory->CreateTexture(desc);
+        auto res = static_cast<DX11Texture*>(m_texture)->GetResource();
+
+        DX11Helper::CreateDepthStencilView(m_device, res, nullptr, &m_dsv);
+    }
+    else
+    {
+        desc.Format = TextureFormat::R32_TYPELESS;
+        desc.ShaderFormat = TextureFormat::R32_FLOAT;
+        desc.BindFlags = TextureBindFlags::DEPTH_STENCIL | TextureBindFlags::SHADER_RESOURCE;
+
+        m_texture = factory->CreateTexture(desc);
+        auto res = static_cast<DX11Texture*>(m_texture)->GetResource();
+
+        D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+        dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+        DX11Helper::CreateDepthStencilView(m_device, res, &dsvDesc, &m_dsv);
+    }
 }
 
 //-----------------------------------------------------------------------------

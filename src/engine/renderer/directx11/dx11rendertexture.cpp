@@ -13,7 +13,8 @@ DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* 
     desc.Width = width;
     desc.Height = height;
     desc.Format = format;
-    desc.Usage = TextureUsage::RENDER_TARGET;
+    desc.ShaderFormat = format;
+    desc.BindFlags = TextureBindFlags::RENDER_TARGET | TextureBindFlags::SHADER_RESOURCE;
     desc.MipLevels = 1;
 
     m_texture = g_Renderer->GetFactory()->CreateTexture(desc);
@@ -24,7 +25,7 @@ DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* 
     DX11Helper::CreateRenderTargetView(device, res, nullptr, &m_rtv);
 
     if (depth)
-        m_depthStencil = g_Renderer->GetFactory()->CreateDepthStencil(width, height);
+        m_depthStencil = g_Renderer->GetFactory()->CreateDepthStencil(width, height, false);
 }
 
 DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture, bool depth, TextureFormat format)
@@ -37,7 +38,7 @@ DX11RenderTexture::DX11RenderTexture(ID3D11Device* device, ID3D11DeviceContext* 
     DX11Helper::CreateRenderTargetView(device, res, nullptr, &m_rtv);
 
     if (depth)
-        m_depthStencil = g_Renderer->GetFactory()->CreateDepthStencil(m_texture->GetWidth(), m_texture->GetHeight());
+        m_depthStencil = g_Renderer->GetFactory()->CreateDepthStencil(m_texture->GetWidth(), m_texture->GetHeight(), false);
 }
 
 void DX11RenderTexture::Clear(glm::vec4 color)

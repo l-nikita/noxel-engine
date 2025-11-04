@@ -50,7 +50,7 @@ ITexture* DX11Factory::CreateTexture(TextureAsset* asset)
     desc.Width = data->Width;
     desc.Height = data->Height;
     desc.Format = TextureFormat::RGBA8;
-    desc.Usage = TextureUsage::SHADER_RESOURCE;
+    desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
     desc.Data = { data->Image };
     desc.MipLevels = 1;
 
@@ -116,7 +116,7 @@ ITexture* DX11Factory::CreateCubemap(MaterialAsset* asset)
     desc.Width = width;
     desc.Height = height;
     desc.Format = TextureFormat::RGBA8;
-    desc.Usage = TextureUsage::SHADER_RESOURCE;
+    desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
     desc.Data = datas;
     desc.IsCubemap = true;
     desc.MipLevels = 1;
@@ -153,9 +153,9 @@ IRenderTexture* DX11Factory::CreateRenderTexture(int width, int height, bool dep
     return rt;
 }
 
-IDepthStencil* DX11Factory::CreateDepthStencil(int width, int height)
+IDepthStencil* DX11Factory::CreateDepthStencil(int width, int height, bool bindable)
 {
-    auto depth = new DX11DepthStencil(m_device, m_context, width, height);
+    auto depth = new DX11DepthStencil(m_device, m_context, width, height, bindable);
     m_resources.push_back(depth);
     return depth;
 }
