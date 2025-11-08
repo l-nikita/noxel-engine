@@ -18,7 +18,7 @@ struct VS_OUTPUT
 VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT o;
-    float4 worldPos = mul(float4(input.iPos, 1.0f), Model);
-    o.vPos = mul(mul(worldPos, View), Projection);
+	float4 worldPos = mul(float4(input.iPos, 1.0f), Model);
+	o.vPos = mul(mul(worldPos, View), Projection);
     return o;
 }

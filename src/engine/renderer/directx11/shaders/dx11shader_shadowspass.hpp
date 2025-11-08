@@ -53,7 +53,7 @@ public:
             &m_inputLayout);
 
         if (FAILED(hr))
-            FATAL_ERROR("DX11: Failed to create input layout", CMD::RENDERING);
+            FATAL_ERROR("DX11: Failed to create input layout.", CMD::RENDERING);
 
         D3D11_BUFFER_DESC cbd = {};
         cbd.Usage = D3D11_USAGE_DEFAULT;
@@ -65,7 +65,7 @@ public:
 
         hr = m_device->CreateBuffer(&cbd, nullptr, &m_cbTransform);
         if (FAILED(hr))
-            FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
+            FATAL_ERROR("DX11: Failed to create constant buffer.", CMD::RENDERING);
 
         m_vars["model"] = glm::mat4(1.0f);
     }
@@ -78,26 +78,19 @@ public:
     { 
         m_context->IASetInputLayout(m_inputLayout);
 
-        auto* camera = g_Renderer->GetCamera();
-        auto& camTransform = g_Renderer->GetCamera()->GetTransform();
+        glm::mat4 lightView = glm::mat4(1.0f);
+        glm::mat4 lightProj = glm::mat4(1.0f);
 
-        // Позиция света
-        glm::vec3 lightPos = glm::vec3(0.0f, -3.0f, 6.0f);
-        glm::vec3 lightTarget = camTransform.Position;
-        glm::vec3 up = glm::vec3(0, 1, 0);
+        const auto& lights = LightManager::GetInstance().GetLights();
 
-        glm::mat4 lightView = glm::lookAtLH(lightPos, lightTarget, up);
-
-        float shadowMapWidth = 1024.0f;
-        float shadowMapHeight = 1024.0f;
-
-        float viewWidth = 30.0f;
-        float viewHeight = viewWidth * (shadowMapHeight / shadowMapWidth);
-
-        glm::mat4 lightProj = glm::orthoLH_ZO(-viewWidth / 2, viewWidth / 2, -viewHeight / 2, viewHeight / 2, 1.0f, 100.0f);
+        if (!lights.empty())
+        {
+            const auto& light = lights[1]; // for test
+            lightView = light->GetViewMatrix();
+            lightProj = light->GetProjectionMatrix();
+        }
 
         glm::mat4 model = glm::mat4(1.0f);
-
         ShaderVar& varModel = GetVar("model");
         if (auto matPtr = std::get_if<glm::mat4>(&varModel))
             model = *matPtr;
@@ -115,6 +108,7 @@ public:
 
     void Unbind() 
     { 
+        m_context->RSSetState(nullptr);
         m_context->IASetInputLayout(nullptr);
 
         ID3D11Buffer* nullBuffer = nullptr;

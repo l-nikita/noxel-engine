@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glm/glm.hpp"
+#include <string>
 
 struct CBTransform
 {
@@ -33,6 +34,12 @@ struct CBLightsData
     float pad0;
 };
 
+struct CBLightMatrices
+{
+    glm::mat4 LightView;
+    glm::mat4 LightProjection;
+};
+
 constexpr auto MAX_LIGHTS = 6;
 
 enum LightType
@@ -47,24 +54,51 @@ class Light : public Transformable
 public:
     Light(LightType type) 
         : m_type(type)
-    { }
+    { 
+        m_camera = new RenderCamera(512, 512);
+        m_camera->SetNear(0.1f);
+    }
+
+    ~Light() { delete m_camera; }
 
     bool IsA(LightType type) const { return m_type == type; }
     LightType GetType() const { return m_type; }
 
     float GetRadius() const { return m_radius; }
-    float GetCutoff() const { return m_cutoff; }
+    float GetFOV() const { return m_fov; }
     glm::vec3 GetColor() const { return m_color; }
 
-    void SetRadius(float radius) { m_radius = radius; }
-    void SetCutoff(float cutoff) { m_cutoff = cutoff; }
+    void SetRadius(float radius) 
+    { 
+        m_radius = radius; 
+        m_camera->SetFar(radius);
+    }
+
+    void SetFOV(float fov) 
+    { 
+        m_fov = fov;
+        m_camera->SetFOV(fov);
+    }
+
     void SetColor(glm::vec3 color) { m_color = color; }
+
+    RenderCamera* m_camera = nullptr;
+
+    glm::mat4 GetViewMatrix() const
+    {
+	    return m_camera->GetViewMatrix();
+    }
+
+    glm::mat4 GetProjectionMatrix() const
+    {
+        return m_camera->GetProjectionMatrix();
+    }
 
 private:
     LightType m_type;
 
     float m_radius;
-    float m_cutoff;
+    float m_fov;
     glm::vec3 m_color;
 };
 

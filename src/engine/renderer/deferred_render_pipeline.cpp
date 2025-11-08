@@ -156,23 +156,26 @@ void DeferredRenderPipeline::Init()
 	*/
 
 	auto model = new Model(mesh, mat);
-	model->m_Transform.Position = glm::vec3(0, 0, 5);
+	model->m_Transform.Position = glm::vec3(0, 0, 5) + glm::vec3(0, -3, -10);
 	m_Models.push_back(model);
 
 	auto model2 = new Model(mesh, mat);
-	model2->m_Transform.Position = glm::vec3(0, 0, 8);
+	model2->m_Transform.Position = glm::vec3(0, 0, 8) + glm::vec3(0, -3, 7);
 	m_Models.push_back(model2);
 
 	auto model3 = new Model(mesh, mat);
-	model3->m_Transform.Position = glm::vec3(0, 5, 8);
+	model3->m_Transform.Position = glm::vec3(-5, 0, 8) + glm::vec3(0, -3, -10);
 	m_Models.push_back(model3);
 
 	g_TestModel = new Model(mesh, mat);
 	g_TestModel->m_Transform.Scale = glm::vec3(0.5f);
+	m_Models.push_back(g_TestModel);
 
 	g_TestModel2 = new Model(mesh, mat);
 	g_TestModel2->m_Transform.Position = glm::vec3(0, -5, 0);
 	g_TestModel2->m_Transform.Scale = glm::vec3(20, 1, 20);
+	g_TestModel2->m_CastShadows = false;
+	m_Models.push_back(g_TestModel2);
 
 	//----------------------------------------------------
 	int width, height;
@@ -180,6 +183,9 @@ void DeferredRenderPipeline::Init()
 
 	m_backBufferViewport = factory->CreateViewport(0, 0, width, height);
 	m_mainCamera = new RenderCamera(width, height);
+	m_mainCamera->SetFOV(95.0f);
+	m_mainCamera->SetNear(0.1f);
+	m_mainCamera->SetFar(100.0f);
 
 	g_Renderer->SetCamera(m_mainCamera);
 	g_Renderer->SetViewport(m_backBufferViewport);
@@ -270,12 +276,27 @@ void DeferredRenderPipeline::SetupSkybox()
 	m_skyboxMesh = factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
 }
 
+static ID3D11RasterizerState* rasterizerStateWithBias = nullptr;
+
 void DeferredRenderPipeline::SetupShadows()
 {
+	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
+	auto device = dxrenderer->GetDevice();
+
 	auto factory = g_Renderer->GetFactory();
-	const int SHADOWMAP_SIZE = 1024;
+	const int SHADOWMAP_SIZE = 512;
 
 	m_shadowMap = factory->CreateDepthStencil(SHADOWMAP_SIZE, SHADOWMAP_SIZE, true);
+
+	D3D11_RASTERIZER_DESC desc = {};
+	desc.FillMode = D3D11_FILL_SOLID;
+	desc.CullMode = D3D11_CULL_BACK;
+	desc.DepthClipEnable = TRUE;
+	desc.DepthBias = 200;
+	desc.SlopeScaledDepthBias = 1.0f;
+	desc.DepthBiasClamp = 0.0f;
+
+	device->CreateRasterizerState(&desc, &rasterizerStateWithBias);
 }
 
 //-----------------------------------------------------------------------------
@@ -316,9 +337,6 @@ void DeferredRenderPipeline::DoGeometryPass()
 		-3.0f,
 		cos(totalTime) * 5.0f
 	);
-
-	g_TestModel->Draw();
-	g_TestModel2->Draw();
 }
 
 //-----------------------------------------------------------------------------
@@ -334,6 +352,7 @@ void DeferredRenderPipeline::DoLightingPass()
 	auto context = dxrenderer->GetContext();
 
 	g_Renderer->BindRenderTextures(rts, 3);
+	m_lightingShader->SetPSVar("shadowsmap", m_shadowMap->GetTexture());
 	m_lightingShader->Bind();
 
 	g_Renderer->SetPrimitiveTopology(TRIANGLES);
@@ -351,29 +370,32 @@ void DeferredRenderPipeline::DoShadowPass()
 	D3D11_VIEWPORT vp = {};
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
-	vp.Width = (float)1024;
-	vp.Height = (float)1024;
+	vp.Width = (float)512;
+	vp.Height = (float)512;
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
 	context->RSSetViewports(1, &vp);
 
+	context->RSSetState(rasterizerStateWithBias);
 	g_Renderer->SetRenderTextures(nullptr, 0, m_shadowMap);
 	m_shadowMap->Clear();
 
-	m_shadowsShader->Bind();
-
 	for (auto model : m_Models)
 	{
+		if (!model->m_CastShadows) 
+			continue;
+
 		for (auto mesh : model->GetMeshes())
 		{
 			m_shadowsShader->SetVSVar("model", model->m_Transform.GetTransformMatrix());
+			m_shadowsShader->Bind();
 			mesh->Draw();
+			m_shadowsShader->Unbind();
 		}
 	}
 
-	m_shadowsShader->Unbind();
-
 	g_Renderer->SetRenderTextures(nullptr, 0, nullptr);
+	context->RSSetState(nullptr);
 }
 
 //-----------------------------------------------------------------------------

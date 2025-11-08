@@ -4,7 +4,6 @@
 #include "gizmos.hpp"
 #include "dbg/debug.hpp"
 
-constexpr auto CAMERA_FOV = 95.0f;
 constexpr auto DEPTH_NEAR = 0.1f;
 constexpr auto DEPTH_FAR = 100.0f;
 
@@ -15,34 +14,36 @@ RenderCamera::RenderCamera(int width, int height)
 
 void RenderCamera::DebugDraw()
 {
-	Gizmos::Box(m_Transform.Position, m_Transform.Rotation, glm::vec3(-0.25f, -0.25f, -0.25f), glm::vec3(0.25f, 0.25f, 0.25f), glm::vec4(1, 0, 1, 0.1f));
-	Gizmos::Line(m_Transform.Position + m_Transform.Right() * 0.25f, m_Transform.Position + m_Transform.Forward() * 1.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-	Gizmos::Line(m_Transform.Position + m_Transform.Left() * 0.25f, m_Transform.Position + m_Transform.Forward() * 1.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	auto& trans = GetTransform();
+	Gizmos::Box(trans.Position, trans.Rotation, glm::vec3(-0.25f, -0.25f, -0.25f), glm::vec3(0.25f, 0.25f, 0.25f), glm::vec4(1, 0, 1, 0.1f));
+	Gizmos::Line(trans.Position + trans.Right() * 0.25f, trans.Position + trans.Forward() * 1.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	Gizmos::Line(trans.Position + trans.Left() * 0.25f, trans.Position + trans.Forward() * 1.0f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 }
 
 void RenderCamera::OnFrameBufferResize(int width, int height)
 {
-	m_screenWidth = width;
-	m_screenHeight = height;
-	m_screenAspect = (float)m_screenWidth / (float)m_screenHeight;
+	m_width = width;
+	m_height = height;
+	m_aspect = (float)m_width / (float)m_height;
 }
 
 glm::mat4 RenderCamera::GetViewMatrix() const
 {
-	return glm::lookAtLH(m_Transform.Position,
-		m_Transform.Position + m_Transform.Forward(),
-		m_Transform.Up());
+	auto& trans = GetTransform();
+	return glm::lookAtLH(trans.Position,
+		trans.Position + trans.Forward(),
+		trans.Up());
 }
 
 glm::mat4 RenderCamera::GetProjectionMatrix() const
 {
-	return glm::perspectiveLH(glm::radians(CAMERA_FOV), m_screenAspect, DEPTH_NEAR, DEPTH_FAR);
+	return glm::perspectiveLH_ZO(glm::radians(m_fov), m_aspect, m_near, m_far);
 }
 
 glm::mat4 RenderCamera::GetOrthoProjectionMatrix() const
 {
 	float viewWidth = 30.0f;
-	float viewHeight = viewWidth / m_screenAspect;
+	float viewHeight = viewWidth / m_aspect;
 
 	float left = -viewWidth / 2.0f;
 	float right = viewWidth / 2.0f;

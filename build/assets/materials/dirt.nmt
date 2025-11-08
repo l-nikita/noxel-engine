@@ -2,7 +2,7 @@
 	"shader": "geometrypass",
 	"parameters": 
 	{
-		"basetexture": "ground_color.jpg",
-		"normalmap": "ground_normal.jpg"
+		"basetexture": "metal_color.jpg",
+		"normalmap": "metal_normal.jpg"
 	}
 }

@@ -17,6 +17,8 @@ enum class TextureFormat
     R32_TYPELESS,
     R32_FLOAT,
     D32_FLOAT,
+    R24G8_TYPELESS,
+    R24_UNORM_X8_TYPELESS,
 };
 
 enum class TextureUsage

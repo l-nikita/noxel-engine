@@ -10,13 +10,15 @@ namespace DX11Helper
     {
         switch (format)
         {
-        case TextureFormat::RGBA8:              return DXGI_FORMAT_R8G8B8A8_UNORM;
-        case TextureFormat::RGBA32F:            return DXGI_FORMAT_R32G32B32A32_FLOAT;
-        case TextureFormat::DEPTH24STENCIL8:    return DXGI_FORMAT_D24_UNORM_S8_UINT;
-        case TextureFormat::R32_TYPELESS:       return DXGI_FORMAT_R32_TYPELESS;
-        case TextureFormat::R32_FLOAT:          return DXGI_FORMAT_R32_FLOAT;
-        case TextureFormat::D32_FLOAT:          return DXGI_FORMAT_D32_FLOAT;
-        default:                                return DXGI_FORMAT_UNKNOWN;
+        case TextureFormat::RGBA8:                  return DXGI_FORMAT_R8G8B8A8_UNORM;
+        case TextureFormat::RGBA32F:                return DXGI_FORMAT_R32G32B32A32_FLOAT;
+        case TextureFormat::DEPTH24STENCIL8:        return DXGI_FORMAT_D24_UNORM_S8_UINT;
+        case TextureFormat::R32_TYPELESS:           return DXGI_FORMAT_R32_TYPELESS;
+        case TextureFormat::R32_FLOAT:              return DXGI_FORMAT_R32_FLOAT;
+        case TextureFormat::D32_FLOAT:              return DXGI_FORMAT_D32_FLOAT;
+        case TextureFormat::R24G8_TYPELESS:         return DXGI_FORMAT_R24G8_TYPELESS;
+        case TextureFormat::R24_UNORM_X8_TYPELESS:  return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+        default:                                    return DXGI_FORMAT_UNKNOWN;
         }
     }
 
@@ -24,13 +26,15 @@ namespace DX11Helper
     {
         switch (dxgiFormat)
         {
-        case DXGI_FORMAT_R8G8B8A8_UNORM:       return TextureFormat::RGBA8;
-        case DXGI_FORMAT_R32G32B32A32_FLOAT:   return TextureFormat::RGBA32F;
-        case DXGI_FORMAT_D24_UNORM_S8_UINT:    return TextureFormat::DEPTH24STENCIL8;
-        case DXGI_FORMAT_R32_TYPELESS:         return TextureFormat::R32_TYPELESS;
-        case DXGI_FORMAT_R32_FLOAT:            return TextureFormat::R32_FLOAT;
-        case DXGI_FORMAT_D32_FLOAT:            return TextureFormat::D32_FLOAT;
-        default:                               return TextureFormat::INVALID;
+        case DXGI_FORMAT_R8G8B8A8_UNORM:            return TextureFormat::RGBA8;
+        case DXGI_FORMAT_R32G32B32A32_FLOAT:        return TextureFormat::RGBA32F;
+        case DXGI_FORMAT_D24_UNORM_S8_UINT:         return TextureFormat::DEPTH24STENCIL8;
+        case DXGI_FORMAT_R32_TYPELESS:              return TextureFormat::R32_TYPELESS;
+        case DXGI_FORMAT_R32_FLOAT:                 return TextureFormat::R32_FLOAT;
+        case DXGI_FORMAT_D32_FLOAT:                 return TextureFormat::D32_FLOAT;
+        case DXGI_FORMAT_R24G8_TYPELESS:            return TextureFormat::R24G8_TYPELESS;
+        case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:     return TextureFormat::R24_UNORM_X8_TYPELESS;
+        default:                                    return TextureFormat::INVALID;
         }
     }
 

@@ -36,12 +36,12 @@ struct Transform
         return T * R * S;
     }
 
-    glm::vec3 Forward()  const { return Rotation * glm::vec3(0.0f, 0.0f, 1.0f); }  // +Z
-    glm::vec3 Backward() const { return Rotation * glm::vec3(0.0f, 0.0f, -1.0f); } // -Z
-    glm::vec3 Right()    const { return Rotation * glm::vec3(1.0f, 0.0f, 0.0f); }  // +X
-    glm::vec3 Left()     const { return Rotation * glm::vec3(-1.0f, 0.0f, 0.0f); } // -X
-    glm::vec3 Up()       const { return Rotation * glm::vec3(0.0f, 1.0f, 0.0f); }  // +Y
-    glm::vec3 Down()     const { return Rotation * glm::vec3(0.0f, -1.0f, 0.0f); } // -Y
+    glm::vec3 Forward()  const { return glm::normalize(Rotation * glm::vec3(0.0f, 0.0f, 1.0f)); }  // +Z
+    glm::vec3 Backward() const { return glm::normalize(Rotation * glm::vec3(0.0f, 0.0f, -1.0f)); } // -Z
+    glm::vec3 Right()    const { return glm::normalize(Rotation * glm::vec3(1.0f, 0.0f, 0.0f)); }  // +X
+    glm::vec3 Left()     const { return glm::normalize(Rotation * glm::vec3(-1.0f, 0.0f, 0.0f)); } // -X
+    glm::vec3 Up()       const { return glm::normalize(Rotation * glm::vec3(0.0f, 1.0f, 0.0f)); }  // +Y
+    glm::vec3 Down()     const { return glm::normalize(Rotation * glm::vec3(0.0f, -1.0f, 0.0f)); } // -Y
 
     bool operator==(const Transform& other) const
     {

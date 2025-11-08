@@ -13,10 +13,6 @@
 //-----------------------------------------------------------------------------
 class Model : public Transformable
 {
-protected:
-    std::vector<IMesh*> m_meshes;
-    std::vector<IMaterial*> m_materials;
-
 public:
     Model(const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials);
     Model(IMesh* mesh, IMaterial* material);
@@ -32,4 +28,10 @@ public:
     std::vector<IMesh*> GetMeshes() const;
 
     void Draw();
+
+    bool m_CastShadows = true;
+
+protected:
+    std::vector<IMesh*> m_meshes;
+    std::vector<IMaterial*> m_materials;
 };
