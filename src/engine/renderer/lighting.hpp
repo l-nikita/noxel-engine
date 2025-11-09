@@ -90,9 +90,15 @@ public:
     bool IsShadowsEnabled() const { return m_shadowMap != nullptr; }
     ShadowMap* GetShadowMap() const { return m_shadowMap; }
 
+    bool IsEnabled() const { return m_enabled; }
     float GetRadius() const { return m_radius; }
     float GetFOV() const { return m_fov; }
     glm::vec3 GetColor() const { return m_color; }
+
+    void SetEnabled(bool value)
+    {
+        m_enabled = value;
+    }
 
     void SetRadius(float radius)
     {
@@ -122,6 +128,7 @@ private:
     RenderCamera* m_camera = nullptr;
     ShadowMap* m_shadowMap = nullptr;
 
+    bool m_enabled = true;
     float m_radius = 15;
     float m_fov = 75;
     glm::vec3 m_color = glm::vec3(1);

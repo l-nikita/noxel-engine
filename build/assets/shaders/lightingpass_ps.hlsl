@@ -1,5 +1,5 @@
 //----------------------------------------
-#include "lightning.hlsl"
+#include "lighting.hlsl"
 
 //----------------------------------------
 Texture2D gColor : register(t0);

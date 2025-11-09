@@ -117,7 +117,7 @@ namespace DX11Helper
     static void CreateDepthStencilView(
         ID3D11Device* device, 
         ID3D11Resource* resource, 
-        D3D11_DEPTH_STENCIL_VIEW_DESC* desc, 
+        const D3D11_DEPTH_STENCIL_VIEW_DESC* desc,
         ID3D11DepthStencilView** dsv)
     {
         HRESULT hr = device->CreateDepthStencilView(resource, desc, dsv);
@@ -128,11 +128,22 @@ namespace DX11Helper
     static void CreateRenderTargetView(
         ID3D11Device* device, 
         ID3D11Resource* resource, 
-        D3D11_RENDER_TARGET_VIEW_DESC* desc,
+        const D3D11_RENDER_TARGET_VIEW_DESC* desc,
         ID3D11RenderTargetView** rtv)
     {
         HRESULT hr = device->CreateRenderTargetView(resource, desc, rtv);
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create Render Target View.", CMD::RENDERING);
+    }
+
+    static void CreateBuffer(
+        ID3D11Device* device, 
+        const D3D11_BUFFER_DESC* desc,
+        const D3D11_SUBRESOURCE_DATA* data,
+        ID3D11Buffer** buffer)
+    {
+        HRESULT hr = device->CreateBuffer(desc, data, buffer);
+        if (FAILED(hr))
+            FATAL_ERROR("DX11: Failed to create buffer.", CMD::RENDERING);
     }
 }

@@ -1,15 +1,15 @@
 #pragma once
 
-#include <DirectXMath.h>
 #include <array>
 
+#include "dx11helper.hpp"
 #include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
 #include "renderer/directx11/dx11renderer.hpp"
 #include "renderer/vertex.hpp"
 #include "renderer/rendercamera.hpp"
 #include "renderer/shaderregistry.hpp"
-#include "renderer/lightning.hpp"
+#include "renderer/lighting.hpp"
 #include "dbg/debug.hpp"
 
 //-----------------------------------------------------------------------------
@@ -53,10 +53,9 @@ public:
         cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         cbd.ByteWidth = sizeof(CBLightsData);
 
-        hr = m_device->CreateBuffer(&cbd, nullptr, &m_lightBuffer);
-        if (FAILED(hr))
-            FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
+        DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_lightBuffer);
 
+        //-----------------------------------------------------------------------------
         m_light1 = new Light(LIGHT_POINT);
         m_light1->SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
         m_light1->SetPosition(glm::vec3(1.0f, 0.0f, 0.0f));
@@ -73,7 +72,7 @@ public:
         Light* light3 = new Light(LIGHT_POINT);
         light3->SetColor(glm::vec3(0.0f, 0.0f, 1.0f));
         light3->SetPosition(glm::vec3(0.0f, -1.0f, 0.0f));
-        light3->SetRadius(10.0f);
+        light3->SetRadius(5.0f);
 
         m_light4 = new Light(LIGHT_SPOT, true);
         m_light4->SetColor(glm::vec3(1.0f, 0.0f, 1.0f));
@@ -151,7 +150,8 @@ public:
         //glm::vec3 dir = glm::normalize(m_light2->GetPosition() - pos);
         //glm::vec3 dir = glm::normalize(m_light2->GetPosition() - camTransform.Position);
         //m_light2->SetRotation(glm::quatLookAt(dir, m_light2->GetTransform().Up()));
-        m_light2->SetPosition(camTransform.Position + );
+        m_light2->SetPosition(camTransform.Position + camTransform.Right() * 2.0f);
+        m_light2->SetRotation(camTransform.Rotation);
 
         m_light2->GetCamera()->SetTransform(m_light2->m_Transform);
         m_light4->GetCamera()->SetTransform(m_light4->m_Transform);

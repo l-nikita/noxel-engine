@@ -1,7 +1,6 @@
 #pragma once
 
-#include <DirectXMath.h>
-
+#include "dx11helper.hpp"
 #include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
 #include "renderer/directx11/dx11renderer.hpp"
@@ -19,6 +18,7 @@ public:
     SkyboxPassPS(IShaderProgram* program)
         : DX11Shader(program)
     {
+        //-----------------------------------------------------------------------------
         D3D11_SAMPLER_DESC sampDesc = {};
         sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
         sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -32,6 +32,7 @@ public:
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create sampler state.", CMD::RENDERING);
 
+        //-----------------------------------------------------------------------------
         D3D11_RASTERIZER_DESC rsDesc = {};
         rsDesc.CullMode = D3D11_CULL_FRONT;
         rsDesc.FillMode = D3D11_FILL_SOLID;
@@ -40,14 +41,17 @@ public:
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create rasterizer state.", CMD::RENDERING);
 
+        //-----------------------------------------------------------------------------
         D3D11_DEPTH_STENCIL_DESC dsDesc = {};
         dsDesc.DepthEnable = TRUE;
         dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
         dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+
         hr = m_device->CreateDepthStencilState(&dsDesc, &m_depthState);
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create depth stencil state.", CMD::RENDERING);
 
+        //-----------------------------------------------------------------------------
         m_vars["cubemap"] = g_ErrorTexture;
     }
 
@@ -79,9 +83,6 @@ public:
             (*texPtr)->Unbind(0);
         else
             g_ErrorTexture->Unbind(0);
-
-        m_context->OMSetDepthStencilState(nullptr, 0);
-        m_context->RSSetState(nullptr);
 
         ID3D11SamplerState* nullSampler[1] = { nullptr };
         m_context->PSSetSamplers(0, 1, nullSampler);
@@ -125,12 +126,12 @@ public:
     SkyboxPassVS(IShaderProgram* program)
         : DX11Shader(program)
     {
-        // parameters, buffers, resources...
+        //-----------------------------------------------------------------------------
         D3D11_INPUT_ELEMENT_DESC layout[] = {
             { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
 
-        HRESULT hr = m_program->GetDevice()->CreateInputLayout(
+        HRESULT hr = m_device->CreateInputLayout(
             layout, ARRAYSIZE(layout),
             m_program->GetVSBlob()->GetBufferPointer(),
             m_program->GetVSBlob()->GetBufferSize(),
@@ -139,6 +140,7 @@ public:
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create input layout", CMD::RENDERING);
 
+        //-----------------------------------------------------------------------------
         D3D11_BUFFER_DESC cbd = {};
         cbd.Usage = D3D11_USAGE_DEFAULT;
         cbd.ByteWidth = sizeof(CBTransform);
@@ -147,9 +149,7 @@ public:
         cbd.MiscFlags = 0;
         cbd.StructureByteStride = 0;
 
-        hr = m_device->CreateBuffer(&cbd, nullptr, &m_cbTransform);
-        if (FAILED(hr))
-            FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
+        DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_cbTransform);
     }
 
     ~SkyboxPassVS() { Release(); }
@@ -175,6 +175,7 @@ public:
     void Unbind() 
     { 
         m_context->IASetInputLayout(nullptr);
+
         ID3D11Buffer* nullBuffer = nullptr;
         m_context->VSSetConstantBuffers(0, 1, &nullBuffer);
     }

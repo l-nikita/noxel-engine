@@ -1,7 +1,6 @@
 #pragma once
 
-#include <DirectXMath.h>
-
+#include "dx11helper.hpp"
 #include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
 #include "renderer/directx11/dx11renderer.hpp"
@@ -42,11 +41,12 @@ public:
     ShadowsPassVS(IShaderProgram* program)
         : DX11Shader(program)
     {
+        //-----------------------------------------------------------------------------
         D3D11_INPUT_ELEMENT_DESC layout[] = {
             { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
 
-        HRESULT hr = m_program->GetDevice()->CreateInputLayout(
+        HRESULT hr = m_device->CreateInputLayout(
             layout, ARRAYSIZE(layout),
             m_program->GetVSBlob()->GetBufferPointer(),
             m_program->GetVSBlob()->GetBufferSize(),
@@ -55,6 +55,7 @@ public:
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create input layout.", CMD::RENDERING);
 
+        //-----------------------------------------------------------------------------
         D3D11_BUFFER_DESC cbd = {};
         cbd.Usage = D3D11_USAGE_DEFAULT;
         cbd.ByteWidth = sizeof(CBTransform);
@@ -63,10 +64,9 @@ public:
         cbd.MiscFlags = 0;
         cbd.StructureByteStride = 0;
 
-        hr = m_device->CreateBuffer(&cbd, nullptr, &m_cbTransform);
-        if (FAILED(hr))
-            FATAL_ERROR("DX11: Failed to create constant buffer.", CMD::RENDERING);
+        DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_cbTransform);
 
+        //-----------------------------------------------------------------------------
         m_vars["model"] = glm::mat4(1.0f);
         m_vars["lightview"] = glm::mat4(1.0f);
         m_vars["lightproj"] = glm::mat4(1.0f);
@@ -109,7 +109,6 @@ public:
 
     void Unbind() 
     { 
-        m_context->RSSetState(nullptr);
         m_context->IASetInputLayout(nullptr);
 
         ID3D11Buffer* nullBuffer = nullptr;

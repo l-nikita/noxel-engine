@@ -89,5 +89,6 @@ private:
 	IShaderProgram* m_lightingShader = nullptr;
 
 	RenderCamera* m_mainCamera = nullptr;
-	IViewport* m_backBufferViewport = nullptr;
+	IViewport* m_backBufferVP = nullptr;
+	IViewport* m_shadowsMapsVP = nullptr;
 };

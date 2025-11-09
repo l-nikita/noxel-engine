@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glm/glm.hpp"
-#include "renderer/lightning.hpp"
+#include "renderer/lighting.hpp"
 
 struct CBTransform
 {

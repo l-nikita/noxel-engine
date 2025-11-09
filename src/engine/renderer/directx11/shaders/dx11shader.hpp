@@ -13,7 +13,9 @@ class DX11Shader : public IShader
 public:
     DX11Shader(IShaderProgram* program)
         : m_program(static_cast<DX11ShaderProgram*>(program)), m_device(m_program->GetDevice()), m_context(m_program->GetContext())
-    { }
+    { 
+        // parameters, buffers, resources...
+    }
 
     virtual ShaderType GetType() = 0;
 

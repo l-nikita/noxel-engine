@@ -1,9 +1,8 @@
 #pragma once
 
-#include <DirectXMath.h>
-
 #include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
+#include "dx11helper.hpp"
 #include "renderer/directx11/dx11renderer.hpp"
 #include "renderer/vertex.hpp"
 #include "renderer/rendercamera.hpp"
@@ -19,6 +18,7 @@ public:
     GeometryPassPS(IShaderProgram* program)
         : DX11Shader(program)
     {
+        //-----------------------------------------------------------------------------
         //D3D11_FILTER_MIN_MAG_MIP_LINEAR
         //D3D11_FILTER_MIN_MAG_MIP_POINT
         D3D11_SAMPLER_DESC sampDesc = {};
@@ -34,6 +34,7 @@ public:
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create sampler state", CMD::RENDERING);
 
+        //-----------------------------------------------------------------------------
         m_vars["basetexture"] = g_ErrorTexture;
         m_vars["normalmap"] = g_ErrorTexture;
     }
@@ -101,7 +102,7 @@ public:
     GeometryPassVS(IShaderProgram* program)
         : DX11Shader(program)
     {
-        // parameters, buffers, resources...
+        //-----------------------------------------------------------------------------
         D3D11_INPUT_ELEMENT_DESC layout[] = {
             { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Normal),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -111,7 +112,7 @@ public:
             { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,0, offsetof(Vertex, Color),    D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
 
-        HRESULT hr = m_program->GetDevice()->CreateInputLayout(
+        HRESULT hr = m_device->CreateInputLayout(
             layout, ARRAYSIZE(layout),
             m_program->GetVSBlob()->GetBufferPointer(),
             m_program->GetVSBlob()->GetBufferSize(),
@@ -120,6 +121,7 @@ public:
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create input layout", CMD::RENDERING);
 
+        //-----------------------------------------------------------------------------
         D3D11_BUFFER_DESC cbd = {};
         cbd.Usage = D3D11_USAGE_DEFAULT;
         cbd.ByteWidth = sizeof(CBTransform);
@@ -128,10 +130,9 @@ public:
         cbd.MiscFlags = 0;
         cbd.StructureByteStride = 0;
 
-        hr = m_device->CreateBuffer(&cbd, nullptr, &m_cbTransform);
-        if (FAILED(hr))
-            FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
+        DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_cbTransform);
 
+        //-----------------------------------------------------------------------------
         m_vars["model"] = glm::mat4(1.0f);
     }
 

@@ -6,7 +6,7 @@
 #include "gizmos.hpp"
 #include "model.hpp"
 #include "rendercamera.hpp"
-#include "lightning.hpp"
+#include "lighting.hpp"
 
 #include "gui/igui.hpp"
 #include "engine/window.hpp"
@@ -182,14 +182,14 @@ void DeferredRenderPipeline::Init()
 	int width, height;
 	g_Engine->GetWindow()->GetSize(&width, &height);
 
-	m_backBufferViewport = factory->CreateViewport(0, 0, width, height);
+	m_backBufferVP = factory->CreateViewport(0, 0, width, height);
 	m_mainCamera = new RenderCamera(width, height);
 	m_mainCamera->SetFOV(95.0f);
 	m_mainCamera->SetNear(0.1f);
 	m_mainCamera->SetFar(100.0f);
 
 	g_Renderer->SetCamera(m_mainCamera);
-	g_Renderer->SetViewport(m_backBufferViewport);
+	g_Renderer->SetViewport(m_backBufferVP);
 
 	SetupGBuffer(width, height);
 	SetupShadows();
@@ -277,22 +277,10 @@ void DeferredRenderPipeline::SetupSkybox()
 	m_skyboxMesh = factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
 }
 
-static ID3D11RasterizerState* rasterizerStateWithBias = nullptr;
-
 void DeferredRenderPipeline::SetupShadows()
 {
-	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
-	auto device = dxrenderer->GetDevice();
-
-	D3D11_RASTERIZER_DESC desc = {};
-	desc.FillMode = D3D11_FILL_SOLID;
-	desc.CullMode = D3D11_CULL_BACK;
-	desc.DepthClipEnable = TRUE;
-	desc.DepthBias = 200;
-	desc.SlopeScaledDepthBias = 1.0f;
-	desc.DepthBiasClamp = 0.0f;
-
-	device->CreateRasterizerState(&desc, &rasterizerStateWithBias);
+	auto factory = g_Renderer->GetFactory();
+	m_shadowsMapsVP = factory->CreateViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
 }
 
 //-----------------------------------------------------------------------------
@@ -366,7 +354,6 @@ void DeferredRenderPipeline::DoShadowPass()
 	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
 	auto context = dxrenderer->GetContext();
 
-	context->RSSetState(rasterizerStateWithBias);
 	auto& lights = LightManager::GetInstance().GetLights();
 	for (int i = 0; i < lights.size(); i++)
 	{
@@ -376,16 +363,10 @@ void DeferredRenderPipeline::DoShadowPass()
 
 		auto shadowMap = light->GetShadowMap();
 		auto depth = shadowMap->GetDepth();
-		float size = (float)shadowMap->GetSize();
+		int size = shadowMap->GetSize();
 
-		D3D11_VIEWPORT vp = {};
-		vp.TopLeftX = 0;
-		vp.TopLeftY = 0;
-		vp.Width = size;
-		vp.Height = size;
-		vp.MinDepth = 0.0f;
-		vp.MaxDepth = 1.0f;
-		context->RSSetViewports(1, &vp);
+		m_shadowsMapsVP->Resize(size, size);
+		g_Renderer->SetViewport(m_shadowsMapsVP);
 
 		g_Renderer->SetRenderTextures(nullptr, 0, depth);
 		depth->Clear();
@@ -410,7 +391,6 @@ void DeferredRenderPipeline::DoShadowPass()
 	}
 
 	g_Renderer->SetRenderTextures(nullptr, 0, nullptr);
-	context->RSSetState(nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -434,7 +414,7 @@ void DeferredRenderPipeline::Render()
 	DoGeometryPass();
 	DoShadowPass();
 
-	g_Renderer->SetViewport(m_backBufferViewport);
+	g_Renderer->SetViewport(m_backBufferVP);
 	g_Renderer->SetRenderTextures(&backBuffer, 1, nullptr);
 	DoLightingPass();
 
@@ -465,10 +445,16 @@ void DeferredRenderPipeline::Shutdown()
 		m_mainCamera = nullptr;
 	}
 
-	if (m_backBufferViewport)
+	if (m_backBufferVP)
 	{
-		delete m_backBufferViewport;
-		m_backBufferViewport = nullptr;
+		delete m_backBufferVP;
+		m_backBufferVP = nullptr;
+	}
+
+	if (m_shadowsMapsVP)
+	{
+		delete m_shadowsMapsVP;
+		m_shadowsMapsVP = nullptr;
 	}
 
 	auto factory = g_Renderer->GetFactory();
@@ -509,8 +495,8 @@ void DeferredRenderPipeline::OnWindowResize(int width, int height)
 
 	g_Renderer->OnWindowResize(width, height);
 
-	m_backBufferViewport->Resize(width, height);
-	g_Renderer->SetViewport(m_backBufferViewport);
+	m_backBufferVP->Resize(width, height);
+	g_Renderer->SetViewport(m_backBufferVP);
 
 	SetupGBuffer(width, height);
 	m_mainCamera->OnFrameBufferResize(width, height);
