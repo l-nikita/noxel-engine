@@ -1,0 +1,11 @@
+{
+	"shader": "geometrypass",
+	"parameters": 
+	{
+		"color": "dirt1_color.jpg",
+		"normal": "dirt1_normal.jpg",
+		"rough": "dirt1_rough.jpg",
+		"ao": "dirt1_ao.jpg",
+		"height": "dirt1_height.jpg"
+	}
+}

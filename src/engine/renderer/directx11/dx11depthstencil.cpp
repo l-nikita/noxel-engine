@@ -56,15 +56,14 @@ void DX11DepthStencil::Clear()
 
 void DX11DepthStencil::Release()
 {
+    if (IsReleased())
+        return;
+
+    m_isReleased = true;
+
     if (m_dsv)
-    {
-        m_dsv->Release();
-        m_dsv = nullptr;
-    }
+        m_dsv->Release(), m_dsv = nullptr;
 
     if (m_texture)
-    {
-        g_Renderer->GetFactory()->Release(m_texture);
-        m_texture = nullptr;
-    }
+        g_Renderer->GetFactory()->Release(m_texture), m_texture = nullptr;
 }

@@ -167,22 +167,26 @@ IViewport* DX11Factory::CreateViewport(int x, int y, int width, int height)
 
 void DX11Factory::Release(IRenderResource* resource)
 {
-    if (!resource) 
-        return;
+    assert(resource);
 
     auto it = std::find(m_resources.begin(), m_resources.end(), resource);
+    if (it == m_resources.end())
+        return;
 
-    if (it != m_resources.end())
-    {
-        delete resource;
-        m_resources.erase(it);
-    }
+    if (resource->IsReleased()) 
+        return;
+
+    delete resource;
+    m_resources.erase(std::remove(m_resources.begin(), m_resources.end(), resource), m_resources.end());
 }
 
 void DX11Factory::Shutdown()
 {
-    for (int i = 0; i < m_resources.size(); i++)
-        delete m_resources[i];
+    for (auto resource : m_resources)
+        resource->Release();
+
+    for (auto resource : m_resources)
+        delete resource;
 
     m_resources.clear();
 }

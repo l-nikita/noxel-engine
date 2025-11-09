@@ -31,6 +31,7 @@ void Gui::Init()
     }
 
     m_DebugMenu = new DebugMenu();
+    m_DebugMenu->m_IsVisible = false;
     m_panels.push_back(dynamic_cast<Panel*>(m_DebugMenu));
 }
 

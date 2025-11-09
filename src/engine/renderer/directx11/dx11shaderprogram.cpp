@@ -120,41 +120,28 @@ void DX11ShaderProgram::Unbind()
 
 void DX11ShaderProgram::Release()
 {
+    if (IsReleased())
+        return;
+
+    m_isReleased = true;
+
     if (m_vShader)
-    {
-        delete m_vShader;
-        m_vShader = nullptr;
-    }
+        delete m_vShader, m_vShader = nullptr;
 
     if (m_pShader)
-    {
-        delete m_pShader;
-        m_pShader = nullptr;
-    }
+        delete m_pShader, m_pShader = nullptr;
 
     if (m_vs)
-    {
-        m_vs->Release();
-        m_vs = nullptr;
-    }
+        m_vs->Release(), m_vs = nullptr;
 
     if (m_ps)
-    {
-        m_ps->Release();
-        m_ps = nullptr;
-    }
+        m_ps->Release(), m_ps = nullptr;
 
     if (m_vsBlob)
-    {
-        m_vsBlob->Release();
-        m_vsBlob = nullptr;
-    }
+        m_vsBlob->Release(), m_vsBlob = nullptr;
 
     if (m_psBlob)
-    {
-        m_psBlob->Release();
-        m_psBlob = nullptr;
-    }
+        m_psBlob->Release(), m_psBlob = nullptr;
 }
 
 ID3DBlob* DX11ShaderProgram::GetVSBlob() const

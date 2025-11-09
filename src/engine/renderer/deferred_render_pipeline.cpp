@@ -14,6 +14,7 @@
 #include "assetsystem/materialasset.hpp"
 
 ITexture* g_ErrorTexture = nullptr;
+ITexture* g_BlackTexture = nullptr;
 IMaterial* g_ErrorMaterial = nullptr;
 
 static Model* g_TestModel;
@@ -74,9 +75,18 @@ void DeferredRenderPipeline::Init()
 {
 	auto factory = g_Renderer->GetFactory();
 
-	// TODO: Memory leak, make resource manager
+	//----------------------------------------------------
 	g_ErrorTexture = factory->CreateTexture(TextureAsset::GetError());
 	g_ErrorMaterial = factory->CreateMaterial(MaterialAsset::GetError());
+
+	TextureDesc desc = {};
+	desc.Width = 1;
+	desc.Height = 1;
+	desc.Format = TextureFormat::RGBA8;
+	desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
+	desc.MipLevels = 1;
+
+	g_BlackTexture = factory->CreateTexture(desc);
 
 	//----------------------------------------------------
 	std::vector<Vertex> cubeVertices
@@ -138,8 +148,8 @@ void DeferredRenderPipeline::Init()
 
 	//----------------------------------------------------
 	// TODO: Memory leak, make resource manager
-	auto* mat = factory->CreateMaterial("dirt");
-	auto* mat2 = factory->CreateMaterial("rocks");
+	auto* mat = factory->CreateMaterial("metal1");
+	auto* mat2 = factory->CreateMaterial("dirt1");
 	auto* mesh = factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
 
 	/*
@@ -439,6 +449,8 @@ void DeferredRenderPipeline::Render()
 //-----------------------------------------------------------------------------
 void DeferredRenderPipeline::Shutdown()
 {
+	LightManager::GetInstance().Release();
+
 	for (auto model : m_Models)
 		delete model;
 
@@ -446,50 +458,27 @@ void DeferredRenderPipeline::Shutdown()
 	m_GBuffer.Release();
 
 	if (m_mainCamera)
-	{
-		delete m_mainCamera;
-		m_mainCamera = nullptr;
-	}
+		delete m_mainCamera, m_mainCamera = nullptr;
 
 	if (m_backBufferVP)
-	{
-		delete m_backBufferVP;
-		m_backBufferVP = nullptr;
-	}
+		delete m_backBufferVP, m_backBufferVP = nullptr;
 
 	if (m_shadowsMapsVP)
-	{
-		delete m_shadowsMapsVP;
-		m_shadowsMapsVP = nullptr;
-	}
+		delete m_shadowsMapsVP, m_shadowsMapsVP = nullptr;
 
 	auto factory = g_Renderer->GetFactory();
 
 	if (m_shadowsShader)
-	{
-		factory->Release(m_shadowsShader);
-		m_shadowsShader = nullptr;
-	}
+		factory->Release(m_shadowsShader), m_shadowsShader = nullptr;
 
 	if (m_lightingShader)
-	{
-		factory->Release(m_lightingShader);
-		m_lightingShader = nullptr;
-	}
+		factory->Release(m_lightingShader), m_lightingShader = nullptr;
 
 	if (m_skyboxMat)
-	{
-		factory->Release(m_skyboxMat);
-		m_skyboxMat = nullptr;
-	}
+		factory->Release(m_skyboxMat), m_skyboxMat = nullptr;
 
 	if (m_skyboxMesh)
-	{
-		factory->Release(m_skyboxMesh);
-		m_skyboxMesh = nullptr;
-	}
-
-	g_Renderer->Shutdown();
+		factory->Release(m_skyboxMesh), m_skyboxMesh = nullptr;
 }
 
 //-----------------------------------------------------------------------------

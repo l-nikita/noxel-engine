@@ -59,17 +59,16 @@ DX11Texture::DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 
 void DX11Texture::Release()
 {
+    if (IsReleased())
+        return;
+
+    m_isReleased = true;
+
     if (m_srv)
-    {
-        m_srv->Release();
-        m_srv = nullptr;
-    }
+        m_srv->Release(), m_srv = nullptr;
 
     if (m_texture)
-    {
-        m_texture->Release();
-        m_texture = nullptr;
-    }
+        m_texture->Release(), m_texture = nullptr;
 }
 
 void DX11Texture::Bind(std::uint32_t slot)

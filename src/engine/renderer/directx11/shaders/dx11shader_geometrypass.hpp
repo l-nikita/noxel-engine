@@ -43,22 +43,12 @@ public:
         DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_viewBuffer);
 
         //-----------------------------------------------------------------------------
-        TextureDesc desc = {};
-        desc.Width = 1;
-        desc.Height = 1;
-        desc.Format = TextureFormat::RGBA8;
-        desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
-        desc.MipLevels = 1;
-
-        m_blackTex = g_Renderer->GetFactory()->CreateTexture(desc);
-
-        //-----------------------------------------------------------------------------
-        m_vars["color"] = m_blackTex;
-        m_vars["normal"] = m_blackTex;
-        m_vars["rough"] = m_blackTex;
-        m_vars["metal"] = m_blackTex;
-        m_vars["ao"] = m_blackTex;
-        m_vars["height"] = m_blackTex;
+        m_vars["color"] = g_BlackTexture;
+        m_vars["normal"] = g_BlackTexture;
+        m_vars["rough"] = g_BlackTexture;
+        m_vars["metal"] = g_BlackTexture;
+        m_vars["ao"] = g_BlackTexture;
+        m_vars["height"] = g_BlackTexture;
     }
 
     ~GeometryPassPS() { Release(); }
@@ -142,17 +132,16 @@ public:
             m_samplerState = nullptr;
         }
 
-        if (m_blackTex)
+        if (m_viewBuffer)
         {
-            g_Renderer->GetFactory()->Release(m_blackTex);
-            m_blackTex = nullptr;
+            m_viewBuffer->Release();
+            m_viewBuffer = nullptr;
         }
     }
 
 private:
     ID3D11SamplerState* m_samplerState = nullptr;
     ID3D11Buffer* m_viewBuffer = nullptr;
-    ITexture* m_blackTex = nullptr;
 };
 
 REGISTER_SHADER("geometrypassPS", GeometryPassPS);
@@ -229,6 +218,7 @@ public:
     void Unbind()
     {
         m_context->IASetInputLayout(nullptr);
+
         ID3D11Buffer* nullBuffer = nullptr;
         m_context->VSSetConstantBuffers(0, 1, &nullBuffer);
     }

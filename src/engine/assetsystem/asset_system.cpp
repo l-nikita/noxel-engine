@@ -34,8 +34,8 @@ void AssetSystem::Init()
 
 	//MaterialAsset::CreateNew("gizmos", (m_assetsPath / "materials\\engine\\gizmos.nmt").string());
 
-	MaterialAsset::CreateNew("dirt", (m_assetsPath / "materials\\dirt.nmt").string());
-	MaterialAsset::CreateNew("rocks", (m_assetsPath / "materials\\rocks.nmt").string());
+	MaterialAsset::CreateNew("dirt1", (m_assetsPath / "materials\\dirt1.nmt").string());
+	MaterialAsset::CreateNew("metal1", (m_assetsPath / "materials\\metal1.nmt").string());
 	MaterialAsset::CreateNew("skybox", (m_assetsPath / "materials\\skybox.nmt").string());
 
 	CMD_INFO("Asset system initialized", CMD::ASSETSYSTEM);

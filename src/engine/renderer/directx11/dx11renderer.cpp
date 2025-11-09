@@ -92,6 +92,10 @@ void DX11Renderer::CreateSwapChain()
     dxgiDevice->Release();
     dxgiAdapter->Release();
     dxgiFactory->Release();
+
+    if (m_context)
+        m_context->ClearState(), m_context->Flush();
+
 }
 
 void DX11Renderer::Init()
@@ -151,7 +155,7 @@ void DX11Renderer::SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, I
 
 void DX11Renderer::BindRenderTextures(IRenderTexture* rts[], std::uint32_t num)
 {
-    DX11Texture* textures[8];
+    DX11Texture* textures[8] = { nullptr };
     for (int i = 0; i < num; ++i)
         textures[i] = static_cast<DX11Texture*>(rts[i]->GetTexture());
 
@@ -183,6 +187,29 @@ void DX11Renderer::SetPrimitiveTopology(PrimitiveTopology topology)
 //-----------------------------------------------------------------------------
 void DX11Renderer::Shutdown()
 {
+    if (m_backBuffer)
+        delete m_backBuffer, m_backBuffer = nullptr;
+
+    if (m_factory)
+    {
+        delete m_factory;
+        m_factory = nullptr;
+    }
+
+    if (m_context)
+    {
+        m_context->ClearState();
+        m_context->Flush();
+        m_context->Release();
+        m_context = nullptr;
+    }
+
+    if (m_swapChain)
+        m_swapChain->Release(), m_swapChain = nullptr;
+
+    if (m_device)
+        m_device->Release(), m_device = nullptr;
+
 #ifdef _DEBUG
     IDXGIDebug1* pDebug = nullptr;
     if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
@@ -191,32 +218,6 @@ void DX11Renderer::Shutdown()
         pDebug->Release();
     }
 #endif
-
-    if (m_backBuffer)
-    {
-        delete m_backBuffer;
-        m_backBuffer = nullptr;
-    }
-
-    delete m_factory;
-
-    if (m_swapChain)
-    {
-        m_swapChain->Release();
-        m_swapChain = nullptr;
-    }
-
-    if (m_context)
-    {
-        m_context->Release();
-        m_context = nullptr;
-    }
-
-    if (m_device)
-    {
-        m_device->Release();
-        m_device = nullptr;
-    }
 }
 
 //-----------------------------------------------------------------------------

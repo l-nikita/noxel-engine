@@ -29,17 +29,16 @@ DX11Mesh::DX11Mesh(ID3D11Device* device, ID3D11DeviceContext* context,
 
 void DX11Mesh::Release()
 {
+    if (IsReleased())
+        return;
+
+    m_isReleased = true;
+
     if (m_vertexBuffer)
-    {
-        delete m_vertexBuffer;
-        m_vertexBuffer = nullptr;
-    }
+        delete m_vertexBuffer, m_vertexBuffer = nullptr;
 
     if (m_indexBuffer)
-    {
-        delete m_indexBuffer;
-        m_indexBuffer = nullptr;
-    }
+        delete m_indexBuffer, m_indexBuffer = nullptr;
 }
 
 void DX11Mesh::Bind()

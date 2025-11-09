@@ -88,3 +88,4 @@ public:
 };
 
 extern ITexture* g_ErrorTexture;
+extern ITexture* g_BlackTexture;

@@ -138,7 +138,9 @@ using Lights = std::array<Light*, MAX_LIGHTS>;
 class LightManager : public Singleton<LightManager>
 {
 public:
-    ~LightManager()
+    ~LightManager() { Release(); }
+
+    void Release()
     {
         for (int i = 0; i < MAX_LIGHTS; ++i)
         {

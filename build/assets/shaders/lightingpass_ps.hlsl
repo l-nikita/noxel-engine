@@ -49,12 +49,10 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     float3 toView = normalize(ViewPos - worldPos); // view direction (to camera)
 
-    // ambient
 #if SIMPLE_LIGHTING
-    float3 ambient = CalcSimpleAmbient() * color * ao * 0.03;
-    float3 result = ambient;
+    float3 result = CalcSimpleAmbient() * color * ao;
 #else
-    float3 result = CalcIBL(normal, toView, color, metalness, roughness, ao, Cubemap, Samp);
+    float3 result = CalcSimpleAmbient() * color * ao; //CalcIBL(normal, toView, color, metalness, roughness, ao, Cubemap, Samp);
 #endif
     
     // lighting

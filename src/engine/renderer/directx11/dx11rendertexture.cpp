@@ -65,11 +65,13 @@ void DX11RenderTexture::Unbind()
 
 void DX11RenderTexture::Release()
 {
+    if (IsReleased())
+        return;
+
+    m_isReleased = true;
+
     if (m_rtv)
-    {
-        m_rtv->Release();
-        m_rtv = nullptr;
-    }
+        m_rtv->Release(), m_rtv = nullptr;
 
     if (m_texture)
     {
@@ -82,8 +84,5 @@ void DX11RenderTexture::Release()
     }
 
     if (m_depthStencil)
-    {
-        g_Renderer->GetFactory()->Release(m_depthStencil);
-        m_depthStencil = nullptr;
-    }
+        g_Renderer->GetFactory()->Release(m_depthStencil), m_depthStencil = nullptr;
 }

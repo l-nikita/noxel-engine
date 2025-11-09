@@ -1,5 +1,6 @@
 #include <d3d11.h>
 #include "dx11buffer.hpp"
+#include "dx11helper.hpp"
 #include "renderer/vertex.hpp"
 #include "dbg/debug.hpp"
 
@@ -14,9 +15,7 @@ DX11Buffer::DX11Buffer(ID3D11Device* device, ID3D11DeviceContext* context, GPUBu
     D3D11_SUBRESOURCE_DATA data = {};
     data.pSysMem = initialData;
 
-    HRESULT hr = device->CreateBuffer(&desc, initialData ? &data : nullptr, &m_buffer);
-    if (FAILED(hr))
-        FATAL_ERROR("DX11: Failed to create Buffer.", CMD::RENDERING);
+    DX11Helper::CreateBuffer(m_device, &desc, initialData ? &data : nullptr, &m_buffer);
 }
 
 void DX11Buffer::Bind(std::uint32_t slot)
@@ -90,10 +89,7 @@ void DX11Buffer::Update(const void* data, size_t size)
 void DX11Buffer::Release()
 {
     if (m_buffer)
-    {
-        m_buffer->Release();
-        m_buffer = nullptr;
-    }
+        m_buffer->Release(), m_buffer = nullptr;
 }
 
 std::uint32_t DX11Buffer::GetBindFlags(GPUBufferType type)

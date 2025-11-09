@@ -20,6 +20,8 @@ class MaterialAsset;
 class IRenderFactory 
 {
 public:
+    virtual ~IRenderFactory() = default;
+
     virtual ITexture* CreateTexture(TextureAsset* asset) = 0;
     virtual ITexture* CreateTexture(const TextureDesc& desc) = 0;
     virtual ITexture* CreateCubemap(MaterialAsset* asset) = 0;

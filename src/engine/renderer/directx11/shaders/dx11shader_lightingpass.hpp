@@ -78,8 +78,8 @@ public:
         m_light4->SetColor(glm::vec3(1.0f, 0.0f, 1.0f));
         m_light4->SetPosition(glm::vec3(-9.0f, -3.0f, -10.0f));
         m_light4->SetRotation(glm::angleAxis(glm::radians(45.0f), m_light4->Up()));
-        m_light4->SetRadius(35.0f);
-        m_light4->SetFOV(60.0f);
+        m_light4->SetRadius(20.0f);
+        m_light4->SetFOV(90.0f);
 
         LightManager::GetInstance().AddLight(m_light1);
         LightManager::GetInstance().AddLight(m_light2);
@@ -87,17 +87,7 @@ public:
         LightManager::GetInstance().AddLight(m_light4);
 
         //-----------------------------------------------------------------------------
-        TextureDesc desc = {};
-        desc.Width = 1;
-        desc.Height = 1;
-        desc.Format = TextureFormat::RGBA8;
-        desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
-        desc.MipLevels = 1;
-
-        m_blackTex = g_Renderer->GetFactory()->CreateTexture(desc);
-
-        //-----------------------------------------------------------------------------
-        m_vars["cubemap"] = m_blackTex;
+        m_vars["cubemap"] = g_BlackTexture;
     }
 
     ~LightingPassPS() { Release(); }
@@ -190,9 +180,8 @@ public:
 
         m_context->PSSetConstantBuffers(0, 0, nullptr);
 
-        ID3D11SamplerState* nullSampler[1] = { nullptr };
-        m_context->PSSetSamplers(0, 1, nullSampler);
-        m_context->PSSetSamplers(1, 1, nullSampler);
+        ID3D11SamplerState* nullSampler[2] = { nullptr };
+        m_context->PSSetSamplers(0, 2, nullSampler);
     }
 
     void Release()
@@ -214,19 +203,12 @@ public:
             m_lightBuffer->Release();
             m_lightBuffer = nullptr;
         }
-
-        if (m_blackTex)
-        {
-            g_Renderer->GetFactory()->Release(m_blackTex);
-            m_blackTex = nullptr;
-        }
     }
 
 private:
     ID3D11SamplerState* m_samplerState = nullptr;
     ID3D11SamplerState* m_sampler2State = nullptr;
     ID3D11Buffer* m_lightBuffer = nullptr;
-    ITexture* m_blackTex = nullptr;
 
     Light* m_light1 = nullptr;
     Light* m_light2 = nullptr;

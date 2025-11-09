@@ -115,8 +115,9 @@ void Engine::Shutdown()
 {
     Stop();
 
-    g_RenderPipeline->Shutdown();
     g_Gui->Shutdown();
+    g_RenderPipeline->Shutdown();
+    g_Renderer->Shutdown();
 
     delete g_Assets;
     delete g_Input;
