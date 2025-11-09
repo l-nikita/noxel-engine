@@ -35,8 +35,30 @@ public:
             FATAL_ERROR("DX11: Failed to create sampler state", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
-        m_vars["basetexture"] = g_ErrorTexture;
-        m_vars["normalmap"] = g_ErrorTexture;
+        D3D11_BUFFER_DESC cbd = {};
+        cbd.Usage = D3D11_USAGE_DEFAULT;
+        cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        cbd.ByteWidth = sizeof(CBViewData);
+
+        DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_viewBuffer);
+
+        //-----------------------------------------------------------------------------
+        TextureDesc desc = {};
+        desc.Width = 1;
+        desc.Height = 1;
+        desc.Format = TextureFormat::RGBA8;
+        desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
+        desc.MipLevels = 1;
+
+        m_blackTex = g_Renderer->GetFactory()->CreateTexture(desc);
+
+        //-----------------------------------------------------------------------------
+        m_vars["color"] = m_blackTex;
+        m_vars["normal"] = m_blackTex;
+        m_vars["rough"] = m_blackTex;
+        m_vars["metal"] = m_blackTex;
+        m_vars["ao"] = m_blackTex;
+        m_vars["height"] = m_blackTex;
     }
 
     ~GeometryPassPS() { Release(); }
@@ -45,34 +67,68 @@ public:
 
     void Bind()
     {
-        ShaderVar& texVar = GetVar("basetexture");
-        if (auto texPtr = std::get_if<ITexture*>(&texVar))
-            (*texPtr)->Bind(0);
-        else
-            g_ErrorTexture->Bind(0);
+        ShaderVar& colorVar = GetVar("color");
+        if (auto colorPtr = std::get_if<ITexture*>(&colorVar))
+            (*colorPtr)->Bind(0);
 
-        ShaderVar& normVar = GetVar("normalmap");
+        ShaderVar& normVar = GetVar("normal");
         if (auto normPtr = std::get_if<ITexture*>(&normVar))
             (*normPtr)->Bind(1);
-        else
-            g_ErrorTexture->Bind(1);
+
+        ShaderVar& roughVar = GetVar("rough");
+        if (auto roughPtr = std::get_if<ITexture*>(&roughVar))
+            (*roughPtr)->Bind(2);
+
+        ShaderVar& metalVar = GetVar("metal");
+        if (auto metalPtr = std::get_if<ITexture*>(&metalVar))
+            (*metalPtr)->Bind(3);
+
+        ShaderVar& aoVar = GetVar("ao");
+        if (auto aoPtr = std::get_if<ITexture*>(&aoVar))
+            (*aoPtr)->Bind(4);
+
+        ShaderVar& heightVar = GetVar("height");
+        if (auto heightPtr = std::get_if<ITexture*>(&heightVar))
+            (*heightPtr)->Bind(5);
+
+        CBViewData data
+        {
+            glm::vec4(g_Renderer->GetCamera()->GetPosition(), 1),
+        };
+
+        m_context->UpdateSubresource(m_viewBuffer, 0, nullptr, &data, 0, 0);
+        m_context->PSSetConstantBuffers(0, 1, &m_viewBuffer);
 
         m_context->PSSetSamplers(0, 1, &m_samplerState);
     }
 
     void Unbind()
     {
-        ShaderVar& texVar = GetVar("basetexture");
-        if (auto texPtr = std::get_if<ITexture*>(&texVar))
-            (*texPtr)->Unbind(0);
-        else
-            g_ErrorTexture->Unbind(0);
+        ShaderVar& colorVar = GetVar("color");
+        if (auto colorPtr = std::get_if<ITexture*>(&colorVar))
+            (*colorPtr)->Unbind(0);
 
-        ShaderVar& normVar = GetVar("normalmap");
+        ShaderVar& normVar = GetVar("normal");
         if (auto normPtr = std::get_if<ITexture*>(&normVar))
             (*normPtr)->Unbind(1);
-        else
-            g_ErrorTexture->Unbind(1);
+
+        ShaderVar& roughVar = GetVar("rough");
+        if (auto roughPtr = std::get_if<ITexture*>(&roughVar))
+            (*roughPtr)->Unbind(2);
+
+        ShaderVar& metalVar = GetVar("metal");
+        if (auto metalPtr = std::get_if<ITexture*>(&metalVar))
+            (*metalPtr)->Unbind(3);
+
+        ShaderVar& aoVar = GetVar("ao");
+        if (auto aoPtr = std::get_if<ITexture*>(&aoVar))
+            (*aoPtr)->Unbind(4);
+
+        ShaderVar& heightVar = GetVar("height");
+        if (auto heightPtr = std::get_if<ITexture*>(&heightVar))
+            (*heightPtr)->Unbind(5);
+
+        m_context->PSSetConstantBuffers(0, 0, nullptr);
 
         ID3D11SamplerState* nullSampler[1] = { nullptr };
         m_context->PSSetSamplers(0, 1, nullSampler);
@@ -85,10 +141,18 @@ public:
             m_samplerState->Release();
             m_samplerState = nullptr;
         }
+
+        if (m_blackTex)
+        {
+            g_Renderer->GetFactory()->Release(m_blackTex);
+            m_blackTex = nullptr;
+        }
     }
 
 private:
     ID3D11SamplerState* m_samplerState = nullptr;
+    ID3D11Buffer* m_viewBuffer = nullptr;
+    ITexture* m_blackTex = nullptr;
 };
 
 REGISTER_SHADER("geometrypassPS", GeometryPassPS);

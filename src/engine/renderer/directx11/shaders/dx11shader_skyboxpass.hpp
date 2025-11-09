@@ -67,8 +67,6 @@ public:
         ShaderVar& texVar = GetVar("cubemap");
         if (auto texPtr = std::get_if<ITexture*>(&texVar))
             (*texPtr)->Bind(0);
-        else
-            g_ErrorTexture->Bind(0);
 
         m_context->PSSetSamplers(0, 1, &m_samplerState);
     }
@@ -81,8 +79,6 @@ public:
         ShaderVar& texVar = GetVar("cubemap");
         if (auto texPtr = std::get_if<ITexture*>(&texVar))
             (*texPtr)->Unbind(0);
-        else
-            g_ErrorTexture->Unbind(0);
 
         ID3D11SamplerState* nullSampler[1] = { nullptr };
         m_context->PSSetSamplers(0, 1, nullSampler);

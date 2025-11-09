@@ -1,7 +1,21 @@
-Texture2D Texture0 : register(t0); // color texture
-Texture2D Texture1 : register(t1); // normal texture
+//----------------------------------------
+Texture2D Color         : register(t0);
+Texture2D Normal        : register(t1);
+Texture2D Roughness     : register(t2);
+Texture2D Metalness     : register(t3);
+Texture2D AO            : register(t4);
+Texture2D Height        : register(t5);
+
+//----------------------------------------
 SamplerState Samp : register(s0);
-	
+
+//----------------------------------------
+cbuffer ViewData : register(b0)
+{
+    float4 ViewPos;
+};
+
+//----------------------------------------
 struct PS_INPUT
 {
     float4 vPos         : SV_POSITION;
@@ -15,27 +29,36 @@ struct PS_INPUT
 	
 struct PS_OUTPUT
 {
-    float4 pColor       : SV_Target0;
-    float4 pNormal      : SV_Target1;
-    float4 pPosition    : SV_Target2;
+    float4 gColor       : SV_Target0;
+    float4 gNormal      : SV_Target1;
+    float4 gPosition    : SV_Target2;
+    float4 gSpecular    : SV_Target3;
 };
-	
+
 PS_OUTPUT main(PS_INPUT input) : SV_TARGET
 {
     PS_OUTPUT o;
-    
-    float4 color = Texture0.Sample(Samp, input.vUV) * input.vColor;
-    float3 normalTex = Texture1.Sample(Samp, input.vUV).xyz * 2.0 - 1.0;
     
     float3 N = normalize(input.vNormal);
     float3 T = normalize(input.vTangent - dot(input.vTangent, N) * N);
     float3 B = cross(N, T);
     float3x3 TBN = float3x3(T, B, N);
-    float3 normal = normalize(mul(normalTex, TBN));
     
-    o.pColor = color;
-    o.pNormal = float4(normal, 1.0);
-    o.pPosition = float4(input.vWorldPos, 1.0);
+    //float3 viewDirTS = normalize(mul((ViewPos.xyz - input.vWorldPos), TBN));
+    float2 uv = input.vUV;
+
+    float4 color = Color.Sample(Samp, uv) * input.vColor;
+    float3 normal = Normal.Sample(Samp, uv).xyz * 2.0 - 1.0;
+    float roughness = Roughness.Sample(Samp, uv).r;
+    float metalness = Metalness.Sample(Samp, uv).r;
+    float height = Height.Sample(Samp, uv).r;
+    float ao = AO.Sample(Samp, uv).r;
+    float3 finalNormal = normalize(mul(normal, TBN));
+
+    o.gColor = color;
+    o.gNormal = float4(finalNormal, 1.0);
+    o.gPosition = float4(input.vWorldPos, 1.0);
+    o.gSpecular = float4(roughness, metalness, ao, height);
 
     return o;
 }

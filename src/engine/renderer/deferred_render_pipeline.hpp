@@ -16,6 +16,7 @@ struct GBuffer
 	IRenderTexture* Color;
 	IRenderTexture* Normal;
 	IRenderTexture* Position;
+	IRenderTexture* Specular; // metalness, roughness, ao
 
 	void Release()
 	{
@@ -43,6 +44,12 @@ struct GBuffer
 		{
 			factory->Release(Position);
 			Position = nullptr;
+		}
+
+		if (Specular)
+		{
+			factory->Release(Specular);
+			Specular = nullptr;
 		}
 	}
 };

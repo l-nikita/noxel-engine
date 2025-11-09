@@ -39,3 +39,8 @@ struct CBLightsData
     glm::vec3 ViewPos;
     float pad0;
 };
+
+struct CBViewData
+{
+    glm::vec4 ViewPos;
+};

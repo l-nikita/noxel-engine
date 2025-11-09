@@ -1,0 +1,10 @@
+{
+	"shader": "geometrypass",
+	"parameters": 
+	{
+		"color": "rocks_color.png",
+		"normal": "rocks_normal.png",
+		"rough": "rocks_rough.png",
+		"ao": "rocks_ao.png"
+	}
+}

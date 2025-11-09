@@ -139,6 +139,7 @@ void DeferredRenderPipeline::Init()
 	//----------------------------------------------------
 	// TODO: Memory leak, make resource manager
 	auto* mat = factory->CreateMaterial("dirt");
+	auto* mat2 = factory->CreateMaterial("rocks");
 	auto* mesh = factory->CreateMesh(MeshData{ cubeVertices, cubeIndices });
 
 	/*
@@ -160,7 +161,7 @@ void DeferredRenderPipeline::Init()
 	model->m_Transform.Position = glm::vec3(0, 0, 5) + glm::vec3(0, -3, -10);
 	m_Models.push_back(model);
 
-	auto model2 = new Model(mesh, mat);
+	auto model2 = new Model(mesh, mat2);
 	model2->m_Transform.Position = glm::vec3(0, 0, 8) + glm::vec3(0, -3, 7);
 	m_Models.push_back(model2);
 
@@ -175,7 +176,7 @@ void DeferredRenderPipeline::Init()
 	g_TestModel2 = new Model(mesh, mat);
 	g_TestModel2->m_Transform.Position = glm::vec3(0, -5, 0);
 	g_TestModel2->m_Transform.Scale = glm::vec3(20, 1, 20);
-	g_TestModel2->m_CastShadows = false;
+	g_TestModel2->m_CastShadows = true;
 	m_Models.push_back(g_TestModel2);
 
 	//----------------------------------------------------
@@ -212,6 +213,7 @@ void DeferredRenderPipeline::SetupGBuffer(int width, int height)
 	m_GBuffer.Color = factory->CreateRenderTexture(width, height, false);
 	m_GBuffer.Normal = factory->CreateRenderTexture(width, height, false);
 	m_GBuffer.Position = factory->CreateRenderTexture(width, height, false);
+	m_GBuffer.Specular = factory->CreateRenderTexture(width, height, false);
 }
 
 void DeferredRenderPipeline::SetupSkybox()
@@ -288,10 +290,11 @@ void DeferredRenderPipeline::SetupShadows()
 //-----------------------------------------------------------------------------
 void DeferredRenderPipeline::DoGeometryPass()
 {
-	IRenderTexture* rts[3] = {
+	IRenderTexture* rts[4] = {
 		m_GBuffer.Color,
 		m_GBuffer.Normal,
-		m_GBuffer.Position
+		m_GBuffer.Position,
+		m_GBuffer.Specular,
 	};
 
 	// 0.1f, 0.2f, 0.3f, 1.0f
@@ -305,10 +308,10 @@ void DeferredRenderPipeline::DoGeometryPass()
 	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
 	auto context = dxrenderer->GetContext();
 
-	ID3D11ShaderResourceView* nullSRVs[3] = { nullptr, nullptr, nullptr };
-	context->PSSetShaderResources(0, 3, nullSRVs);
+	ID3D11ShaderResourceView* nullSRVs[4] = { nullptr, nullptr, nullptr, nullptr };
+	context->PSSetShaderResources(0, 4, nullSRVs);
 
-	g_Renderer->SetRenderTextures(rts, 3, m_GBuffer.DepthStencil);
+	g_Renderer->SetRenderTextures(rts, 4, m_GBuffer.DepthStencil);
 
 	for (auto model : m_Models)
 		model->Draw();
@@ -329,17 +332,20 @@ void DeferredRenderPipeline::DoGeometryPass()
 //-----------------------------------------------------------------------------
 void DeferredRenderPipeline::DoLightingPass()
 {
-	IRenderTexture* rts[3] = {
+	IRenderTexture* rts[4] = {
 		m_GBuffer.Color,
 		m_GBuffer.Normal,
-		m_GBuffer.Position
+		m_GBuffer.Position,
+		m_GBuffer.Specular,
 	};
 
 	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
 	auto context = dxrenderer->GetContext();
 
 	// move to lighting shader
-	g_Renderer->BindRenderTextures(rts, 3);
+	g_Renderer->BindRenderTextures(rts, 4);
+
+	//m_lightingShader->SetPSVar("cubemap", m_skyboxMat->GetTexture("cubemap"));
 	m_lightingShader->Bind();
 
 	g_Renderer->SetPrimitiveTopology(TRIANGLES);

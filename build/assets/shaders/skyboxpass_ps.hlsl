@@ -1,6 +1,10 @@
+//----------------------------------------
 TextureCube SkyTexture  	: register(t0);
+
+//----------------------------------------
 SamplerState Samp       : register(s0);
 
+//----------------------------------------
 struct PS_INPUT
 {
     float4 vPos     : SV_POSITION;

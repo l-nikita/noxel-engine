@@ -85,6 +85,19 @@ public:
         LightManager::GetInstance().AddLight(m_light2);
         LightManager::GetInstance().AddLight(light3);
         LightManager::GetInstance().AddLight(m_light4);
+
+        //-----------------------------------------------------------------------------
+        TextureDesc desc = {};
+        desc.Width = 1;
+        desc.Height = 1;
+        desc.Format = TextureFormat::RGBA8;
+        desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
+        desc.MipLevels = 1;
+
+        m_blackTex = g_Renderer->GetFactory()->CreateTexture(desc);
+
+        //-----------------------------------------------------------------------------
+        m_vars["cubemap"] = m_blackTex;
     }
 
     ~LightingPassPS() { Release(); }
@@ -142,19 +155,22 @@ public:
         }
 
         if (shadowCount > 0)
-            m_context->PSSetShaderResources(3, shadowCount, shadowMapSRVs);
+            m_context->PSSetShaderResources(4, shadowCount, shadowMapSRVs);
 
+        ShaderVar& cubemapVar = GetVar("cubemap");
+        if (auto cubemapPtr = std::get_if<ITexture*>(&cubemapVar))
+            (*cubemapPtr)->Bind(10);
+        
+        //------------------------
         auto pos = glm::vec3(sin(totalTime) * 5.0f, -3.0f, cos(totalTime) * 5.0f);
         m_light1->SetPosition(pos);
 
         //glm::vec3 dir = glm::normalize(m_light2->GetPosition() - pos);
-        //glm::vec3 dir = glm::normalize(m_light2->GetPosition() - camTransform.Position);
-        //m_light2->SetRotation(glm::quatLookAt(dir, m_light2->GetTransform().Up()));
-        m_light2->SetPosition(camTransform.Position + camTransform.Right() * 2.0f);
-        m_light2->SetRotation(camTransform.Rotation);
-
-        m_light2->GetCamera()->SetTransform(m_light2->m_Transform);
-        m_light4->GetCamera()->SetTransform(m_light4->m_Transform);
+        glm::vec3 dir = glm::normalize(m_light2->GetPosition() - camTransform.Position);
+        m_light2->SetRotation(glm::quatLookAt(dir, m_light2->GetTransform().Up()));
+        //m_light2->SetPosition(camTransform.Position + camTransform.Right() * 2.0f);
+        //m_light2->SetRotation(camTransform.Rotation);
+        //------------------------
 
         m_context->UpdateSubresource(m_lightBuffer, 0, nullptr, &data, 0, 0);
         m_context->PSSetConstantBuffers(0, 1, &m_lightBuffer);
@@ -165,6 +181,13 @@ public:
 
     void Unbind()
     {
+        ID3D11ShaderResourceView* nullSRVs[MAX_SHADOWS_MAPS] = { nullptr };
+        m_context->PSSetShaderResources(4, MAX_SHADOWS_MAPS, nullSRVs);
+
+        ShaderVar& cubemapVar = GetVar("cubemap");
+        if (auto cubemapPtr = std::get_if<ITexture*>(&cubemapVar))
+            (*cubemapPtr)->Unbind(10);
+
         m_context->PSSetConstantBuffers(0, 0, nullptr);
 
         ID3D11SamplerState* nullSampler[1] = { nullptr };
@@ -191,12 +214,19 @@ public:
             m_lightBuffer->Release();
             m_lightBuffer = nullptr;
         }
+
+        if (m_blackTex)
+        {
+            g_Renderer->GetFactory()->Release(m_blackTex);
+            m_blackTex = nullptr;
+        }
     }
 
 private:
     ID3D11SamplerState* m_samplerState = nullptr;
     ID3D11SamplerState* m_sampler2State = nullptr;
     ID3D11Buffer* m_lightBuffer = nullptr;
+    ITexture* m_blackTex = nullptr;
 
     Light* m_light1 = nullptr;
     Light* m_light2 = nullptr;

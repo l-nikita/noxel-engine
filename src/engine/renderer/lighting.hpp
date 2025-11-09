@@ -60,9 +60,6 @@ public:
     Light(LightType type, bool shadowsEnabled = false)
         : m_type(type)
     { 
-        m_camera = new RenderCamera(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
-        m_camera->SetNear(0.1f);
-
         if (shadowsEnabled && IsA(LIGHT_SPOT))
             m_shadowMap = new ShadowMap();
     }
@@ -71,12 +68,6 @@ public:
 
     void Release()
     {
-        if (m_camera)
-        {
-            delete m_camera;
-            m_camera = nullptr;
-        }
-
         if (m_shadowMap)
         {
             delete m_shadowMap;
@@ -103,13 +94,11 @@ public:
     void SetRadius(float radius)
     {
         m_radius = radius;
-        m_camera->SetFar(radius);
     }
 
     void SetFOV(float fov)
     {
         m_fov = fov;
-        m_camera->SetFOV(fov);
     }
 
     void SetColor(glm::vec3 color) 
@@ -117,15 +106,22 @@ public:
         m_color = color; 
     }
 
-    glm::mat4 GetViewMatrix() const { return m_camera->GetViewMatrix(); }
-    glm::mat4 GetProjectionMatrix() const { return m_camera->GetProjectionMatrix(); }
+    glm::mat4 GetViewMatrix() const 
+    { 
+        auto& trans = GetTransform();
+        return glm::lookAtLH(trans.Position,
+            trans.Position + trans.Forward(),
+            trans.Up());
+    }
 
-    RenderCamera* GetCamera() const { return m_camera; }
+    glm::mat4 GetProjectionMatrix() const 
+    { 
+        return glm::perspectiveLH_ZO(glm::radians(m_fov), 1.0f, 0.1f, GetRadius());
+    }
 
 private:
     LightType m_type;
 
-    RenderCamera* m_camera = nullptr;
     ShadowMap* m_shadowMap = nullptr;
 
     bool m_enabled = true;
