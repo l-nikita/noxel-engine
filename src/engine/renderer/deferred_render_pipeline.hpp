@@ -85,7 +85,6 @@ private:
 	IMaterial* m_skyboxMat = nullptr;
 
 	GBuffer m_GBuffer;
-	IDepthStencil* m_shadowMap = nullptr;
 	IShaderProgram* m_shadowsShader = nullptr;
 	IShaderProgram* m_lightingShader = nullptr;
 

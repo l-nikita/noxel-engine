@@ -44,25 +44,47 @@ void DX11ShaderProgram::Compile(ShaderAsset* asset, ShaderType type)
     ID3D10Blob* errorBlob = nullptr;
     HRESULT hr;
 
-    UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+    uint32_t compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+    ID3DInclude* includeHandler = D3D_COMPILE_STANDARD_FILE_INCLUDE;
 #ifdef _DEBUG
     compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-    std::string src;
-
+    std::filesystem::path path = asset->GetAssetPath();
     if (type == VERTEX)
     {
-        src = asset->GetShaderSource(VERTEX);
-        hr = D3DCompile(src.c_str(), src.length(), nullptr, nullptr, nullptr, "main", "vs_5_0", compileFlags, 0, &m_vsBlob, &errorBlob);
+        path += L"_vs.hlsl";
+
+        hr = D3DCompileFromFile(
+            path.c_str(),
+            nullptr,                 // defines
+            includeHandler,          // include handler
+            "main",                  // entry point
+            "vs_5_0",                // shader model
+            compileFlags,
+            0,
+            &m_vsBlob,
+            &errorBlob
+        );
     }
     else if (type == PIXEL)
     {
-        src = asset->GetShaderSource(PIXEL);
-        hr = D3DCompile(src.c_str(), src.length(), nullptr, nullptr, nullptr, "main", "ps_5_0", compileFlags, 0, &m_psBlob, &errorBlob);
+        path += L"_ps.hlsl";
+
+        hr = D3DCompileFromFile(
+            path.c_str(),
+            nullptr,
+            includeHandler,
+            "main",
+            "ps_5_0",
+            compileFlags,
+            0,
+            &m_psBlob,
+            &errorBlob
+        );
     }
     else
-        FATAL_ERROR("DX11: Unknown shader type!", CMD::RENDERING)
+        FATAL_ERROR("DX11: Unknown shader type!", CMD::RENDERING);
 
     if (FAILED(hr))
     {

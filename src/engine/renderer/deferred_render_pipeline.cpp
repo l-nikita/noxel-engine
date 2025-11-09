@@ -6,6 +6,7 @@
 #include "gizmos.hpp"
 #include "model.hpp"
 #include "rendercamera.hpp"
+#include "lightning.hpp"
 
 #include "gui/igui.hpp"
 #include "engine/window.hpp"
@@ -283,11 +284,6 @@ void DeferredRenderPipeline::SetupShadows()
 	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
 	auto device = dxrenderer->GetDevice();
 
-	auto factory = g_Renderer->GetFactory();
-	const int SHADOWMAP_SIZE = 512;
-
-	m_shadowMap = factory->CreateDepthStencil(SHADOWMAP_SIZE, SHADOWMAP_SIZE, true);
-
 	D3D11_RASTERIZER_DESC desc = {};
 	desc.FillMode = D3D11_FILL_SOLID;
 	desc.CullMode = D3D11_CULL_BACK;
@@ -332,11 +328,14 @@ void DeferredRenderPipeline::DoGeometryPass()
 	static float totalTime = 0.0f;
 	totalTime += g_Engine->DeltaTime();
 
-	g_TestModel->m_Transform.Position = glm::vec3(
+	g_TestModel->SetPosition(glm::vec3(
 		sin(totalTime) * 5.0f,
 		-3.0f,
 		cos(totalTime) * 5.0f
-	);
+	));
+
+	glm::quat rotation = glm::angleAxis(totalTime * 3.0f, glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
+	g_TestModel->SetRotation(rotation);
 }
 
 //-----------------------------------------------------------------------------
@@ -351,8 +350,8 @@ void DeferredRenderPipeline::DoLightingPass()
 	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
 	auto context = dxrenderer->GetContext();
 
+	// move to lighting shader
 	g_Renderer->BindRenderTextures(rts, 3);
-	m_lightingShader->SetPSVar("shadowsmap", m_shadowMap->GetTexture());
 	m_lightingShader->Bind();
 
 	g_Renderer->SetPrimitiveTopology(TRIANGLES);
@@ -367,30 +366,46 @@ void DeferredRenderPipeline::DoShadowPass()
 	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
 	auto context = dxrenderer->GetContext();
 
-	D3D11_VIEWPORT vp = {};
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	vp.Width = (float)512;
-	vp.Height = (float)512;
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	context->RSSetViewports(1, &vp);
-
 	context->RSSetState(rasterizerStateWithBias);
-	g_Renderer->SetRenderTextures(nullptr, 0, m_shadowMap);
-	m_shadowMap->Clear();
-
-	for (auto model : m_Models)
+	auto& lights = LightManager::GetInstance().GetLights();
+	for (int i = 0; i < lights.size(); i++)
 	{
-		if (!model->m_CastShadows) 
+		auto light = lights[i];
+		if (!light || (light && !light->IsShadowsEnabled()))
 			continue;
 
-		for (auto mesh : model->GetMeshes())
+		auto shadowMap = light->GetShadowMap();
+		auto depth = shadowMap->GetDepth();
+		float size = (float)shadowMap->GetSize();
+
+		D3D11_VIEWPORT vp = {};
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		vp.Width = size;
+		vp.Height = size;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+		context->RSSetViewports(1, &vp);
+
+		g_Renderer->SetRenderTextures(nullptr, 0, depth);
+		depth->Clear();
+
+		m_shadowsShader->SetVSVar("lightview", light->GetViewMatrix());
+		m_shadowsShader->SetVSVar("lightproj", light->GetProjectionMatrix());
+
+		// draw scene
+		for (auto model : m_Models)
 		{
-			m_shadowsShader->SetVSVar("model", model->m_Transform.GetTransformMatrix());
-			m_shadowsShader->Bind();
-			mesh->Draw();
-			m_shadowsShader->Unbind();
+			if (!model->m_CastShadows)
+				continue;
+
+			for (auto mesh : model->GetMeshes())
+			{
+				m_shadowsShader->SetVSVar("model", model->m_Transform.GetTransformMatrix());
+				m_shadowsShader->Bind();
+				mesh->Draw();
+				m_shadowsShader->Unbind();
+			}
 		}
 	}
 

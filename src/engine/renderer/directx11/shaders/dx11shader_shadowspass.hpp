@@ -68,6 +68,8 @@ public:
             FATAL_ERROR("DX11: Failed to create constant buffer.", CMD::RENDERING);
 
         m_vars["model"] = glm::mat4(1.0f);
+        m_vars["lightview"] = glm::mat4(1.0f);
+        m_vars["lightproj"] = glm::mat4(1.0f);
     }
 
     ~ShadowsPassVS() { Release(); }
@@ -78,19 +80,18 @@ public:
     { 
         m_context->IASetInputLayout(m_inputLayout);
 
+        glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 lightView = glm::mat4(1.0f);
         glm::mat4 lightProj = glm::mat4(1.0f);
 
-        const auto& lights = LightManager::GetInstance().GetLights();
+        ShaderVar& varLightView = GetVar("lightview");
+        if (auto matPtr = std::get_if<glm::mat4>(&varLightView))
+            lightView = *matPtr;
 
-        if (!lights.empty())
-        {
-            const auto& light = lights[1]; // for test
-            lightView = light->GetViewMatrix();
-            lightProj = light->GetProjectionMatrix();
-        }
+        ShaderVar& varLightProj = GetVar("lightproj");
+        if (auto matPtr = std::get_if<glm::mat4>(&varLightProj))
+            lightProj = *matPtr;
 
-        glm::mat4 model = glm::mat4(1.0f);
         ShaderVar& varModel = GetVar("model");
         if (auto matPtr = std::get_if<glm::mat4>(&varModel))
             model = *matPtr;

@@ -16,4 +16,11 @@ public:
 
     glm::quat GetRotation() const { return m_Transform.Rotation; }
     void SetRotation(const glm::quat& rot) { m_Transform.Rotation = rot; }
+
+    glm::vec3 Forward() const { return m_Transform.Forward(); }
+    glm::vec3 Backward() const { return m_Transform.Backward(); }
+    glm::vec3 Right() const { return m_Transform.Right(); }
+    glm::vec3 Left() const { return m_Transform.Left(); }
+    glm::vec3 Up() const { return m_Transform.Up(); }
+    glm::vec3 Down() const { return m_Transform.Down(); }
 };

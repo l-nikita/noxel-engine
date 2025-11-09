@@ -9,6 +9,7 @@
 #include "renderer/vertex.hpp"
 #include "renderer/rendercamera.hpp"
 #include "renderer/shaderregistry.hpp"
+#include "renderer/lightning.hpp"
 #include "dbg/debug.hpp"
 
 //-----------------------------------------------------------------------------
@@ -56,25 +57,13 @@ public:
         if (FAILED(hr))
             FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
 
-        //-----------------------------------------------------------------------------
-        D3D11_BUFFER_DESC cbd2 = {};
-        cbd2.Usage = D3D11_USAGE_DEFAULT;
-        cbd2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        cbd2.ByteWidth = sizeof(CBLightMatrices);
-
-        hr = m_device->CreateBuffer(&cbd2, nullptr, &m_lightMatBuffer);
-        if (FAILED(hr))
-            FATAL_ERROR("DX11: Failed to create constant buffer", CMD::RENDERING);
-
-        m_vars["shadowsmap"] = g_ErrorTexture;
-
         m_light1 = new Light(LIGHT_POINT);
         m_light1->SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
         m_light1->SetPosition(glm::vec3(1.0f, 0.0f, 0.0f));
         m_light1->SetRadius(3.0f);
 
-        m_light2 = new Light(LIGHT_SPOT);
-        m_light2->SetColor(glm::vec3(5.0f, 5.0f, 5.0f));
+        m_light2 = new Light(LIGHT_SPOT, true);
+        m_light2->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
         m_light2->SetPosition(glm::vec3(0.0f, -3.0f, 7.0f));
         m_light2->SetRadius(25.0f);
         m_light2->SetFOV(70.0f);
@@ -86,9 +75,17 @@ public:
         light3->SetPosition(glm::vec3(0.0f, -1.0f, 0.0f));
         light3->SetRadius(10.0f);
 
+        m_light4 = new Light(LIGHT_SPOT, true);
+        m_light4->SetColor(glm::vec3(1.0f, 0.0f, 1.0f));
+        m_light4->SetPosition(glm::vec3(-9.0f, -3.0f, -10.0f));
+        m_light4->SetRotation(glm::angleAxis(glm::radians(45.0f), m_light4->Up()));
+        m_light4->SetRadius(35.0f);
+        m_light4->SetFOV(60.0f);
+
         LightManager::GetInstance().AddLight(m_light1);
         LightManager::GetInstance().AddLight(m_light2);
         LightManager::GetInstance().AddLight(light3);
+        LightManager::GetInstance().AddLight(m_light4);
     }
 
     ~LightingPassPS() { Release(); }
@@ -104,13 +101,19 @@ public:
 
         CBLightsData data{};
         data.ViewPos = camTransform.Position;
+
+        ID3D11ShaderResourceView* shadowMapSRVs[MAX_SHADOWS_MAPS] = { nullptr };
+        int shadowCount = 0;
         
-        auto lights = LightManager::GetInstance().GetLights();
+        auto& lights = LightManager::GetInstance().GetLights();
         for (int i = 0; i < lights.size(); i++)
         {
             if (i >= MAX_LIGHTS) continue;
 
             auto light = lights[i];
+            if (!light)
+                continue;
+
             auto& transform = light->GetTransform();
 
             auto type = light->GetType();
@@ -120,57 +123,53 @@ public:
             dataLight.Color = light->GetColor();
             dataLight.Radius = light->GetRadius();
             dataLight.Pos = transform.Position;
+            dataLight.ShadowMapIndex = -1;
 
-            if (type == LIGHT_SPOT)
+            if (dataLight.Type == LIGHT_SPOT)
             {
                 dataLight.Cutoff = cos(glm::radians(light->GetFOV() * 0.5f));
-                dataLight.Dir = transform.Forward();
+                dataLight.Dir = light->GetTransform().Forward();
+                dataLight.View = glm::transpose(light->GetViewMatrix());
+                dataLight.Projection = glm::transpose(light->GetProjectionMatrix());
+
+                if (light->IsShadowsEnabled() && shadowCount < MAX_SHADOWS_MAPS)
+                {
+                    dataLight.ShadowMapIndex = shadowCount;
+                    auto srv = static_cast<DX11Texture*>(light->GetShadowMap()->GetDepth()->GetTexture())->GetSRV();
+                    shadowMapSRVs[shadowCount] = srv;
+                    shadowCount++;
+                }
             }
         }
 
-        auto proj = m_light2->GetProjectionMatrix();
+        if (shadowCount > 0)
+            m_context->PSSetShaderResources(3, shadowCount, shadowMapSRVs);
 
         auto pos = glm::vec3(sin(totalTime) * 5.0f, -3.0f, cos(totalTime) * 5.0f);
         m_light1->SetPosition(pos);
 
-        glm::vec3 dir = glm::normalize(m_light2->GetPosition() - pos);
+        //glm::vec3 dir = glm::normalize(m_light2->GetPosition() - pos);
         //glm::vec3 dir = glm::normalize(m_light2->GetPosition() - camTransform.Position);
-        m_light2->SetRotation(glm::quatLookAt(dir, m_light2->GetTransform().Up()));
-        m_light2->m_camera->SetTransform(m_light2->m_Transform);
+        //m_light2->SetRotation(glm::quatLookAt(dir, m_light2->GetTransform().Up()));
+        m_light2->SetPosition(camTransform.Position + );
+
+        m_light2->GetCamera()->SetTransform(m_light2->m_Transform);
+        m_light4->GetCamera()->SetTransform(m_light4->m_Transform);
 
         m_context->UpdateSubresource(m_lightBuffer, 0, nullptr, &data, 0, 0);
         m_context->PSSetConstantBuffers(0, 1, &m_lightBuffer);
 
-        CBLightMatrices data2
-        {
-            glm::transpose(m_light2->GetViewMatrix()),
-            glm::transpose(m_light2->GetProjectionMatrix()),
-        };
-
-        m_context->UpdateSubresource(m_lightMatBuffer, 0, nullptr, &data2, 0, 0);
-        m_context->PSSetConstantBuffers(1, 1, &m_lightMatBuffer);
-
-
         m_context->PSSetSamplers(0, 1, &m_samplerState);
         m_context->PSSetSamplers(1, 1, &m_sampler2State);
-
-        ShaderVar& varModel = GetVar("shadowsmap");
-        if (auto texPtr = std::get_if<ITexture*>(&varModel))
-            (*texPtr)->Bind(3);
     }
 
     void Unbind()
     {
         m_context->PSSetConstantBuffers(0, 0, nullptr);
-        m_context->PSSetConstantBuffers(1, 0, nullptr);
 
         ID3D11SamplerState* nullSampler[1] = { nullptr };
         m_context->PSSetSamplers(0, 1, nullSampler);
         m_context->PSSetSamplers(1, 1, nullSampler);
-
-        ShaderVar& varModel = GetVar("shadowsmap");
-        if (auto texPtr = std::get_if<ITexture*>(&varModel))
-            (*texPtr)->Unbind(3);
     }
 
     void Release()
@@ -192,22 +191,16 @@ public:
             m_lightBuffer->Release();
             m_lightBuffer = nullptr;
         }
-
-        if (m_lightMatBuffer)
-        {
-            m_lightMatBuffer->Release();
-            m_lightMatBuffer = nullptr;
-        }
     }
 
 private:
     ID3D11SamplerState* m_samplerState = nullptr;
     ID3D11SamplerState* m_sampler2State = nullptr;
     ID3D11Buffer* m_lightBuffer = nullptr;
-    ID3D11Buffer* m_lightMatBuffer = nullptr;
 
     Light* m_light1 = nullptr;
     Light* m_light2 = nullptr;
+    Light* m_light4 = nullptr;
 };
 
 REGISTER_SHADER("lightingpassPS", LightingPassPS);
