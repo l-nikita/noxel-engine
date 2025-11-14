@@ -38,12 +38,13 @@ float4 main(PS_INPUT input) : SV_TARGET
 {
     // gbuffer
     float3 color = gColor.Sample(Samp, input.vUV).rgb;
-    float3 normal = gNormal.Sample(Samp, input.vUV).rgb;
+    float4 norm = gNormal.Sample(Samp, input.vUV);
+    float3 normal = norm.rgb;
     float3 worldPos = gPosition.Sample(Samp, input.vUV).rgb;
     float3 spec = gSpecular.Sample(Samp, input.vUV);
     
+    float emission = norm.a;
     float roughness = spec.r;
-    roughness = saturate(max(roughness, 0.04));
     float metalness = spec.g;
     float ao = spec.b;
 
@@ -160,6 +161,8 @@ float4 main(PS_INPUT input) : SV_TARGET
         result += lighting;
 #endif
     }
+    
+    result += color * emission;
     
     return float4(result, 1.0);
 }

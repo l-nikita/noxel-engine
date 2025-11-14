@@ -8,6 +8,7 @@
 #include "ishaderprogram.hpp"
 #include "meshdata.hpp"
 #include "vertex.hpp"
+#include "dbg/debug.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -22,15 +23,17 @@ namespace Gizmos
 
 	void Init()
 	{
-        /*
         auto factory = g_Renderer->GetFactory();
-        g_Material = factory->CreateMaterial("gizmos");
+        g_Material = factory->CreateMaterial("dirt");
+
+        if (!g_Material)
+            FATAL_ERROR("Material for gizmos is nullptr!", CMD::RENDERING);
 
         //-------------------------------------------
         std::vector<Vertex> vertices =
         {
-            {{0, 0, 0}, {1, 1, 1}, {0,0}, {1,1,1,1}},
-            {{1, 0, 0}, {1, 1, 1}, {0,0}, {1,1,1,1}},
+            {{0, 0, 0}, {1, 1, 1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{1, 0, 0}, {1, 1, 1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
         };
 
         std::vector<std::uint32_t> indices = 
@@ -42,14 +45,14 @@ namespace Gizmos
 
         //-------------------------------------------
         std::vector<Vertex> boxVertices = {
-            {{-1,-1, 1}, {1,1,1}, {0,0}, {1,1,1,1}},
-            {{ 1,-1, 1}, {1,1,1}, {0,0}, {1,1,1,1}},
-            {{ 1, 1, 1}, {1,1,1}, {0,0}, {1,1,1,1}},
-            {{-1, 1, 1}, {1,1,1}, {0,0}, {1,1,1,1}},
-            {{-1,-1,-1}, {1,1,1}, {0,0}, {1,1,1,1}},
-            {{ 1,-1,-1}, {1,1,1}, {0,0}, {1,1,1,1}},
-            {{ 1, 1,-1}, {1,1,1}, {0,0}, {1,1,1,1}},
-            {{-1, 1,-1}, {1,1,1}, {0,0}, {1,1,1,1}},
+            {{-1,-1, 1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{ 1,-1, 1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{ 1, 1, 1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{-1, 1, 1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{-1,-1,-1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{ 1,-1,-1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{ 1, 1,-1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{-1, 1,-1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
         };
 
         std::vector<std::uint32_t> boxIndices = {
@@ -63,40 +66,40 @@ namespace Gizmos
         std::vector<Vertex> cubeVertices
         {
             // Front
-            {{-1, -1,  1}, {1,1,1}, {0,1}, {1,1,1,1}},
-            {{ 1, -1,  1}, {1,1,1}, {1,1}, {1,1,1,1}},
-            {{ 1,  1,  1}, {1,1,1}, {1,0}, {1,1,1,1}},
-            {{-1,  1,  1}, {1,1,1}, {0,0}, {1,1,1,1}},
+            {{-1, -1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+            {{ 1, -1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+            {{ 1,  1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+            {{-1,  1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
             // Back
-            {{ 1, -1, -1}, {1,1,1}, {0,1}, {1,1,1,1}},
-            {{-1, -1, -1}, {1,1,1}, {1,1}, {1,1,1,1}},
-            {{-1,  1, -1}, {1,1,1}, {1,0}, {1,1,1,1}},
-            {{ 1,  1, -1}, {1,1,1}, {0,0}, {1,1,1,1}},
+            {{ 1, -1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+            {{-1, -1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+            {{-1,  1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+            {{ 1,  1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
             // Top
-            {{-1,  1,  1}, {1,1,1}, {0,1}, {1,1,1,1}},
-            {{ 1,  1,  1}, {1,1,1}, {1,1}, {1,1,1,1}},
-            {{ 1,  1, -1}, {1,1,1}, {1,0}, {1,1,1,1}},
-            {{-1,  1, -1}, {1,1,1}, {0,0}, {1,1,1,1}},
+            {{-1,  1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+            {{ 1,  1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+            {{ 1,  1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+            {{-1,  1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
             // Bottom
-            {{-1, -1, -1}, {1,1,1}, {0,1}, {1,1,1,1}},
-            {{ 1, -1, -1}, {1,1,1}, {1,1}, {1,1,1,1}},
-            {{ 1, -1,  1}, {1,1,1}, {1,0}, {1,1,1,1}},
-            {{-1, -1,  1}, {1,1,1}, {0,0}, {1,1,1,1}},
+            {{-1, -1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+            {{ 1, -1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+            {{ 1, -1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+            {{-1, -1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
             // Right
-            {{ 1, -1,  1}, {1,1,1}, {0,1}, {1,1,1,1}},
-            {{ 1, -1, -1}, {1,1,1}, {1,1}, {1,1,1,1}},
-            {{ 1,  1, -1}, {1,1,1}, {1,0}, {1,1,1,1}},
-            {{ 1,  1,  1}, {1,1,1}, {0,0}, {1,1,1,1}},
+            {{ 1, -1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+            {{ 1, -1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+            {{ 1,  1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+            {{ 1,  1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
 
             // Left
-            {{-1, -1, -1}, {1,1,1}, {0,1}, {1,1,1,1}},
-            {{-1, -1,  1}, {1,1,1}, {1,1}, {1,1,1,1}},
-            {{-1,  1,  1}, {1,1,1}, {1,0}, {1,1,1,1}},
-            {{-1,  1, -1}, {1,1,1}, {0,0}, {1,1,1,1}},
+            {{-1, -1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,1}, {1,1,1,1}},
+            {{-1, -1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,1}, {1,1,1,1}},
+            {{-1,  1,  1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {1,0}, {1,1,1,1}},
+            {{-1,  1, -1}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
         };
 
         std::vector<std::uint32_t> cubeIndices
@@ -127,12 +130,12 @@ namespace Gizmos
 
         std::vector<Vertex> verticesTriangle = 
         {
-            {{0, 0, 0}, {1,1,1}, {0,0}, {1,1,1,1}},
-            {{1, 0, 0}, {1,1,1}, {0,0}, {1,1,1,1}},
-            {{0, 1, 0}, {1,1,1}, {0,0}, {1,1,1,1}},
+            {{0, 0, 0}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{1, 0, 0}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
+            {{0, 1, 0}, {1,1,1}, {0, 0, 0}, {0, 0, 0}, {0,0}, {1,1,1,1}},
         };
 
-        g_TriangleMesh = factory->CreateMesh(MeshData{ verticesTriangle, triangleIndices });*/
+        g_TriangleMesh = factory->CreateMesh(MeshData{ verticesTriangle, triangleIndices });
 	}
 
     void Line(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color)
@@ -151,7 +154,8 @@ namespace Gizmos
 
         auto* shader = g_Material->GetShader();
         shader->SetVSVar("model", model);
-        shader->SetPSVar("color", color);
+        shader->SetPSVar("tint", color);
+        shader->SetPSVar("emission", 1.0f);
 
         shader->Bind();
 
@@ -170,7 +174,8 @@ namespace Gizmos
 
         auto* shader = g_Material->GetShader();
         shader->SetVSVar("model", model);
-        shader->SetPSVar("color", glm::vec4(color.r, color.g, color.b, 1));
+        shader->SetPSVar("tint", glm::vec4(color.r, color.g, color.b, 1));
+        shader->SetPSVar("emission", 1.0f);
 
         shader->Bind();
 
@@ -182,7 +187,7 @@ namespace Gizmos
 
         if (color.a > 0)
         {
-            shader->SetPSVar("color", color);
+            shader->SetPSVar("tint", color);
             shader->Bind();
             g_Renderer->SetPrimitiveTopology(TRIANGLES);
             g_BoxMesh->Draw();
@@ -205,7 +210,8 @@ namespace Gizmos
 
         auto* shader = g_Material->GetShader();
         shader->SetVSVar("model", glm::mat4(1.0f));
-        shader->SetPSVar("color", color);
+        shader->SetPSVar("tint", color);
+        shader->SetPSVar("emission", 1.0f);
 
         shader->Bind();
 
@@ -217,28 +223,21 @@ namespace Gizmos
 
     void Shutdown()
     {
+        auto factory = g_Renderer->GetFactory();
+
         if (g_LineMesh)
-        {
-            delete g_LineMesh;
-            g_LineMesh = nullptr;
-        }
+            factory->Release(g_LineMesh), g_LineMesh = nullptr;
 
         if (g_BoxMesh)
-        {
-            delete g_BoxMesh;
-            g_BoxMesh = nullptr;
-        }
+            factory->Release(g_BoxMesh), g_BoxMesh = nullptr;
 
         if (g_BoxWireMesh)
-        {
-            delete g_BoxWireMesh;
-            g_BoxWireMesh = nullptr;
-        }
+            factory->Release(g_BoxWireMesh), g_BoxWireMesh = nullptr;
+
+        if (g_TriangleMesh)
+            factory->Release(g_TriangleMesh), g_TriangleMesh = nullptr;
 
         if (g_Material)
-        {
-            delete g_Material;
-            g_Material = nullptr;
-        }
+            factory->Release(g_Material), g_Material = nullptr;
     }
 }

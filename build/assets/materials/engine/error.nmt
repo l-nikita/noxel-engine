@@ -1,4 +1,7 @@
 {
 	"shader" : "geometrypass",
-	"basetexture" : "engine/error.png"
+	"parameters": 
+	{
+		"color": "engine/error.png"
+	}
 }

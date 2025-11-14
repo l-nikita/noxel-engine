@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>

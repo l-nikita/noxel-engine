@@ -9,7 +9,7 @@
 
 using namespace JPH;
 
-BodyID Physics::CreateShapeBox(
+BodyID JoltPhysics::CreateShapeBox(
     const RVec3& pos, 
     const Quat& quat, 
     const RVec3& offset, 
@@ -29,7 +29,7 @@ BodyID Physics::CreateShapeBox(
     return bodyID;
 }
 
-BodyID Physics::CreateShapeSphere(
+BodyID JoltPhysics::CreateShapeSphere(
     const RVec3& pos, 
     const Quat& quat, 
     const RVec3& offset, 

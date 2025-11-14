@@ -14,43 +14,28 @@ struct GBuffer
 {
 	IDepthStencil* DepthStencil;
 	IRenderTexture* Color;
-	IRenderTexture* Normal;
+	IRenderTexture* Normal; // normal and emission
 	IRenderTexture* Position;
-	IRenderTexture* Specular; // metalness, roughness, ao
+	IRenderTexture* Specular; // metalness, roughness, ao, height
 
 	void Release()
 	{
 		auto factory = g_Renderer->GetFactory();
 
 		if (DepthStencil) 
-		{ 
-			factory->Release(DepthStencil);
-			DepthStencil = nullptr;
-		}
+			factory->Release(DepthStencil), DepthStencil = nullptr;
 
 		if (Color) 
-		{
-			factory->Release(Color);
-			Color = nullptr;
-		}
+			factory->Release(Color), Color = nullptr;
 
 		if (Normal) 
-		{
-			factory->Release(Normal);
-			Normal = nullptr;
-		}
+			factory->Release(Normal), Normal = nullptr;
 
 		if (Position) 
-		{
-			factory->Release(Position);
-			Position = nullptr;
-		}
+			factory->Release(Position), Position = nullptr;
 
 		if (Specular)
-		{
-			factory->Release(Specular);
-			Specular = nullptr;
-		}
+			factory->Release(Specular), Specular = nullptr;
 	}
 };
 

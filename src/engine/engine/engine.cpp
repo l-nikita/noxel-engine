@@ -42,7 +42,7 @@ void Engine::Update()
 {
     EventHandler::GetInstance().HandleEvents();
 
-    //g_Physics->Update();
+    g_Physics->Update();
     
     if (g_Player)
         g_Player->Update();
@@ -115,17 +115,19 @@ void Engine::Shutdown()
 {
     Stop();
 
+    Gizmos::Shutdown();
+
+    g_Physics->Shutdown();
     g_Gui->Shutdown();
     g_RenderPipeline->Shutdown();
     g_Renderer->Shutdown();
 
+    delete g_Gui;
+    delete g_Physics;
     delete g_Assets;
     delete g_Input;
     delete g_RenderPipeline;
     delete g_Renderer;
-    delete g_Gui;
-
-    Gizmos::Shutdown();
 
     GetWindow()->Destroy();
     delete m_window;
@@ -186,6 +188,9 @@ bool Engine::Init()
 
     Gizmos::Init();
     CMD::CMD::GetInstance().Setup();
+
+    g_Physics = new JoltPhysics();
+    g_Physics->Init();
 
     g_Player = new Player(g_Renderer->GetCamera());
 

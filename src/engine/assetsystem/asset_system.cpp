@@ -32,8 +32,7 @@ void AssetSystem::Init()
 	//TODO: Make error shader
 	//ShaderAsset::m_error = ;
 
-	//MaterialAsset::CreateNew("gizmos", (m_assetsPath / "materials\\engine\\gizmos.nmt").string());
-
+	MaterialAsset::CreateNew("gizmos", (m_assetsPath / "materials\\engine\\gizmos.nmt").string());
 	MaterialAsset::CreateNew("dirt1", (m_assetsPath / "materials\\dirt1.nmt").string());
 	MaterialAsset::CreateNew("metal1", (m_assetsPath / "materials\\metal1.nmt").string());
 	MaterialAsset::CreateNew("skybox", (m_assetsPath / "materials\\skybox.nmt").string());

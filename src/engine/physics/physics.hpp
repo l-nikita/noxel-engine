@@ -16,12 +16,12 @@
 #include "physics_listeners.hpp"
 #include "physics_renderer.hpp"
 
-class Physics : public IPhysics
+class JoltPhysics : public IPhysics
 {
 public:
-	~Physics() { Shutdown(); }
+	~JoltPhysics() { Shutdown(); }
 
-	bool Init() override;
+	void Init() override;
 	void Update() override;
 	void Render() override;
 	void Shutdown() override;
@@ -79,9 +79,9 @@ private:
 };
 
 // not good
-static Physics* GetPhysics()
+static JoltPhysics* GetPhysics()
 {
-	return static_cast<Physics*>(g_Physics);
+	return static_cast<JoltPhysics*>(g_Physics);
 }
 
 struct EPhysicsBody

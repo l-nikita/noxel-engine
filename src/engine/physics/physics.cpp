@@ -54,11 +54,10 @@ static bool AssertFailedImpl(const char* inExpression, const char* inMessage, co
 
 #endif // JPH_ENABLE_ASSERTS
 
-
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Physics::Init()
+void JoltPhysics::Init()
 {
 	RegisterDefaultAllocator();
 
@@ -98,13 +97,13 @@ bool Physics::Init()
 	m_system->SetContactListener(contact_listener);
 
 	//---------------------------------------------------------------------
-	Physics::CreateShapeBox(
+	JoltPhysics::CreateShapeBox(
 		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
 		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
 		new JPH::BoxShapeSettings(JPH::RVec3(40.0f, 1.0f, 40.0f)),
 		EActivation::Activate, EMotionType::Static);
 
-	Physics::CreateShapeBox(
+	JoltPhysics::CreateShapeBox(
 		RVec3(5.0f, 2.0f, 0.0f), Quat::sIdentity(),
 		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
 		new JPH::BoxShapeSettings(JPH::RVec3(3.0f, 1.0f, 3.0f)),
@@ -114,13 +113,12 @@ bool Physics::Init()
 	m_IsRunning = true;
 
 	CMD_INFO("Physics initialized", CMD::PHYSICS);
-    return true;
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Physics::Update()
+void JoltPhysics::Update()
 {
 	if (!IsRunning()) return;
 
@@ -136,7 +134,7 @@ void Physics::Update()
 	PROF_END("Physics::Update");
 }
 
-void Physics::Render()
+void JoltPhysics::Render()
 {
 	if (!IsRunning()) return;
 
@@ -154,7 +152,7 @@ void Physics::Render()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Physics::MarkBodyForDestruction(JPH::BodyID bodyID)
+void JoltPhysics::MarkBodyForDestruction(JPH::BodyID bodyID)
 {
 	for (auto& bodyToDestoryID : m_bodiesToDestroy)
 		if (bodyToDestoryID == bodyID)
@@ -163,7 +161,7 @@ void Physics::MarkBodyForDestruction(JPH::BodyID bodyID)
 	m_bodiesToDestroy.push_back(bodyID);
 }
 
-void Physics::FlushPendingDestructions()
+void JoltPhysics::FlushPendingDestructions()
 {
 	auto& iBody = m_system->GetBodyInterface();
 	for (auto& bodyID : m_bodiesToDestroy)
@@ -181,7 +179,7 @@ void Physics::FlushPendingDestructions()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Physics::Shutdown()
+void JoltPhysics::Shutdown()
 {
 	if (!IsRunning()) return;
 	m_IsRunning = false;

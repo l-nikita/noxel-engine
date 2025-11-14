@@ -10,9 +10,11 @@ struct CBTransform
     glm::mat4 Projection;
 };
 
-struct CBColor
+struct CBTint
 {
-    glm::vec4 Color;
+    glm::vec4 Tint;
+    float _pad0, _pad1, _pad2;
+    float Emission;
 };
 
 struct alignas(16) CBLight

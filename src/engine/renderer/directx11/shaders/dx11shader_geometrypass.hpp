@@ -43,6 +43,16 @@ public:
         DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_viewBuffer);
 
         //-----------------------------------------------------------------------------
+        D3D11_BUFFER_DESC cbd2 = {};
+        cbd2.Usage = D3D11_USAGE_DEFAULT;
+        cbd2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        cbd2.ByteWidth = sizeof(CBTint);
+
+        DX11Helper::CreateBuffer(m_device, &cbd2, nullptr, &m_tintBuffer);
+
+        //-----------------------------------------------------------------------------
+        m_vars["tint"] = glm::vec4(1, 1, 1, 1);
+        m_vars["emission"] = 0.0f;
         m_vars["color"] = g_BlackTexture;
         m_vars["normal"] = g_BlackTexture;
         m_vars["rough"] = g_BlackTexture;
@@ -89,6 +99,24 @@ public:
         m_context->UpdateSubresource(m_viewBuffer, 0, nullptr, &data, 0, 0);
         m_context->PSSetConstantBuffers(0, 1, &m_viewBuffer);
 
+        glm::vec4 tint = glm::vec4(1);
+        float emis = 0.0f;
+
+        ShaderVar& tintVar = GetVar("tint");
+        if (auto tintPtr = std::get_if<glm::vec4>(&tintVar))
+            tint = *tintPtr;
+
+        ShaderVar& emissionVar = GetVar("emission");
+        if (auto emissionPtr = std::get_if<float>(&emissionVar))
+            emis = *emissionPtr;
+
+        CBTint data2 = {};
+        data2.Tint = tint;
+        data2.Emission = emis;
+
+        m_context->UpdateSubresource(m_tintBuffer, 0, nullptr, &data2, 0, 0);
+        m_context->PSSetConstantBuffers(1, 1, &m_tintBuffer);
+
         m_context->PSSetSamplers(0, 1, &m_samplerState);
     }
 
@@ -120,8 +148,8 @@ public:
 
         m_context->PSSetConstantBuffers(0, 0, nullptr);
 
-        ID3D11SamplerState* nullSampler[1] = { nullptr };
-        m_context->PSSetSamplers(0, 1, nullSampler);
+        ID3D11SamplerState* nullSampler[2] = { nullptr };
+        m_context->PSSetSamplers(0, 2, nullSampler);
     }
 
     void Release()
@@ -137,11 +165,18 @@ public:
             m_viewBuffer->Release();
             m_viewBuffer = nullptr;
         }
+
+        if (m_tintBuffer)
+        {
+            m_tintBuffer->Release();
+            m_tintBuffer = nullptr;
+        }
     }
 
 private:
     ID3D11SamplerState* m_samplerState = nullptr;
     ID3D11Buffer* m_viewBuffer = nullptr;
+    ID3D11Buffer* m_tintBuffer = nullptr;
 };
 
 REGISTER_SHADER("geometrypassPS", GeometryPassPS);
