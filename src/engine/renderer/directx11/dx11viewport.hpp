@@ -32,4 +32,6 @@ struct DX11Viewport : public IViewport
 	{
 		context->RSSetViewports(1, &vp);
 	}
+
+	void Release() { }
 };

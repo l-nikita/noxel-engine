@@ -38,6 +38,7 @@ public:
 	void CopyToBackBuffer(IRenderTexture* rt) override;
 	void SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, IDepthStencil* depthStencil) override;
 	void BindRenderTextures(IRenderTexture* rts[], std::uint32_t num) override;
+	void DrawFullScreenTriangle() override;
 	void SetViewport(IViewport* viewport) override;
 
 	ID3D11Device* GetDevice() { return m_device; }

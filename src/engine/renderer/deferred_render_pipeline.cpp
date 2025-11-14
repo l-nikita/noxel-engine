@@ -349,18 +349,12 @@ void DeferredRenderPipeline::DoLightingPass()
 		m_GBuffer.Specular,
 	};
 
-	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
-	auto context = dxrenderer->GetContext();
-
 	// move to lighting shader
 	g_Renderer->BindRenderTextures(rts, 4);
 
 	//m_lightingShader->SetPSVar("cubemap", m_skyboxMat->GetTexture("cubemap"));
 	m_lightingShader->Bind();
-
-	g_Renderer->SetPrimitiveTopology(TRIANGLES);
-	context->Draw(3, 0);
-
+		g_Renderer->DrawFullScreenTriangle();
 	m_lightingShader->Unbind();
 }
 
@@ -415,9 +409,9 @@ void DeferredRenderPipeline::DoSkyboxPass()
 	auto backBuffer = g_Renderer->GetBackBufferRT();
 	g_Renderer->SetRenderTextures(&backBuffer, 1, m_GBuffer.DepthStencil);
 
-	g_Renderer->SetPrimitiveTopology(TRIANGLES);
 	m_skyboxMat->Bind();
-	m_skyboxMesh->Draw();
+		g_Renderer->SetPrimitiveTopology(TRIANGLES);
+		m_skyboxMesh->Draw();
 	m_skyboxMat->Unbind();
 }
 
@@ -433,7 +427,6 @@ void DeferredRenderPipeline::Render()
 	g_Renderer->SetViewport(m_backBufferVP);
 	g_Renderer->SetRenderTextures(&backBuffer, 1, nullptr);
 	DoLightingPass();
-
 	//DoSkyboxPass();
 
 	g_Gui->Render();
@@ -460,13 +453,13 @@ void DeferredRenderPipeline::Shutdown()
 	if (m_mainCamera)
 		delete m_mainCamera, m_mainCamera = nullptr;
 
+	auto factory = g_Renderer->GetFactory();
+
 	if (m_backBufferVP)
-		delete m_backBufferVP, m_backBufferVP = nullptr;
+		factory->Release(m_backBufferVP), m_backBufferVP = nullptr;
 
 	if (m_shadowsMapsVP)
-		delete m_shadowsMapsVP, m_shadowsMapsVP = nullptr;
-
-	auto factory = g_Renderer->GetFactory();
+		factory->Release(m_shadowsMapsVP), m_shadowsMapsVP = nullptr;
 
 	if (m_shadowsShader)
 		factory->Release(m_shadowsShader), m_shadowsShader = nullptr;

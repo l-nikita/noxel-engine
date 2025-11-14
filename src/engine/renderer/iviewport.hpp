@@ -1,9 +1,11 @@
 #pragma once
 
+#include "renderer/irenderresource.hpp"
+
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-struct IViewport
+struct IViewport : public IRenderResource
 {
 	int X = 0;
 	int Y = 0;

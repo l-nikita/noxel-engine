@@ -162,7 +162,9 @@ IDepthStencil* DX11Factory::CreateDepthStencil(int width, int height, bool binda
 
 IViewport* DX11Factory::CreateViewport(int x, int y, int width, int height)
 {
-    return new DX11Viewport(x, y, width, height);
+    auto vp = new DX11Viewport(x, y, width, height);
+    m_resources.push_back(vp);
+    return vp;
 }
 
 void DX11Factory::Release(IRenderResource* resource)

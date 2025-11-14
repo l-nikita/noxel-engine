@@ -81,9 +81,10 @@ void DX11Renderer::CreateSwapChain()
     scDesc.Stereo = FALSE;
     scDesc.SampleDesc.Count = 1;
     scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    scDesc.BufferCount = 2;
+    scDesc.BufferCount = 3;
     scDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+    scDesc.Scaling = DXGI_SCALING_STRETCH;
 
     HRESULT hr = dxgiFactory->CreateSwapChainForHwnd(m_device, hwnd, &scDesc, nullptr, nullptr, &m_swapChain);
     if (FAILED(hr))
@@ -92,10 +93,6 @@ void DX11Renderer::CreateSwapChain()
     dxgiDevice->Release();
     dxgiAdapter->Release();
     dxgiFactory->Release();
-
-    if (m_context)
-        m_context->ClearState(), m_context->Flush();
-
 }
 
 void DX11Renderer::Init()
@@ -164,6 +161,12 @@ void DX11Renderer::BindRenderTextures(IRenderTexture* rts[], std::uint32_t num)
         srvs[i] = textures[i]->GetSRV();
 
     m_context->PSSetShaderResources(0, num, srvs);
+}
+
+void DX11Renderer::DrawFullScreenTriangle()
+{
+    g_Renderer->SetPrimitiveTopology(TRIANGLES);
+    m_context->Draw(3, 0);
 }
 
 void DX11Renderer::Swap()

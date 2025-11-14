@@ -38,6 +38,7 @@ public:
 	virtual void SetViewport(IViewport* viewport) = 0;
 	virtual void SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, IDepthStencil* depthStencil) = 0;
 	virtual void BindRenderTextures(IRenderTexture* rts[], std::uint32_t num) = 0;
+	virtual void DrawFullScreenTriangle() = 0;
 
 	virtual IRenderFactory* GetFactory() const = 0;
 	virtual RenderCamera* GetCamera() const = 0;
