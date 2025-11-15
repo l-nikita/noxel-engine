@@ -22,6 +22,7 @@ public:
 
 	virtual void Update() = 0;
 	virtual void Render() = 0;
+	virtual void DrawPlayer() = 0; // REMOVE
 
 	virtual float DeltaTime() = 0;
 	virtual float ElapsedTime() = 0;

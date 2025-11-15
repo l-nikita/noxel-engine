@@ -324,6 +324,9 @@ void DeferredRenderPipeline::DoGeometryPass()
 
 	g_Renderer->SetRenderTextures(rts, 4, m_GBuffer.DepthStencil);
 
+	g_Physics->Render();
+	g_Engine->DrawPlayer();
+
 	for (auto model : m_Models)
 		model->Draw();
 
@@ -338,45 +341,6 @@ void DeferredRenderPipeline::DoGeometryPass()
 
 	glm::quat rot = glm::angleAxis(totalTime * 3.0f, glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
 	g_TestModel->SetRotation(rot);
-
-	static float angle = 0.0f;
-	static glm::vec3 pos = glm::vec3(0);
-
-	angle += g_Engine->DeltaTime() * 1.0f;
-	glm::quat rotation = glm::angleAxis(angle, glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
-
-	pos.y = 0.3f * glm::sin(g_Engine->ElapsedTime() * 1.0f);
-
-	Gizmos::Line(pos, glm::vec3(0, 0, 5), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-
-	glm::vec3 min(-1, -2, -1);
-	glm::vec3 max(1, 2, 1);
-	glm::vec3 center = (min + max) * 0.5f;
-
-	glm::vec3 corners[8] = {
-		{min.x, min.y, min.z},
-		{min.x, min.y, max.z},
-		{min.x, max.y, min.z},
-		{min.x, max.y, max.z},
-		{max.x, min.y, min.z},
-		{max.x, min.y, max.z},
-		{max.x, max.y, min.z},
-		{max.x, max.y, max.z}
-	};
-
-	glm::vec4 color2(1, 1, 0, 1);
-
-	for (int i = 0; i < 8; i++)
-	{
-		glm::vec3 worldCenter = pos + (rotation * (center - center));
-		glm::vec3 worldCorner = pos + (rotation * (corners[i] - center));
-		Gizmos::Line(worldCenter, worldCorner, color2);
-	}
-
-	Gizmos::Box(pos + (rotation * glm::vec3(3.0f, -1.0f, 0)), rotation, glm::vec3(-2, -0.5f, -0.5f), glm::vec3(2, 0.5f, 0.5f), glm::vec4(1, 1, 0, 0.1f));
-	Gizmos::Box(pos, rotation, min, max, glm::vec4(1, 0, 1, 0.1f));
-
-	g_Physics->Render();
 }
 
 //-----------------------------------------------------------------------------

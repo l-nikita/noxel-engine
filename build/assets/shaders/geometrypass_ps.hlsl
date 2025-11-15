@@ -53,7 +53,7 @@ PS_OUTPUT main(PS_INPUT input) : SV_TARGET
     float2 uv = input.vUV;
 
     float3 texColor = Color.Sample(Samp, uv);
-    float4 color = Tint;
+    float4 color = input.vColor * Tint;
     
     if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0)
         color = Color.Sample(Samp, uv) * input.vColor * Tint;

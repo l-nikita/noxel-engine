@@ -41,11 +41,11 @@ Player* g_Player = nullptr;
 void Engine::Update()
 {
     EventHandler::GetInstance().HandleEvents();
-
-    g_Physics->Update();
     
     if (g_Player)
         g_Player->Update();
+
+    g_Physics->Update();
 
     bool isGrave = g_Input->IsKeyPressed(SDL_SCANCODE_GRAVE);
     bool isF3 = g_Input->IsKeyPressed(SDL_SCANCODE_F3);
@@ -68,6 +68,11 @@ void Engine::Render()
         return;
 
     g_RenderPipeline->Render();
+}
+
+void Engine::DrawPlayer()
+{
+    g_Player->Draw();
 }
 
 //-----------------------------------------------------------------------------

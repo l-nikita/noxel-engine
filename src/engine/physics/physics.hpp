@@ -26,7 +26,9 @@ public:
 	void Render() override;
 	void Shutdown() override;
 
-	bool IsRunning() override { return m_IsRunning; }
+	bool IsRunning() override { return m_isRunning; }
+
+	glm::vec3 GetGravity() const override { return Utils::GLM_Vec3_JPH(m_system->GetGravity()); }
 
 	JPH::PhysicsSystem* GetSystem() { return m_system; }
 
@@ -58,8 +60,10 @@ public:
 
 	std::vector<JPH::BodyID> GetBodiesIDs() { return m_bodiesIDs; }
 
+	JPH::TempAllocatorImpl* GetTempAllocator() { return m_tempAllocator; }
+
 private:
-	bool m_IsRunning;
+	bool m_isRunning;
 
 	PhysicsDebugRenderer* m_debugRenderer;
 

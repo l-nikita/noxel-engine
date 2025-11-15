@@ -98,19 +98,23 @@ void JoltPhysics::Init()
 
 	//---------------------------------------------------------------------
 	JoltPhysics::CreateShapeBox(
+		RVec3(0.0f, -5.0f, 0.0f), Quat::sIdentity(),
 		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
-		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
-		new JPH::BoxShapeSettings(JPH::RVec3(40.0f, 1.0f, 40.0f)),
+		new JPH::BoxShapeSettings(JPH::RVec3(20.0f, 1.0f, 20.0f)),
 		EActivation::Activate, EMotionType::Static);
 
 	JoltPhysics::CreateShapeBox(
-		RVec3(5.0f, 2.0f, 0.0f), Quat::sIdentity(),
+		RVec3(5.0f, -3.0f, 10.0f), Quat::sIdentity(),
 		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
 		new JPH::BoxShapeSettings(JPH::RVec3(3.0f, 1.0f, 3.0f)),
 		EActivation::Activate, EMotionType::Static);
 
+	//---------------------------------------------------------------------
+
+
+	//---------------------------------------------------------------------
 	m_system->OptimizeBroadPhase();
-	m_IsRunning = true;
+	m_isRunning = true;
 
 	CMD_INFO("Physics initialized", CMD::PHYSICS);
 }
@@ -182,7 +186,7 @@ void JoltPhysics::FlushPendingDestructions()
 void JoltPhysics::Shutdown()
 {
 	if (!IsRunning()) return;
-	m_IsRunning = false;
+	m_isRunning = false;
 
 	FlushPendingDestructions();
 

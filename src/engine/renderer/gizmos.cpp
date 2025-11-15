@@ -24,7 +24,7 @@ namespace Gizmos
 	void Init()
 	{
         auto factory = g_Renderer->GetFactory();
-        g_Material = factory->CreateMaterial("dirt");
+        g_Material = factory->CreateMaterial("gizmos");
 
         if (!g_Material)
             FATAL_ERROR("Material for gizmos is nullptr!", CMD::RENDERING);

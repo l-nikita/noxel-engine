@@ -22,6 +22,7 @@ public:
 
     void Update() override;
     void Render() override;
+    void DrawPlayer() override; // REMOVE
 
     // Current active window.
     Window* GetWindow() override { return m_window; }
