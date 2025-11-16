@@ -54,6 +54,8 @@ static bool AssertFailedImpl(const char* inExpression, const char* inMessage, co
 
 #endif // JPH_ENABLE_ASSERTS
 
+static JPH::BodyID g_BodyId;
+
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
@@ -110,7 +112,29 @@ void JoltPhysics::Init()
 		EActivation::Activate, EMotionType::Static);
 
 	//---------------------------------------------------------------------
+	JoltPhysics::CreateShapeBox(
+		RVec3(0, -3, -5), Quat::sIdentity(),
+		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+		new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f)),
+		EActivation::Activate, EMotionType::Static);
 
+	JoltPhysics::CreateShapeBox(
+		RVec3(0, -3, 15), Quat::sIdentity(),
+		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+		new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f)),
+		EActivation::Activate, EMotionType::Static);
+
+	JoltPhysics::CreateShapeBox(
+		RVec3(-5, -3, -2), Quat::sIdentity(),
+		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+		new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f)),
+		EActivation::Activate, EMotionType::Static);
+
+	g_BodyId = JoltPhysics::CreateShapeBox(
+		RVec3(0, 0, 0), Quat::sIdentity(),
+		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+		new JPH::BoxShapeSettings(JPH::RVec3(0.5f, 0.5f, 0.5f)),
+		EActivation::Activate, EMotionType::Static);
 
 	//---------------------------------------------------------------------
 	m_system->OptimizeBroadPhase();
@@ -130,6 +154,20 @@ void JoltPhysics::Update()
 
 	const float cDeltaTime = 1.0f / 60.0f;
 	const int cCollisionSteps = 1;
+
+	auto& iBody = m_system->GetBodyInterface();
+
+	static float totalTime = 0.0f;
+	totalTime += g_Engine->DeltaTime();
+
+	iBody.SetPosition(g_BodyId, JPH::Vec3(
+		sin(totalTime) * 5.0f,
+		-3.0f,
+		cos(totalTime) * 5.0f
+	), JPH::EActivation::Activate);
+
+	glm::quat rot = glm::angleAxis(totalTime * 3.0f, glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
+	iBody.SetRotation(g_BodyId, Utils::JPH_Quat_GLM(rot), JPH::EActivation::Activate);
 
 	// Step the world
 	m_system->Update(cDeltaTime, 1, m_tempAllocator, m_jobSystem);

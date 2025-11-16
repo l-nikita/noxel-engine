@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <algorithm>
 #include <Jolt/Physics/Character/Character.h>
@@ -10,9 +10,10 @@
 #include "physics/physics.hpp"
 
 constexpr auto SENSITIVITY = 10.0f;
-constexpr auto CHARACTER_RADIUS = 0.3f;
+constexpr auto CHARACTER_RADIUS = 0.5f;
 constexpr auto CHARACTER_HEIGHT = 1.7f;
-constexpr auto ENABLE_CHARACTER_INERTIA = true;
+constexpr auto CHARACTER_EYE_HEIGHT = 1.65f;
+constexpr auto CHARACTER_MAX_SPEED = 7.0f;
 
 class Player
 {
@@ -23,15 +24,16 @@ public:
 		JPH::Ref<JPH::CharacterVirtualSettings> settings = new JPH::CharacterVirtualSettings();
 		settings->mShape = new JPH::BoxShape(JPH::Vec3(CHARACTER_RADIUS, 0.5f * CHARACTER_HEIGHT + CHARACTER_RADIUS, CHARACTER_RADIUS));
 
-		m_Character = new JPH::CharacterVirtual(settings, JPH::RVec3(0.0f, 1.0f, 0.0f), JPH::Quat::sIdentity(), GetPhysics()->GetSystem());
-		m_Character->SetUp(JPH::Vec3(0, 1, 0));
+		m_character = new JPH::CharacterVirtual(settings, JPH::RVec3(0.0f, 1.0f, 0.0f), JPH::Quat::sIdentity(), GetPhysics()->GetSystem());
+		m_character->SetUp(JPH::Vec3(0, 1, 0));
 	}
 
 	~Player() { }
 
 	void UpdateCamera(float dt)
 	{
-		auto eyePos = Utils::GLM_Vec3_JPH(m_Character->GetPosition());
+		auto pos = Utils::GLM_Vec3_JPH(m_character->GetPosition()) - glm::vec3(0, (CHARACTER_HEIGHT / 2), 0);
+		auto eyePos = pos + glm::vec3(0, CHARACTER_EYE_HEIGHT, 0);
 
 		auto delta = g_Input->GetMouseDelta();
 		if (g_Input->GetRelativeMouseMode())
@@ -45,24 +47,81 @@ public:
 			m_Camera->SetRotation(qYaw * qPitch);
 		}
 
+		if (g_Input->IsKeyPressed(SDL_SCANCODE_C))
+			m_thirdPerson = !m_thirdPerson;
+
 		auto eyeForward = m_Camera->Forward();
-		m_Camera->SetPosition(eyePos + eyeForward * -3.0f);
+		if (m_thirdPerson)
+			eyePos += eyeForward * -3.0f;
+
+		m_Camera->SetPosition(eyePos);
 	}
 
-	void UpdateDesiredVelocity(float dt)
+	glm::vec3 GetMovementDir()
 	{
-		m_DesiredVelocity = glm::vec3(0);
+		auto dir = glm::vec3(0);
 
 		glm::vec3 forward = glm::vec3(m_Camera->Forward().x, 0, m_Camera->Forward().z);
 		glm::vec3 right = glm::vec3(m_Camera->Right().x, 0, m_Camera->Right().z);
 
-		if (g_Input->IsKeyDown(SDL_SCANCODE_W)) m_DesiredVelocity += forward;
-		if (g_Input->IsKeyDown(SDL_SCANCODE_S)) m_DesiredVelocity -= forward;
-		if (g_Input->IsKeyDown(SDL_SCANCODE_A)) m_DesiredVelocity -= right;
-		if (g_Input->IsKeyDown(SDL_SCANCODE_D)) m_DesiredVelocity += right;
+		if (g_Input->IsKeyDown(SDL_SCANCODE_W)) dir += forward;
+		if (g_Input->IsKeyDown(SDL_SCANCODE_S)) dir -= forward;
+		if (g_Input->IsKeyDown(SDL_SCANCODE_A)) dir -= right;
+		if (g_Input->IsKeyDown(SDL_SCANCODE_D)) dir += right;
 
-		if (glm::length(m_DesiredVelocity) > 0.0f)
-			m_DesiredVelocity = glm::normalize(m_DesiredVelocity) * 5.0f;
+		if (glm::length(dir) > 0.0f)
+			dir = glm::normalize(dir);
+
+		return dir;
+	}
+
+	bool IsOnGround()
+	{
+		return m_character->GetGroundState() == JPH::CharacterVirtual::EGroundState::OnGround;
+	}
+
+	float GetFriction()
+	{
+		if (!IsOnGround())
+			return 1.2f;
+
+		return 8.0f;
+	}
+
+	float GetWishSpeed()
+	{
+		return CHARACTER_MAX_SPEED;
+	}
+
+	void UpdateMovement(float dt)
+	{
+		m_character->UpdateGroundVelocity();
+
+		glm::vec3 up = Utils::GLM_Vec3_JPH(m_character->GetUp());
+		glm::vec3 currentVelocity = Utils::GLM_Vec3_JPH(m_character->GetLinearVelocity());
+		glm::vec3 currentVerticalVelocity = Utils::GLM_Vec3_JPH(m_character->GetLinearVelocity().Dot(m_character->GetUp()) * m_character->GetUp());
+		glm::vec3 groundVelocity = Utils::GLM_Vec3_JPH(m_character->GetGroundVelocity());
+		glm::vec3 vel;
+
+		m_wishVelocity = GetMovementDir();
+		m_wishVelocity *= GetWishSpeed();
+
+		if (IsOnGround())
+		{
+			vel = groundVelocity;
+
+			if (g_Input->IsKeyPressed(SDL_SCANCODE_SPACE))
+				vel += 8.0f * up;
+		}
+		else
+			vel = currentVerticalVelocity;
+
+		vel += m_wishVelocity;
+		vel += g_Physics->GetGravity() * dt * 2.0f;
+
+		//std::cout << m_wishVelocity.x << " " << m_wishVelocity.y << " " << m_wishVelocity.z << std::endl;
+
+		m_character->SetLinearVelocity(Utils::JPH_Vec3_GLM(vel));
 	}
 
 	void Update()
@@ -70,41 +129,15 @@ public:
 		float dt = g_Engine->DeltaTime();
 
 		UpdateCamera(dt);
-		UpdateDesiredVelocity(dt);
-
-		m_Character->UpdateGroundVelocity();
-
-		glm::vec3 currentVerticalVelocity = Utils::GLM_Vec3_JPH(m_Character->GetLinearVelocity().Dot(m_Character->GetUp()) * m_Character->GetUp());
-		glm::vec3 groundVelocity = Utils::GLM_Vec3_JPH(m_Character->GetGroundVelocity());
-		glm::vec3 newVelocity;
-
-		bool movingTowardsGround = (currentVerticalVelocity.y - groundVelocity.y) < 0.1f;
-		if (m_Character->GetGroundState() == JPH::CharacterVirtual::EGroundState::OnGround	// If on ground
-			&& (ENABLE_CHARACTER_INERTIA ?
-				movingTowardsGround													// Inertia enabled: And not moving away from ground
-				: !m_Character->IsSlopeTooSteep(m_Character->GetGroundNormal())))			// Inertia disabled: And not on a slope that is too steep
-		{
-			newVelocity = groundVelocity;
-
-			if (g_Input->IsKeyDown(SDL_SCANCODE_SPACE) && movingTowardsGround)
-				newVelocity += 5.0f * Utils::GLM_Vec3_JPH(m_Character->GetUp());
-		}
-		else
-			newVelocity = currentVerticalVelocity;
-
-		newVelocity += m_DesiredVelocity;
-		newVelocity += g_Physics->GetGravity() * dt;
-
-		m_Character->SetLinearVelocity(Utils::JPH_Vec3_GLM(newVelocity));
-
+		UpdateMovement(dt);
 		UpdatePhysics(dt);
 	}
 
 	void UpdatePhysics(float dt)
 	{
 		JPH::CharacterVirtual::ExtendedUpdateSettings updateSettings;
-		m_Character->ExtendedUpdate(dt,
-			-m_Character->GetUp() * g_Physics->GetGravity().length(),
+		m_character->ExtendedUpdate(dt,
+			-m_character->GetUp() * g_Physics->GetGravity().length(),
 			updateSettings,
 			GetPhysics()->GetSystem()->GetDefaultBroadPhaseLayerFilter(Layers::MOVING),
 			GetPhysics()->GetSystem()->GetDefaultLayerFilter(Layers::MOVING),
@@ -115,20 +148,25 @@ public:
 
 	void Draw()
 	{
-		JPH::RMat44 com = m_Character->GetCenterOfMassTransform();
-		m_Character->GetShape()->Draw(JPH::DebugRenderer::sInstance, com, JPH::Vec3::sOne(), JPH::Color::sGreen, false, true);
+		if (m_thirdPerson)
+		{
+			JPH::RMat44 com = m_character->GetCenterOfMassTransform();
+			m_character->GetShape()->Draw(JPH::DebugRenderer::sInstance, com, JPH::Vec3::sOne(), JPH::Color::sGreen, false, true);
+		}
 	}
 
 	RenderCamera* m_Camera = nullptr;
 
-	JPH::Shape* m_StandingShape = nullptr;
-	JPH::CharacterVirtual* m_Character = nullptr;
-
-	glm::vec3 m_DesiredVelocity;
-
 private:
 	float m_yaw = 0.0f;
 	float m_pitch = 0.0f;
+
+	bool m_thirdPerson = false;
+
+	JPH::Shape* m_standingShape = nullptr;
+	JPH::CharacterVirtual* m_character = nullptr;
+
+	glm::vec3 m_wishVelocity;
 };
 
 extern Player* g_Player;
