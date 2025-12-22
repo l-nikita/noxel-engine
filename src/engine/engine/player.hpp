@@ -4,6 +4,7 @@
 #include <Jolt/Physics/Character/Character.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
+#include <Jolt/Physics/Collision/RayCast.h>
 #include "common/transformable.hpp"
 #include "input/iinput.hpp"
 #include "engine.hpp"
@@ -115,6 +116,10 @@ public:
 		}
 		else
 			vel = currentVerticalVelocity;
+
+		//JPH::RayCast ray;
+		//ray.mOrigin = JPH::Vec3(10, 2, 0);
+		//ray.mDirection = JPH::Vec3(0, -2, 0);
 
 		vel += m_wishVelocity;
 		vel += g_Physics->GetGravity() * dt * 2.0f;
