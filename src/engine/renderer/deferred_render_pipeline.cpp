@@ -23,14 +23,12 @@ static Model* g_TestModel2;
 
 void CalculateTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
 {
-	// Обнуляем тангенты и битангеты
 	for (auto& v : vertices)
 	{
 		v.Tangent = glm::vec3(0.0f);
 		v.Bitangent = glm::vec3(0.0f);
 	}
 
-	// Проходим по каждому треугольнику
 	for (size_t i = 0; i < indices.size(); i += 3)
 	{
 		Vertex& v0 = vertices[indices[i + 0]];
@@ -56,12 +54,10 @@ void CalculateTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t
 		bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
 		bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
 
-		// Усреднение для вершин
 		v0.Tangent += tangent; v1.Tangent += tangent; v2.Tangent += tangent;
 		v0.Bitangent += bitangent; v1.Bitangent += bitangent; v2.Bitangent += bitangent;
 	}
 
-	// Ортогонализация TBN
 	for (auto& v : vertices)
 	{
 		v.Tangent = glm::normalize(v.Tangent - v.Normal * glm::dot(v.Normal, v.Tangent));

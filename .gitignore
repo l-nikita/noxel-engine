@@ -51,3 +51,7 @@ x64/
 *.ini
 *.exp
 *.sln
+*.slnx
+
+vcpkg_installed/
+*.log
