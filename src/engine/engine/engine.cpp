@@ -3,8 +3,11 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-
-#include "renderer/directx11/dx11renderer.hpp"
+#ifdef _WIN32
+    #include "renderer/directx11/dx11renderer.hpp"
+#else
+    // opengl or vulkan
+#endif
 #include "renderer/deferred_render_pipeline.hpp"
 #include "renderer/rendercamera.hpp"
 #include "renderer/gizmos.hpp"
@@ -178,8 +181,13 @@ bool Engine::Init()
     g_Input = new Input();
     g_Input->Init();
 
+#ifdef _WIN32
     if (g_Engine->GetGraphicsAPI() == DIRECTX11)
         g_Renderer = new DX11Renderer();
+#else
+    if (g_Engine->GetGraphicsAPI() == VULKAN)
+        assert(false);
+#endif
     else
         FATAL_ERROR("Invalid graphics API.", CMD::ENGINE);
 

@@ -6,6 +6,7 @@ enum GraphicsAPI
 {
 	OPENGL,
 	DIRECTX11,
+	VULKAN,
 };
 
 enum PrimitiveTopology 

@@ -34,10 +34,12 @@ target_link_libraries(engine PUBLIC
 	imgui::imgui
 	#Tracy::TracyClient
 	
-    d3d11
-    dxgi
-    d3dcompiler
-	dxguid
+	$<$<PLATFORM_ID:Windows>:
+        d3d11
+        dxgi
+        d3dcompiler
+        dxguid
+    >
 )
 
 target_include_directories(engine PUBLIC ${Stb_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
