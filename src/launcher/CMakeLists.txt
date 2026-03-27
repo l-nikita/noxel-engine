@@ -16,6 +16,16 @@ add_custom_command(TARGET launcher POST_BUILD
     $<TARGET_FILE_DIR:launcher>
 )
 
+set(ASSETS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+set(ASSETS_BINARY_DIR "$<TARGET_FILE_DIR:launcher>/assets")
+
+add_custom_command(TARGET launcher POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${ASSETS_SOURCE_DIR}"
+            "${ASSETS_BINARY_DIR}"
+    COMMENT "Copying assets to build directory..."
+)
+
 set_target_properties(launcher PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
 )

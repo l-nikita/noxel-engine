@@ -10,23 +10,10 @@
 class PhysicsDebugRenderer : public JPH::DebugRendererSimple
 {
 public:
-	PhysicsDebugRenderer()
-	{
-		Initialize();
-	}
+	PhysicsDebugRenderer();
+	virtual ~PhysicsDebugRenderer() override;
 
-	void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override
-	{
-		Gizmos::Line(Utils::GLM_Vec3_JPH(inFrom), Utils::GLM_Vec3_JPH(inTo), Utils::GLM_Color_JPH(inColor));
-	}
-
-	void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override
-	{
-		Gizmos::Triangle(glm::vec3(0.0f), Utils::GLM_Vec3_JPH(inV1), Utils::GLM_Vec3_JPH(inV1), Utils::GLM_Vec3_JPH(inV1), Utils::GLM_Color_JPH(inColor));
-	}
-
-	void DrawText3D(JPH::RVec3Arg inPosition, const JPH::string_view& inString, JPH::ColorArg inColor, float inHeight) override
-	{
-		// Implement
-	}
+	void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
+	void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override;
+	void DrawText3D(JPH::RVec3Arg inPosition, const JPH::string_view& inString, JPH::ColorArg inColor, float inHeight) override;
 };

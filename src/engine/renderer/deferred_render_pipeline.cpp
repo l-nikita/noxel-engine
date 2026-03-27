@@ -1,5 +1,7 @@
-#include "directx11/dx11renderer.hpp"
-#include "directx11/dx11texture.hpp"
+#ifdef DX11
+	#include "directx11/dx11renderer.hpp"
+	#include "directx11/dx11texture.hpp"
+#endif
 #include "deferred_render_pipeline.hpp"
 #include "irenderer.hpp"
 #include "irenderfactory.hpp"
@@ -312,11 +314,13 @@ void DeferredRenderPipeline::DoGeometryPass()
 	m_GBuffer.DepthStencil->Clear();
 
 	//---------------------
+#ifdef DX11
 	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
 	auto context = dxrenderer->GetContext();
 
 	ID3D11ShaderResourceView* nullSRVs[4] = { nullptr, nullptr, nullptr, nullptr };
 	context->PSSetShaderResources(0, 4, nullSRVs);
+#endif
 
 	g_Renderer->SetRenderTextures(rts, 4, m_GBuffer.DepthStencil);
 
@@ -361,9 +365,6 @@ void DeferredRenderPipeline::DoLightingPass()
 //-----------------------------------------------------------------------------
 void DeferredRenderPipeline::DoShadowPass()
 {
-	auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
-	auto context = dxrenderer->GetContext();
-
 	auto& lights = LightManager::GetInstance().GetLights();
 	for (int i = 0; i < lights.size(); i++)
 	{

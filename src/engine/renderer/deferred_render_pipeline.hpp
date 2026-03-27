@@ -7,8 +7,10 @@
 #include "ishaderprogram.hpp"
 #include "idepthstencil.hpp"
 #include "irenderfactory.hpp"
+#include "irenderer.hpp"
 
 class Model;
+class RenderCamera;
 
 struct GBuffer
 {

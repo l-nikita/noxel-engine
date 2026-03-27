@@ -1,10 +1,17 @@
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
-#include <imgui_impl_dx11.h>
+#ifdef DX11
+    #include <imgui_impl_dx11.h>
+#else
+    #include <imgui_impl_vulkan.h>
+#endif
 
 #include "iengine.hpp"
+#include "renderer/irenderer.hpp"
 #include "window.hpp"
-#include "renderer/directx11/dx11renderer.hpp"
+#ifdef DX11
+    #include "renderer/directx11/dx11renderer.hpp"
+#endif
 #include "gui.hpp"
 #include "panel.hpp"
 #include "dbg/cmd/cmd.hpp"
@@ -16,13 +23,20 @@ void Gui::Init()
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
-    if (g_Engine->GetGraphicsAPI() == DIRECTX11)
+    auto api = g_Engine->GetGraphicsAPI();
+    if (api == VULKAN)
     {
+
+    }
+    else if (api == DIRECTX11)
+    {
+#ifdef DX11
         auto dx11render = static_cast<DX11Renderer*>(g_Renderer);
         ImGui_ImplSDL3_InitForD3D(g_Engine->GetWindow()->GetHandle());
         ImGui_ImplDX11_Init(dx11render->GetDevice(), dx11render->GetContext());
+#endif
     }
-    else
+    else if (api == OPENGL)
     {
         //auto renderer = static_cast<GLRenderer*>(g_Renderer);
         //ImGui_ImplSDL3_InitForOpenGL(g_Engine->GetWindow(), renderer->GetContext());
@@ -37,9 +51,17 @@ void Gui::Init()
 
 void Gui::Render()
 {
-    auto isDX11 = g_Engine->GetGraphicsAPI() == DIRECTX11;
-    if (isDX11)
+    auto api = g_Engine->GetGraphicsAPI();
+    if (api == VULKAN)
+    {
+        //ImGui_ImplVulkan_NewFrame();
+    }
+    else if (api == DIRECTX11)
+    {
+#ifdef DX11
         ImGui_ImplDX11_NewFrame();
+#endif
+    }
 
     ImGui_ImplSDL3_NewFrame();
 
@@ -53,8 +75,16 @@ void Gui::Render()
 
     ImGui::Render();
 
-    if(isDX11)
+    if (api == VULKAN)
+    {
+        //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
+    }
+    else if (api == DIRECTX11)
+    {
+#ifdef DX11
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+#endif
+    }
 }
 
 void Gui::Shutdown()
@@ -67,7 +97,19 @@ void Gui::Shutdown()
 
     m_panels.clear();
 
-    ImGui_ImplDX11_Shutdown();
+    auto api = g_Engine->GetGraphicsAPI();
+    if (api == VULKAN)
+    {
+        ImGui_ImplVulkan_Shutdown();
+    }
+    else if (api == DIRECTX11)
+    {
+#ifdef DX11
+        ImGui_ImplDX11_Shutdown();
+#endif
+    }
+
+
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 }

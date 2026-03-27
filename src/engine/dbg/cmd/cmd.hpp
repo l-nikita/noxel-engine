@@ -5,6 +5,7 @@
 #include <functional>
 #include <iostream>
 #include <optional>
+#include <memory>
 
 #include "common/singleton.hpp"
 #include "cmd_log.hpp"

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-enum GraphicsAPI
+enum GraphicsAPI : int
 {
 	OPENGL,
 	DIRECTX11,

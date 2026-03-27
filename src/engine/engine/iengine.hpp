@@ -5,7 +5,7 @@
 class IRenderer;
 class IGui;
 class Window;
-enum GraphicsAPI;
+enum GraphicsAPI : int;
 
 class ENGINE_API IEngine
 {

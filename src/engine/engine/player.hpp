@@ -9,6 +9,7 @@
 #include "input/iinput.hpp"
 #include "engine.hpp"
 #include "physics/physics.hpp"
+#include "physics/physics_renderer.hpp"
 
 constexpr auto SENSITIVITY = 10.0f;
 constexpr auto CHARACTER_RADIUS = 0.5f;

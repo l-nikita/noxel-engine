@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#ifdef _WIN32
+#ifdef DX11
     #include "renderer/directx11/dx11renderer.hpp"
 #else
     // opengl or vulkan
@@ -181,7 +181,7 @@ bool Engine::Init()
     g_Input = new Input();
     g_Input->Init();
 
-#ifdef _WIN32
+#ifdef DX11
     if (g_Engine->GetGraphicsAPI() == DIRECTX11)
         g_Renderer = new DX11Renderer();
 #else

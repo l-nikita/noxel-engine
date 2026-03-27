@@ -14,7 +14,9 @@
 #include "iphysics.hpp"
 #include "physics_layers.hpp"
 #include "physics_listeners.hpp"
-#include "physics_renderer.hpp"
+#include "utils.hpp"
+
+class PhysicsDebugRenderer;
 
 class JoltPhysics : public IPhysics
 {
