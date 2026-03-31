@@ -430,7 +430,7 @@ void DeferredRenderPipeline::Render()
 	DoLightingPass();
 	//DoSkyboxPass();
 
-	g_Gui->Render();
+	//g_Gui->Render();
 
 	g_Renderer->Swap();
 #ifdef _DEBUG

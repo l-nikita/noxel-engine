@@ -54,13 +54,13 @@ void Engine::Update()
     bool isF3 = g_Input->IsKeyPressed(SDL_SCANCODE_F3);
     bool isF11 = g_Input->IsKeyPressed(SDL_SCANCODE_F11);
 
-    auto gui = static_cast<Gui*>(g_Gui);
-    if (isGrave)
-        gui->m_DebugMenu->m_IsVisible = !gui->m_DebugMenu->m_IsVisible;
-    if (isF3)
-        g_Input->SetRelativeMouseMode(!g_Input->GetRelativeMouseMode());
-    else if (isF11)
-        GetWindow()->ToggleFullscreen();
+    //auto gui = static_cast<Gui*>(g_Gui);
+    //if (isGrave)
+    //    gui->m_DebugMenu->m_IsVisible = !gui->m_DebugMenu->m_IsVisible;
+    //if (isF3)
+    //    g_Input->SetRelativeMouseMode(!g_Input->GetRelativeMouseMode());
+    //else if (isF11)
+    //    GetWindow()->ToggleFullscreen();
 
     g_Input->Reset();
 }
@@ -70,12 +70,12 @@ void Engine::Render()
     if (GetWindow()->IsMinimized())
         return;
 
-    g_RenderPipeline->Render();
+    //g_RenderPipeline->Render();
 }
 
 void Engine::DrawPlayer()
 {
-    g_Player->Draw();
+    //g_Player->Draw();
 }
 
 //-----------------------------------------------------------------------------
@@ -123,18 +123,18 @@ void Engine::Shutdown()
 {
     Stop();
 
-    Gizmos::Shutdown();
+    //Gizmos::Shutdown();
 
     g_Physics->Shutdown();
-    g_Gui->Shutdown();
-    g_RenderPipeline->Shutdown();
-    g_Renderer->Shutdown();
+    //g_Gui->Shutdown();
+    //g_RenderPipeline->Shutdown();
+    //g_Renderer->Shutdown();
 
-    delete g_Gui;
+    //delete g_Gui;
     delete g_Physics;
     delete g_Assets;
     delete g_Input;
-    delete g_RenderPipeline;
+    //delete g_RenderPipeline;
     delete g_Renderer;
 
     GetWindow()->Destroy();
@@ -188,24 +188,24 @@ bool Engine::Init()
     if (g_Engine->GetGraphicsAPI() == VULKAN)
         assert(false);
 #endif
-    else
-        FATAL_ERROR("Invalid graphics API.", CMD::ENGINE);
+    //else
+    //    FATAL_ERROR("Invalid graphics API.", CMD::ENGINE);
 
-    g_Renderer->Init();
+    //g_Renderer->Init();
 
-    g_RenderPipeline = new DeferredRenderPipeline();
-    g_RenderPipeline->Init();
+    //g_RenderPipeline = new DeferredRenderPipeline();
+    //g_RenderPipeline->Init();
 
-    g_Gui = new Gui();
-    g_Gui->Init();
+    //g_Gui = new Gui();
+    //g_Gui->Init();
 
-    Gizmos::Init();
+    //Gizmos::Init();
     CMD::CMD::GetInstance().Setup();
 
     g_Physics = new JoltPhysics();
     g_Physics->Init();
 
-    g_Player = new Player(g_Renderer->GetCamera());
+    //g_Player = new Player(g_Renderer->GetCamera());
 
     CMD_INFO("Engine initialized successfully.", CMD::ENGINE);
     return true;
@@ -218,5 +218,5 @@ void Engine::OnWindowResize()
 {
     int width, height;
     GetWindow()->GetSize(&width, &height);
-    g_RenderPipeline->OnWindowResize(width, height);
+    //g_RenderPipeline->OnWindowResize(width, height);
 }

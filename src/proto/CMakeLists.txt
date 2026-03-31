@@ -7,9 +7,9 @@ add_library(proto STATIC ${PROTO_SRCS} ${PROTO_HDRS})
 
 set_target_properties(proto PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(proto PUBLIC
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${Protobuf_INCLUDE_DIRS}
+target_include_directories(proto PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-target_link_libraries(proto PRIVATE protobuf::libprotobuf)
+target_link_libraries(proto PUBLIC protobuf::libprotobuf)

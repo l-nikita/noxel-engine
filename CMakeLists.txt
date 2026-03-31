@@ -1,12 +1,29 @@
-cmake_minimum_required(VERSION 3.5...4.0)
+cmake_minimum_required(VERSION 3.20)
 
-project(NoxelEngine VERSION 1.0)
+project(NoxelEngine 
+    VERSION 1.0.0 
+    LANGUAGES C CXX
+)
+
+# ------------------ Output Directories -----------------------
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # ------------------ C++ -----------------------
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) # Better for portability
 
-# ------------------ Packages ------------------
+# ------------------ Platform Specifics ------------------
+if(MSVC)
+    add_compile_options(/W4 /permissive- /utf-8) # MSVC warnings and conformance
+    add_compile_definitions(UNICODE _UNICODE) # Use Unicode strings by default
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic) # GCC/Clang warnings
+endif()
+
+# ------------------ Dependencies ------------------
 find_package(SDL3 REQUIRED CONFIG)
 find_package(EnTT REQUIRED CONFIG)
 find_package(glm REQUIRED CONFIG)
@@ -17,6 +34,7 @@ find_package(GameNetworkingSockets REQUIRED CONFIG)
 find_package(imgui REQUIRED CONFIG)
 find_package(Stb REQUIRED)
 find_package(Boost REQUIRED)
+find_package(Vulkan REQUIRED)
 #find_package(Tracy CONFIG REQUIRED)
 
 # ------------------ Settings ------------------
@@ -24,30 +42,7 @@ set(BUILD_STATIC_LIB OFF CACHE INTERNAL "")
 set(BUILD_SHARED_LIB ON CACHE INTERNAL "")
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
-# ----------------------------------------------
-function(auto_source_group_by_folder FILES IS_HEADER)
-    foreach(file ${${FILES}})
-        get_filename_component(dir "${file}" PATH)
-        file(RELATIVE_PATH rel_path "${CMAKE_CURRENT_SOURCE_DIR}" "${dir}")
-
-        string(REPLACE "/" ";" parts "${rel_path}")
-        set(group_parts "")
-		
-        foreach(part ${parts})
-            list(APPEND group_parts "${part}")
-        endforeach()
-
-        if(IS_HEADER)
-            list(APPEND group_parts "headers")
-        endif()
-
-        string(REPLACE ";" "\\" group "${group_parts}")
-
-        source_group("${group}" FILES "${file}")
-    endforeach()
-endfunction()
-
-# ------------------ Main projects -------------
+# ------------------ Subdirectories --------------------
 add_subdirectory(src/proto)
 add_subdirectory(src/engine)
 add_subdirectory(src/launcher)

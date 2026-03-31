@@ -3,7 +3,7 @@
 #ifdef DX11
     #include <imgui_impl_dx11.h>
 #else
-    #include <imgui_impl_vulkan.h>
+    //#include <imgui_impl_vulkan.h>
 #endif
 
 #include "iengine.hpp"
@@ -100,7 +100,7 @@ void Gui::Shutdown()
     auto api = g_Engine->GetGraphicsAPI();
     if (api == VULKAN)
     {
-        ImGui_ImplVulkan_Shutdown();
+        //ImGui_ImplVulkan_Shutdown();
     }
     else if (api == DIRECTX11)
     {

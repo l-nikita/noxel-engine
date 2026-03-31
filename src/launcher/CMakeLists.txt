@@ -1,31 +1,19 @@
-add_executable(launcher)
-
-target_sources(launcher PRIVATE
-    main.cpp
-)
+add_executable(launcher main.cpp)
 
 # --- libs ---- #
 target_link_libraries(launcher PRIVATE engine)
-target_include_directories(launcher PRIVATE
-	../engine
+
+set_target_properties(launcher PROPERTIES
+    BUILD_RPATH "${CMAKE_BINARY_DIR}/src/engine"
+    INSTALL_RPATH "${CMAKE_BINARY_DIR}/src/engine"
 )
 
-add_custom_command(TARGET launcher POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    $<TARGET_FILE:engine>
-    $<TARGET_FILE_DIR:launcher>
-)
-
-set(ASSETS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
-set(ASSETS_BINARY_DIR "$<TARGET_FILE_DIR:launcher>/assets")
+set(ASSETS_SOURCE_DIR "${PROJECT_SOURCE_DIR}/assets")
+set(ASSETS_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assets")
 
 add_custom_command(TARGET launcher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${ASSETS_SOURCE_DIR}"
             "${ASSETS_BINARY_DIR}"
-    COMMENT "Copying assets to build directory..."
-)
-
-set_target_properties(launcher PROPERTIES
-    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    COMMENT "Copying assets from ${ASSETS_SOURCE_DIR} to ${ASSETS_BINARY_DIR}"
 )

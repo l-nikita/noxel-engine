@@ -3,14 +3,14 @@
 	"version": "1.0.0",
 	"dependencies": [
 		{ "name": "sdl3" },
+		{ "name": "vulkan" },
 		{ "name": "entt" },
 		{ "name": "glm" },
 		{ "name": "imgui", "features": [
 			{ "name": "sdl3-binding" }, 
-			{ "name": "dx11-binding", "platform": "windows" }, 
-			{ "name": "vulkan-binding", "platform": "linux" } 
+			{ "name": "dx11-binding", "platform": "windows" }
 		]},
-		{ "name": "joltphysics", "features": ["debugrenderer"] },
+		{ "name": "joltphysics", "features": ["debugrenderer", "rtti"] },
 		{ "name": "nlohmann-json" },
 		{ "name": "protobuf" },
 		{ "name": "gamenetworkingsockets" },
