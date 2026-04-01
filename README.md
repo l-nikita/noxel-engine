@@ -2,7 +2,7 @@
 
 **Status: Active Early Development**
 
-Noxel Engine is a modern, cross-platform C++23 game engine. Built around a data-driven Entity Component System (ECS) and a robust client-server architecture.
+Noxel Engine is a modern C++23 game engine. Built around a data-driven Entity Component System (ECS) and a client-server architecture.
 
 ![Engine Screenshot](docs/images/overview.png)
 
