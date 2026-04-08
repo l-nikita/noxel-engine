@@ -33,7 +33,6 @@ find_package(Protobuf REQUIRED CONFIG)
 find_package(GameNetworkingSockets REQUIRED CONFIG)
 find_package(imgui REQUIRED CONFIG)
 find_package(Stb REQUIRED)
-find_package(Boost REQUIRED)
 find_package(Vulkan REQUIRED)
 #find_package(Tracy CONFIG REQUIRED)
 

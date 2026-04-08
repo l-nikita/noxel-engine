@@ -44,11 +44,12 @@ file(GLOB VULKAN_FILES
 set(ALL_SOURCES ${SOURCES} ${HEADERS} ${RENDERER_FILES} ${VULKAN_FILES})
 
 if(WIN32)
-    list(APPEND ALL_SOURCES ${dx11_files})
-    target_compile_definitions(engine PRIVATE DX11)
+    list(APPEND ALL_SOURCES ${DX11_FILES})
 endif()
 
 add_library(engine SHARED ${ALL_SOURCES})
+
+target_compile_definitions(engine PRIVATE DX11)
 
 target_include_directories(engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
