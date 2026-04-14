@@ -15,9 +15,12 @@ MaterialAsset* MaterialAsset::m_error = nullptr;
 
 void AssetSystem::Init()
 {
-	m_rootPath = std::filesystem::current_path().parent_path();
-	m_binPath = std::filesystem::current_path().parent_path() / "bin";
-	m_assetsPath = std::filesystem::current_path().parent_path() / "assets";
+	m_rootPath = std::filesystem::current_path();
+	m_binPath = m_rootPath / "bin";
+	m_assetsPath = m_rootPath / "assets";
+
+	if (!std::filesystem::exists(m_assetsPath))
+		m_assetsPath = std::filesystem::current_path().parent_path() / "assets";
 
 	//TODO: Automatic assets searing
 	//ShaderAsset::CreateNew("default", (m_assetsPath / "shaders\\default.hlsl").string());

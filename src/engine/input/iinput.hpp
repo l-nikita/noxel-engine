@@ -1,9 +1,9 @@
 #pragma once
 
+#include <SDL3/SDL.h>
 #include <glm/glm.hpp>
 #include <cstdint>
 
-enum SDL_Scancode;
 typedef uint8_t Uint8;
 
 struct SDL_KeyboardEvent;

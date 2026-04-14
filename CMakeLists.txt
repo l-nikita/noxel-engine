@@ -17,10 +17,10 @@ set(CMAKE_CXX_EXTENSIONS OFF) # Better for portability
 
 # ------------------ Platform Specifics ------------------
 if(MSVC)
-    add_compile_options(/W4 /permissive- /utf-8) # MSVC warnings and conformance
-    add_compile_definitions(UNICODE _UNICODE) # Use Unicode strings by default
+    add_compile_options(/W4 /permissive- /utf-8) 
+    add_compile_definitions(UNICODE _UNICODE)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic) # GCC/Clang warnings
+    add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 # ------------------ Dependencies ------------------
@@ -42,6 +42,7 @@ set(BUILD_SHARED_LIB ON CACHE INTERNAL "")
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 # ------------------ Subdirectories --------------------
+
 add_subdirectory(src/proto)
 add_subdirectory(src/engine)
 add_subdirectory(src/launcher)
