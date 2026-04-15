@@ -33,6 +33,44 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
+DX11Renderer::~DX11Renderer()
+{
+    if (m_backBuffer)
+        delete m_backBuffer, m_backBuffer = nullptr;
+
+    if (m_factory)
+    {
+        delete m_factory;
+        m_factory = nullptr;
+    }
+
+    if (m_context)
+    {
+        m_context->ClearState();
+        m_context->Flush();
+        m_context->Release();
+        m_context = nullptr;
+    }
+
+    if (m_swapChain)
+        m_swapChain->Release(), m_swapChain = nullptr;
+
+    if (m_device)
+        m_device->Release(), m_device = nullptr;
+
+#ifdef _DEBUG
+    IDXGIDebug1* pDebug = nullptr;
+    if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
+    {
+        pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, (DXGI_DEBUG_RLO_FLAGS)(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_DETAIL));
+        pDebug->Release();
+    }
+#endif
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void DX11Renderer::CreateDevice()
 {
     UINT flags = 0;
@@ -183,44 +221,6 @@ void DX11Renderer::SetPrimitiveTopology(PrimitiveTopology topology)
         m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     else if (topology == TRIANGLES)
         m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void DX11Renderer::Shutdown()
-{
-    if (m_backBuffer)
-        delete m_backBuffer, m_backBuffer = nullptr;
-
-    if (m_factory)
-    {
-        delete m_factory;
-        m_factory = nullptr;
-    }
-
-    if (m_context)
-    {
-        m_context->ClearState();
-        m_context->Flush();
-        m_context->Release();
-        m_context = nullptr;
-    }
-
-    if (m_swapChain)
-        m_swapChain->Release(), m_swapChain = nullptr;
-
-    if (m_device)
-        m_device->Release(), m_device = nullptr;
-
-#ifdef _DEBUG
-    IDXGIDebug1* pDebug = nullptr;
-    if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
-    {
-        pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, (DXGI_DEBUG_RLO_FLAGS)(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_DETAIL));
-        pDebug->Release();
-    }
-#endif
 }
 
 //-----------------------------------------------------------------------------

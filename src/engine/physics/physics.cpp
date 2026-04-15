@@ -59,6 +59,45 @@ static JPH::BodyID g_BodyId;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
+JoltPhysics::~JoltPhysics()
+{
+	if (!IsRunning()) 
+		return;
+		
+	m_isRunning = false;
+
+	FlushPendingDestructions();
+
+	auto& iBody = m_system->GetBodyInterface();
+	for (auto& bodyID : m_bodiesIDs)
+	{
+		iBody.RemoveBody(bodyID);
+		iBody.DestroyBody(bodyID);
+	}
+
+	m_bodiesIDs.clear();
+	UnregisterTypes();
+
+	delete m_system;
+	delete m_tempAllocator;
+	delete m_jobSystem;
+
+	delete Factory::sInstance;
+	Factory::sInstance = nullptr;
+
+	delete broad_phase_layer_interface;
+	delete object_vs_broadphase_layer_filter;
+	delete object_vs_object_layer_filter;
+
+	delete body_activation_listener;
+	delete contact_listener;
+
+	delete m_debugRenderer;
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void JoltPhysics::Init()
 {
 	RegisterDefaultAllocator();
@@ -216,41 +255,4 @@ void JoltPhysics::FlushPendingDestructions()
 			m_bodiesIDs.erase(it, m_bodiesIDs.end());
 	}
 	m_bodiesToDestroy.clear();
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void JoltPhysics::Shutdown()
-{
-	if (!IsRunning()) return;
-	m_isRunning = false;
-
-	FlushPendingDestructions();
-
-	auto& iBody = m_system->GetBodyInterface();
-	for (auto& bodyID : m_bodiesIDs)
-	{
-		iBody.RemoveBody(bodyID);
-		iBody.DestroyBody(bodyID);
-	}
-
-	m_bodiesIDs.clear();
-	UnregisterTypes();
-
-	delete m_system;
-	delete m_tempAllocator;
-	delete m_jobSystem;
-
-	delete Factory::sInstance;
-	Factory::sInstance = nullptr;
-
-	delete broad_phase_layer_interface;
-	delete object_vs_broadphase_layer_filter;
-	delete object_vs_object_layer_filter;
-
-	delete body_activation_listener;
-	delete contact_listener;
-
-	delete m_debugRenderer;
 }

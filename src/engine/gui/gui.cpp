@@ -1,7 +1,7 @@
-#include <imgui.h>
-#include <imgui_impl_sdl3.h>
+//#include <imgui.h>
+//#include <imgui_impl_sdl3.h>
 #ifdef DX11
-    #include <imgui_impl_dx11.h>
+    //#include <imgui_impl_dx11.h>
 #else
     //#include <imgui_impl_vulkan.h>
 #endif
@@ -15,10 +15,45 @@
 #include "gui.hpp"
 #include "panel.hpp"
 #include "dbg/cmd/cmd.hpp"
-#include "imgui/debug_menu/debug_menu.hpp"
+//#include "imgui/debug_menu/debug_menu.hpp"
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+Gui::~Gui()
+{
+    /*
+    if (m_DebugMenu)
+    {
+        delete m_DebugMenu;
+        m_DebugMenu = nullptr;
+    }
+
+    m_panels.clear();
+
+    auto api = g_Engine->GetGraphicsAPI();
+    if (api == VULKAN)
+    {
+        //ImGui_ImplVulkan_Shutdown();
+    }
+    else if (api == DIRECTX11)
+    {
+#ifdef DX11
+        ImGui_ImplDX11_Shutdown();
+#endif
+    }
+
+    ImGui_ImplSDL3_Shutdown();
+    ImGui::DestroyContext();
+    */
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void Gui::Init()
 {
+    /*
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -47,10 +82,15 @@ void Gui::Init()
     m_DebugMenu = new DebugMenu();
     m_DebugMenu->m_IsVisible = false;
     m_panels.push_back(dynamic_cast<Panel*>(m_DebugMenu));
+    */
 }
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 void Gui::Render()
 {
+    /*
     auto api = g_Engine->GetGraphicsAPI();
     if (api == VULKAN)
     {
@@ -85,31 +125,11 @@ void Gui::Render()
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 #endif
     }
+    */
 }
 
-void Gui::Shutdown()
+//-----------------------------------------------------------------------------
+void Gui::Update()
 {
-    if (m_DebugMenu)
-    {
-        delete m_DebugMenu;
-        m_DebugMenu = nullptr;
-    }
-
-    m_panels.clear();
-
-    auto api = g_Engine->GetGraphicsAPI();
-    if (api == VULKAN)
-    {
-        //ImGui_ImplVulkan_Shutdown();
-    }
-    else if (api == DIRECTX11)
-    {
-#ifdef DX11
-        ImGui_ImplDX11_Shutdown();
-#endif
-    }
-
-
-    ImGui_ImplSDL3_Shutdown();
-    ImGui::DestroyContext();
+    
 }

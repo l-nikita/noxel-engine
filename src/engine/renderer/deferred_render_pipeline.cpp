@@ -70,6 +70,40 @@ void CalculateTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
+DeferredRenderPipeline::~DeferredRenderPipeline()
+{
+	LightManager::GetInstance().Release();
+
+	for (auto model : m_Models)
+		delete model;
+
+	m_Models.clear();
+	m_GBuffer.Release();
+
+	if (m_mainCamera)
+		delete m_mainCamera, m_mainCamera = nullptr;
+
+	auto factory = g_Renderer->GetFactory();
+
+	if (m_backBufferVP)
+		factory->Release(m_backBufferVP), m_backBufferVP = nullptr;
+
+	if (m_shadowsMapsVP)
+		factory->Release(m_shadowsMapsVP), m_shadowsMapsVP = nullptr;
+
+	if (m_shadowsShader)
+		factory->Release(m_shadowsShader), m_shadowsShader = nullptr;
+
+	if (m_lightingShader)
+		factory->Release(m_lightingShader), m_lightingShader = nullptr;
+
+	if (m_skyboxMat)
+		factory->Release(m_skyboxMat), m_skyboxMat = nullptr;
+
+	if (m_skyboxMesh)
+		factory->Release(m_skyboxMesh), m_skyboxMesh = nullptr;
+}
+
 void DeferredRenderPipeline::Init()
 {
 	auto factory = g_Renderer->GetFactory();
@@ -436,43 +470,6 @@ void DeferredRenderPipeline::Render()
 #ifdef _DEBUG
 	m_DrawCallCount = 0;
 #endif
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void DeferredRenderPipeline::Shutdown()
-{
-	LightManager::GetInstance().Release();
-
-	for (auto model : m_Models)
-		delete model;
-
-	m_Models.clear();
-	m_GBuffer.Release();
-
-	if (m_mainCamera)
-		delete m_mainCamera, m_mainCamera = nullptr;
-
-	auto factory = g_Renderer->GetFactory();
-
-	if (m_backBufferVP)
-		factory->Release(m_backBufferVP), m_backBufferVP = nullptr;
-
-	if (m_shadowsMapsVP)
-		factory->Release(m_shadowsMapsVP), m_shadowsMapsVP = nullptr;
-
-	if (m_shadowsShader)
-		factory->Release(m_shadowsShader), m_shadowsShader = nullptr;
-
-	if (m_lightingShader)
-		factory->Release(m_lightingShader), m_lightingShader = nullptr;
-
-	if (m_skyboxMat)
-		factory->Release(m_skyboxMat), m_skyboxMat = nullptr;
-
-	if (m_skyboxMesh)
-		factory->Release(m_skyboxMesh), m_skyboxMesh = nullptr;
 }
 
 //-----------------------------------------------------------------------------

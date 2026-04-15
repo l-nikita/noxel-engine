@@ -4,6 +4,7 @@
 
 enum GraphicsAPI : int
 {
+	NONE,
 	OPENGL,
 	DIRECTX11,
 	VULKAN,
@@ -30,7 +31,6 @@ public:
 	virtual ~IRenderer() = default;
 
 	virtual void Init() = 0;
-	virtual void Shutdown() = 0;
 	virtual void Swap() = 0;
 	virtual void OnWindowResize(int width, int height) = 0;
 

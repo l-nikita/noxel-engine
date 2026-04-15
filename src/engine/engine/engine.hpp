@@ -13,7 +13,7 @@ class ENGINE_API Engine : public IEngine
 {
 public:
     bool Init() override;
-    bool InitWindow() override;
+    void CreateWindow();
 
     void Run() override;
     void Stop() override;
@@ -41,7 +41,7 @@ public:
 
     //-------------------------------------------------
 
-    GraphicsAPI GetGraphicsAPI() { return DIRECTX11; }
+    GraphicsAPI GetGraphicsAPI() { return m_graphicsAPI; }
 
 private:
     Window* m_window = nullptr;
@@ -49,4 +49,6 @@ private:
 
     std::chrono::duration<float> m_deltaTime;
     std::chrono::duration<float> m_elapsedTime;
+
+    GraphicsAPI m_graphicsAPI = GraphicsAPI::NONE;
 };

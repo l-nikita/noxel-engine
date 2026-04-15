@@ -4,24 +4,24 @@
 
 Window::Window(std::string title, int width, int height)
 {
-    if (g_Engine->GetGraphicsAPI() == DIRECTX11)
-        m_handle = SDL_CreateWindow(title.c_str(), width, height, SDL_WINDOW_RESIZABLE);
-    else if (g_Engine->GetGraphicsAPI() == OPENGL)
+    SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
+
+    if (g_Engine->GetGraphicsAPI() == OPENGL)
     {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-        m_handle = SDL_CreateWindow(title.c_str(), width, height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+        flags |= SDL_WINDOW_OPENGL;
     }
-    else
-        FATAL_ERROR("Unknown graphics API!", CMD::ENGINE);
+        
+    m_handle = SDL_CreateWindow(title.c_str(), width, height, flags);
 
     if (!m_handle)
         FATAL_ERROR("SDL_CreateWindow Error: " + std::string(SDL_GetError()), CMD::ENGINE);
 }
 
-void Window::Destroy()
+Window::~Window()
 {
     SDL_DestroyWindow(m_handle);
 }

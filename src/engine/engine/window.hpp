@@ -7,6 +7,7 @@ class Window
 {
 public:
 	Window(std::string title, int width, int height);
+	~Window();
 
 	void Destroy();
 	void GetSize(int *width, int *height);

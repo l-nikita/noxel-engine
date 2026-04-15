@@ -16,8 +16,9 @@
 class DX11Renderer : public IRenderer
 {
 public:
+	~DX11Renderer();
+
 	void Init() override;
-	void Shutdown() override;
 
 	void OnWindowResize(int width, int height) override;
 

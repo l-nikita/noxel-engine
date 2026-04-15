@@ -47,9 +47,10 @@ struct GBuffer
 class DeferredRenderPipeline : public IRenderPipeline
 {
 public:
+	~DeferredRenderPipeline();
+
 	void Init() override;
 	void Render() override;
-	void Shutdown() override;
 	void OnWindowResize(int width, int height) override;
 
 	void DoGeometryPass();

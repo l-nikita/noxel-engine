@@ -50,11 +50,11 @@ void Engine::Update()
 
     g_Physics->Update();
 
-    bool isGrave = g_Input->IsKeyPressed(SDL_SCANCODE_GRAVE);
+    //bool isGrave = g_Input->IsKeyPressed(SDL_SCANCODE_GRAVE);
     bool isF3 = g_Input->IsKeyPressed(SDL_SCANCODE_F3);
     bool isF11 = g_Input->IsKeyPressed(SDL_SCANCODE_F11);
 
-    auto gui = static_cast<Gui*>(g_Gui);
+    //auto gui = static_cast<Gui*>(g_Gui);
     //if (isGrave)
     //    gui->m_DebugMenu->m_IsVisible = !gui->m_DebugMenu->m_IsVisible;
     if (isF3)
@@ -70,12 +70,13 @@ void Engine::Render()
     if (GetWindow()->IsMinimized())
         return;
 
-    g_RenderPipeline->Render();
+    if (g_RenderPipeline)
+        g_RenderPipeline->Render();
 }
 
 void Engine::DrawPlayer()
 {
-    //g_Player->Draw();
+    g_Player->Draw();
 }
 
 //-----------------------------------------------------------------------------
@@ -123,22 +124,29 @@ void Engine::Shutdown()
 {
     Stop();
 
-    Gizmos::Shutdown();
+    if (g_Renderer)
+        Gizmos::Shutdown();
 
-    g_Physics->Shutdown();
-    //g_Gui->Shutdown();
-    g_RenderPipeline->Shutdown();
-    g_Renderer->Shutdown();
+    if (g_Gui)
+        delete g_Gui, g_Gui = nullptr;
 
-    //delete g_Gui;
-    delete g_Physics;
-    delete g_Assets;
-    delete g_Input;
-    delete g_RenderPipeline;
-    delete g_Renderer;
+    if (g_Physics)
+        delete g_Physics, g_Physics = nullptr;
 
-    GetWindow()->Destroy();
-    delete m_window;
+    if (g_Assets)
+        delete g_Assets, g_Assets = nullptr;
+
+    if (g_Input)
+        delete g_Input, g_Input = nullptr;
+
+    if (g_RenderPipeline)
+        delete g_RenderPipeline, g_RenderPipeline = nullptr;
+
+    if (g_Renderer)
+        delete g_Renderer, g_Renderer = nullptr;
+
+    if (m_window)
+        delete m_window, m_window = nullptr;
 
     SDL_Quit();
     CMD_INFO("Engine stopped.", CMD::ENGINE);
@@ -147,10 +155,9 @@ void Engine::Shutdown()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Engine::InitWindow()
+void Engine::CreateWindow()
 {
     m_window = new Window(ENGINE_NAME, 1920, 1080);
-    return m_window != nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -172,40 +179,41 @@ bool Engine::Init()
         return false;
     }
 
-    if (!InitWindow()) 
-        return false;
-
     g_Assets = new AssetSystem();
     g_Assets->Init();
 
     g_Input = new Input();
     g_Input->Init();
 
-#ifdef DX11
-    if (g_Engine->GetGraphicsAPI() == DIRECTX11)
-        g_Renderer = new DX11Renderer();
-#else
     if (g_Engine->GetGraphicsAPI() == VULKAN)
         assert(false);
+#ifdef DX11
+    else if (g_Engine->GetGraphicsAPI() == DIRECTX11)
+        g_Renderer = new DX11Renderer();
 #endif
-    //else
-    //    FATAL_ERROR("Invalid graphics API.", CMD::ENGINE);
 
-    g_Renderer->Init();
+    if (g_Renderer)
+    {
+        g_Renderer->Init();
 
-    g_RenderPipeline = new DeferredRenderPipeline();
-    g_RenderPipeline->Init();
+        g_RenderPipeline = new DeferredRenderPipeline();
+        g_RenderPipeline->Init();
 
-    //g_Gui = new Gui();
-    //g_Gui->Init();
+        g_Gui = new Gui();
+        g_Gui->Init();
 
-    Gizmos::Init();
+        Gizmos::Init();
+    }
+
     CMD::CMD::GetInstance().Setup();
 
     g_Physics = new JoltPhysics();
     g_Physics->Init();
 
-    g_Player = new Player(g_Renderer->GetCamera());
+    if (g_Renderer)
+        g_Player = new Player(g_Renderer->GetCamera());
+
+    CreateWindow();
 
     CMD_INFO("Engine initialized successfully.", CMD::ENGINE);
     return true;
@@ -218,5 +226,7 @@ void Engine::OnWindowResize()
 {
     int width, height;
     GetWindow()->GetSize(&width, &height);
-    g_RenderPipeline->OnWindowResize(width, height);
+
+    if (g_RenderPipeline)
+        g_RenderPipeline->OnWindowResize(width, height);
 }

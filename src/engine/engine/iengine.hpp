@@ -13,7 +13,6 @@ public:
 	virtual ~IEngine() = default;
 
 	virtual bool Init() = 0;
-	virtual bool InitWindow() = 0;
 
 	virtual void Run() = 0;
 	virtual void Stop() = 0;

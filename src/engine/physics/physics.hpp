@@ -21,12 +21,11 @@ class PhysicsDebugRenderer;
 class JoltPhysics : public IPhysics
 {
 public:
-	~JoltPhysics() { Shutdown(); }
+	~JoltPhysics();
 
 	void Init() override;
 	void Update() override;
 	void Render() override;
-	void Shutdown() override;
 
 	bool IsRunning() override { return m_isRunning; }
 

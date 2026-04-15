@@ -9,7 +9,7 @@ set_target_properties(launcher PROPERTIES
 )
 
 set(ASSETS_SOURCE_DIR "${PROJECT_SOURCE_DIR}/assets")
-set(ASSETS_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/assets")
+set(ASSETS_BINARY_DIR "${CMAKE_BINARY_DIR}/assets")
 
 add_custom_command(TARGET launcher POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
