@@ -173,7 +173,7 @@ namespace CMD
 		bool inQuotes = false;
 		std::string current;
 
-		for (int i = 0; i < input.size(); ++i)
+		for (size_t i = 0; i < input.size(); ++i)
 		{
 			char c = input[i];
 
@@ -246,5 +246,20 @@ namespace CMD
 			else
 				LogMsg(it->first + " = " + it->second.ValueToString() + " [ default: " + it->second.DefValueToString() + " ] - " + it->second.Desc, DEFAULT, CONSOLE);
 		}
+	}
+
+	void RegisterCommand(const std::string& name, const std::string& desc, const std::function<void()>& func)
+	{
+		CMD::GetInstance().RegisterCommand(name, desc, func);
+	}
+
+	void RegisterVar(const std::string& name, const std::string& desc, const VarValue& defValue, const VarCallback& callback)
+	{
+		CMD::GetInstance().RegisterVar(name, desc, defValue, callback);
+	}
+
+	void Execute(const std::string& name)
+	{
+		CMD::GetInstance().Execute(name);
 	}
 }

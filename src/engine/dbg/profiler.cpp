@@ -51,4 +51,9 @@ namespace Profiler
             FATAL_ERROR("Profiler [" + name + "] not found", CMD::ENGINE);
 #endif
     }
+
+    Profilers GetAll()
+    {
+        return Profiler::m_all;
+    }
 }

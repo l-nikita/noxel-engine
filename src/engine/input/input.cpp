@@ -39,7 +39,7 @@ bool Input::IsButtonDown(Uint8 button)
 
 bool Input::IsButtonPressed(Uint8 button)
 {
-    return false;
+    return m_mousePressed[button];
 }
 
 bool Input::IsButtonReleased(Uint8 button)

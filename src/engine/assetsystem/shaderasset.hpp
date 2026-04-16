@@ -13,7 +13,6 @@ static std::string LoadShaderSource(const std::string& shaderType, const std::st
 {
     std::ifstream file(assetPath);
     std::ostringstream shaderStream;
-    bool isInShader = false;
 
     if (!file)
     {
@@ -26,32 +25,6 @@ static std::string LoadShaderSource(const std::string& shaderType, const std::st
     {
         shaderStream << line << '\n';
     }
-
-    /*
-    std::string line;
-    while (std::getline(file, line))
-    {
-        std::string trimmed = line;
-        trimmed.erase(0, trimmed.find_first_not_of(" \t\r\n"));
-        trimmed.erase(trimmed.find_last_not_of(" \t\r\n") + 1);
-
-        if (!isInShader && trimmed == shaderType)
-        {
-            isInShader = true;
-            continue;
-        }
-
-        if (isInShader)
-        {
-            if (trimmed == "[")
-                continue;
-
-            if (trimmed == "]")
-                break;
-
-            shaderStream << line << '\n';
-        }
-    }*/
 
     return shaderStream.str();
 }

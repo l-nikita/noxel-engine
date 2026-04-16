@@ -11,7 +11,7 @@ Model::Model(const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& m
     m_meshes = meshes;
     m_materials.reserve(meshes.size());
 
-    for (auto i = 0; i < m_meshes.size(); ++i)
+    for (size_t i = 0; i < m_meshes.size(); ++i)
     {
         auto mat = (i < materials.size() && materials[i])
             ? materials[i]
@@ -36,7 +36,7 @@ Model::Model(IMesh* mesh, IMaterial* material)
 //-----------------------------------------------------------------------------
 void Model::Draw()
 {
-    for (auto i = 0; i < m_meshes.size(); ++i)
+    for (size_t i = 0; i < m_meshes.size(); ++i)
     {
         auto mat = GetMaterial(i);
         if (!mat)

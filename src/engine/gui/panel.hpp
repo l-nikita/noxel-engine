@@ -4,8 +4,8 @@ class Panel
 {
 public:
 	Panel();
-	~Panel();
+	virtual ~Panel() = default;
 
 	bool m_IsVisible;
-	virtual void Draw() {};
+	virtual void Draw() = 0;
 };

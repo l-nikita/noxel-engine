@@ -400,7 +400,7 @@ void DeferredRenderPipeline::DoLightingPass()
 void DeferredRenderPipeline::DoShadowPass()
 {
 	auto& lights = LightManager::GetInstance().GetLights();
-	for (int i = 0; i < lights.size(); i++)
+	for (size_t i = 0; i < lights.size(); i++)
 	{
 		auto light = lights[i];
 		if (!light || (light && !light->IsShadowsEnabled()))

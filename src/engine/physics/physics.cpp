@@ -209,7 +209,7 @@ void JoltPhysics::Update()
 	iBody.SetRotation(g_BodyId, Utils::JPH_Quat_GLM(rot), JPH::EActivation::Activate);
 
 	// Step the world
-	m_system->Update(cDeltaTime, 1, m_tempAllocator, m_jobSystem);
+	m_system->Update(cDeltaTime, cCollisionSteps, m_tempAllocator, m_jobSystem);
 	FlushPendingDestructions();
 
 	PROF_END("Physics::Update");

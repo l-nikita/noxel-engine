@@ -13,7 +13,7 @@ public:
 	void Render() override;
 	void Update() override;
 
-	std::vector<Panel*>& GetPanels() override { return m_panels; }
+	std::vector<Panel*>& GetPanels() { return m_panels; }
 	DebugMenu* m_DebugMenu;
 
 private:

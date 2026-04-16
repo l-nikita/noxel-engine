@@ -38,10 +38,7 @@ namespace Profiler
         std::string GetCategory() const { return m_category; }
     };
 
-    static Profilers GetAll()
-    {
-        return Profiler::m_all;
-    }
+    Profilers GetAll();
 
     void Start(const std::string& name, const std::string& category);
     void End(const std::string& name);

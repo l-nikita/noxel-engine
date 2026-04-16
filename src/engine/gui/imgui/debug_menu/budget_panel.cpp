@@ -10,6 +10,16 @@ static ImGuiTableFlags table_flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_
 	| ImGuiTableFlags_RowBg
 	| ImGuiTableFlags_NoBordersInBody;
 
+BudgetPanel::BudgetPanel()
+{
+
+}
+
+BudgetPanel::~BudgetPanel()
+{
+	
+}
+
 void BudgetPanel::Draw()
 {
 	if (ImGui::Begin("Budget"))

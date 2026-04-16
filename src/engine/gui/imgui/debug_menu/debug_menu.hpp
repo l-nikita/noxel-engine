@@ -11,7 +11,7 @@ class DebugMenu : public Panel
 {
 public:
 	DebugMenu();
-	~DebugMenu();
+	~DebugMenu() override;
 
 	BudgetPanel* m_BudgetPanel;
 	bool m_BudgetEnabled;	

@@ -49,18 +49,7 @@ namespace CMD
 		Vars m_vars;
 	};
 
-	static void RegisterCommand(const std::string& name, const std::string& desc, const std::function<void()>& func)
-	{
-		CMD::GetInstance().RegisterCommand(name, desc, func);
-	}
-
-	static void RegisterVar(const std::string& name, const std::string& desc, const VarValue& defValue, const VarCallback& callback = nullptr)
-	{
-		CMD::GetInstance().RegisterVar(name, desc, defValue, callback);
-	}
-
-	static void Execute(const std::string& name)
-	{
-		CMD::GetInstance().Execute(name);
-	}
+	void RegisterCommand(const std::string& name, const std::string& desc, const std::function<void()>& func);
+	void RegisterVar(const std::string& name, const std::string& desc, const VarValue& defValue, const VarCallback& callback = nullptr);
+	void Execute(const std::string& name);
 }
