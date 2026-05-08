@@ -155,7 +155,7 @@ void Engine::Shutdown()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Engine::CreateWindow()
+void Engine::InitWindow()
 {
     m_window = new Window(ENGINE_NAME, 1920, 1080);
 }
@@ -213,7 +213,7 @@ bool Engine::Init()
     if (g_Renderer)
         g_Player = new Player(g_Renderer->GetCamera());
 
-    CreateWindow();
+    InitWindow();
 
     CMD_INFO("Engine initialized successfully.", CMD::ENGINE);
     return true;

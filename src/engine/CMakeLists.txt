@@ -45,7 +45,6 @@ set(ALL_SOURCES ${SOURCES} ${HEADERS} ${RENDERER_FILES} ${VULKAN_FILES})
 
 if(WIN32)
     list(APPEND ALL_SOURCES ${DX11_FILES})
-    target_compile_definitions(engine PRIVATE DX11)
 endif()
 
 add_library(engine SHARED ${ALL_SOURCES})
@@ -54,6 +53,10 @@ target_include_directories(engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/engine
 )
+
+if(WIN32)
+    target_compile_definitions(engine PRIVATE DX11)
+endif()
 
 # ----------------------------------------------
 target_compile_definitions(engine PRIVATE ENGINE_EXPORTS)

@@ -13,7 +13,7 @@ class ENGINE_API Engine : public IEngine
 {
 public:
     bool Init() override;
-    void CreateWindow();
+    void InitWindow();
 
     void Run() override;
     void Stop() override;
