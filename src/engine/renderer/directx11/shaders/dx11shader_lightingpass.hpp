@@ -2,11 +2,10 @@
 
 #include <array>
 
-#include "dx11helper.hpp"
 #include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
+#include "renderer/directx11/dx11helper.hpp"
 #include "renderer/directx11/dx11renderer.hpp"
-#include "renderer/vertex.hpp"
 #include "renderer/rendercamera.hpp"
 #include "renderer/shaderregistry.hpp"
 #include "renderer/lighting.hpp"

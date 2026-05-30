@@ -1,11 +1,11 @@
 #pragma once
 
-#include "SDL3/SDL.h"
 #include <chrono>
+#include "SDL3/SDL.h"
 
+#include "common.hpp"
 #include "iengine.hpp"
 #include "renderer/irenderer.hpp"
-#include "common.hpp"
 
 class Window;
 
@@ -41,14 +41,14 @@ public:
 
     //-------------------------------------------------
 
-    GraphicsAPI GetGraphicsAPI() { return m_graphicsAPI; }
+    GraphicsAPI GetGraphicsAPI() override { return m_graphicsAPI; }
 
 private:
     Window* m_window = nullptr;
     bool m_isRunning = false;
 
-    std::chrono::duration<float> m_deltaTime;
-    std::chrono::duration<float> m_elapsedTime;
+    std::chrono::duration<float> m_deltaTime{};
+    std::chrono::duration<float> m_elapsedTime{};
 
     GraphicsAPI m_graphicsAPI = GraphicsAPI::NONE;
 };

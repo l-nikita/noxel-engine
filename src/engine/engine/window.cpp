@@ -6,7 +6,7 @@ Window::Window(std::string title, int width, int height)
 {
     SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
 
-    if (g_Engine->GetGraphicsAPI() == OPENGL)
+    if (g_Engine->GetGraphicsAPI() == GraphicsAPI::OPENGL)
     {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);

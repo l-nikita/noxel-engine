@@ -179,17 +179,29 @@ bool Engine::Init()
         return false;
     }
 
+	InitWindow();
+
+#ifdef WIN32
+	m_graphicsAPI = GraphicsAPI::DIRECTX11;
+#else
+	m_graphicsAPI = GraphicsAPI::VULKAN;
+#endif
+
     g_Assets = new AssetSystem();
     g_Assets->Init();
 
     g_Input = new Input();
     g_Input->Init();
 
-    if (g_Engine->GetGraphicsAPI() == VULKAN)
+    if (g_Engine->GetGraphicsAPI() == GraphicsAPI::VULKAN)
+    {
         assert(false);
+    }
 #ifdef DX11
-    else if (g_Engine->GetGraphicsAPI() == DIRECTX11)
+    else if (g_Engine->GetGraphicsAPI() == GraphicsAPI::DIRECTX11)
+    {
         g_Renderer = new DX11Renderer();
+    }
 #endif
 
     if (g_Renderer)
@@ -212,8 +224,6 @@ bool Engine::Init()
 
     if (g_Renderer)
         g_Player = new Player(g_Renderer->GetCamera());
-
-    InitWindow();
 
     CMD_INFO("Engine initialized successfully.", CMD::ENGINE);
     return true;

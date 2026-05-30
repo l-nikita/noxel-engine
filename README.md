@@ -6,16 +6,6 @@ Noxel Engine is a modern C++23 game engine.
 
 ![Engine Screenshot](docs/images/overview.png)
 
-## Tech Stack
-
-- **Graphics:** DirectX 11, Vulkan (In early development)
-- **Windowing:** SDL3
-- **Entity Component System (ECS):** EnTT
-- **Physics:** JoltPhysics
-- **Networking:** GameNetworkingSockets, Protobuf
-- **UI:** Dear ImGui
-- **Math & Utilities:** GLM, nlohmann-json, stb, Boost
-
 ## Getting Started
 
 ### Requirements
