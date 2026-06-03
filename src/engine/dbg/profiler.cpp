@@ -1,3 +1,4 @@
+#include <memory>
 #include <vector>
 #include <string>
 
@@ -8,11 +9,10 @@ namespace Profiler
 {
     Profilers Profiler::m_all;
 
-    Profiler::Profiler(const std::string& name, const std::string& category)
+    Profiler::Profiler( const std::string& name, const std::string& category )
     {
         m_name = name;
         m_category = category;
-        m_all[name] = this;
         m_start = std::chrono::high_resolution_clock::now();
     }
 
@@ -27,33 +27,32 @@ namespace Profiler
         m_lastFrameTime = std::chrono::duration<float, std::milli>(m_end - m_start).count();
     }
 
-    void Start(const std::string& name, const std::string& category)
+    const Profilers& GetAll()
+    {
+        return Profiler::m_all;
+    }
+
+    void Start( const std::string& name, const std::string& category )
     {
 #ifdef PROF_ENABLED
-        auto it = Profiler::m_all.find(name);
-        if (it == Profiler::m_all.end())
+        if ( const auto it = Profiler::m_all.find(name); it == Profiler::m_all.end() )
         {
-            auto* p = new Profiler(name, category);
+            auto p = std::make_unique<Profiler>(name, category);
             p->Start();
-        }
-        else
+
+            Profiler::m_all[ name ] = std::move(p);
+        } else
             it->second->Start();
 #endif
     }
 
-    void End(const std::string& name)
+    void End( const std::string& name )
     {
 #ifdef PROF_ENABLED
-        auto it = Profiler::m_all.find(name);
-        if (it != Profiler::m_all.end())
+        if ( const auto it = Profiler::m_all.find(name); it != Profiler::m_all.end() )
             it->second->End();
         else
             FATAL_ERROR("Profiler [" + name + "] not found", CMD::ENGINE);
 #endif
-    }
-
-    Profilers GetAll()
-    {
-        return Profiler::m_all;
     }
 }

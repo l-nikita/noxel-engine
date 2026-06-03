@@ -1,12 +1,11 @@
 #pragma once
 
+#include <sstream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-#include <iostream>
-#include <sstream>
 
 struct Transform
 {
@@ -16,17 +15,20 @@ struct Transform
 
     Transform() = default;
 
-    Transform(const glm::vec3& pos)
-        : Position(pos), Rotation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f)), Scale(1.0f) 
-    {}
+    explicit Transform( const glm::vec3& pos )
+        : Position(pos), Rotation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f)), Scale(1.0f)
+    {
+    }
 
-    Transform(const glm::vec3& position, const glm::quat& rotation, float scale = 1.0f)
-        : Position(position), Rotation(rotation), Scale(scale) 
-    {}
+    Transform( const glm::vec3& position, const glm::quat& rotation, float scale = 1.0f )
+        : Position(position), Rotation(rotation), Scale(scale)
+    {
+    }
 
-    Transform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
-        : Position(position), Rotation(rotation), Scale(scale) 
-    {}
+    Transform( const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale )
+        : Position(position), Rotation(rotation), Scale(scale)
+    {
+    }
 
     glm::mat4 GetTransformMatrix() const
     {
@@ -36,41 +38,59 @@ struct Transform
         return T * R * S;
     }
 
-    glm::vec3 Forward()  const { return glm::normalize(Rotation * glm::vec3(0.0f, 0.0f, 1.0f)); }  // +Z
-    glm::vec3 Backward() const { return glm::normalize(Rotation * glm::vec3(0.0f, 0.0f, -1.0f)); } // -Z
-    glm::vec3 Right()    const { return glm::normalize(Rotation * glm::vec3(1.0f, 0.0f, 0.0f)); }  // +X
-    glm::vec3 Left()     const { return glm::normalize(Rotation * glm::vec3(-1.0f, 0.0f, 0.0f)); } // -X
-    glm::vec3 Up()       const { return glm::normalize(Rotation * glm::vec3(0.0f, 1.0f, 0.0f)); }  // +Y
-    glm::vec3 Down()     const { return glm::normalize(Rotation * glm::vec3(0.0f, -1.0f, 0.0f)); } // -Y
+    glm::vec3 Forward() const
+    {
+        return glm::normalize(Rotation * glm::vec3(0.0f, 0.0f, 1.0f));
+    } // +Z
+    glm::vec3 Backward() const
+    {
+        return glm::normalize(Rotation * glm::vec3(0.0f, 0.0f, -1.0f));
+    } // -Z
+    glm::vec3 Right() const
+    {
+        return glm::normalize(Rotation * glm::vec3(1.0f, 0.0f, 0.0f));
+    } // +X
+    glm::vec3 Left() const
+    {
+        return glm::normalize(Rotation * glm::vec3(-1.0f, 0.0f, 0.0f));
+    } // -X
+    glm::vec3 Up() const
+    {
+        return glm::normalize(Rotation * glm::vec3(0.0f, 1.0f, 0.0f));
+    } // +Y
+    glm::vec3 Down() const
+    {
+        return glm::normalize(Rotation * glm::vec3(0.0f, -1.0f, 0.0f));
+    } // -Y
 
-    bool operator==(const Transform& other) const
+    bool operator==( const Transform& other ) const
     {
         return Position == other.Position &&
-            Scale == other.Scale &&
-            Rotation == other.Rotation;
+               Scale == other.Scale &&
+               Rotation == other.Rotation;
     }
 
-    bool operator!=(const Transform& other) const
+    bool operator!=( const Transform& other ) const
     {
-        return !(*this == other);
+        return !( *this == other );
     }
 
-    Transform WithPosition(const glm::vec3& pos) const
+    Transform WithPosition( const glm::vec3& pos ) const
     {
         return Transform(pos, Rotation, Scale);
     }
 
-    Transform WithRotation(const glm::quat& rot) const
+    Transform WithRotation( const glm::quat& rot ) const
     {
         return Transform(Position, rot, Scale);
     }
 
-    Transform WithScale(float scale) const
+    Transform WithScale( float scale ) const
     {
         return Transform(Position, Rotation, glm::vec3(scale));
     }
 
-    Transform WithScale(const glm::vec3& scale) const
+    Transform WithScale( const glm::vec3& scale ) const
     {
         return Transform(Position, Rotation, scale);
     }

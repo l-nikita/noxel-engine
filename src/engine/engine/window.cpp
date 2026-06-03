@@ -2,11 +2,11 @@
 #include "engine.hpp"
 #include "dbg/debug.hpp"
 
-Window::Window(std::string title, int width, int height)
+Window::Window( const std::string& title, const int width, const int height )
 {
     SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
 
-    if (g_Engine->GetGraphicsAPI() == GraphicsAPI::OPENGL)
+    if ( g_Engine->GetGraphicsAPI() == GraphicsAPI::OPENGL )
     {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -14,10 +14,10 @@ Window::Window(std::string title, int width, int height)
 
         flags |= SDL_WINDOW_OPENGL;
     }
-        
+
     m_handle = SDL_CreateWindow(title.c_str(), width, height, flags);
 
-    if (!m_handle)
+    if ( !m_handle )
         FATAL_ERROR("SDL_CreateWindow Error: " + std::string(SDL_GetError()), CMD::ENGINE);
 }
 
@@ -26,24 +26,9 @@ Window::~Window()
     SDL_DestroyWindow(m_handle);
 }
 
-void Window::GetSize(int* width, int* height)
+void Window::GetSize( int* width, int* height ) const
 {
     SDL_GetWindowSizeInPixels(m_handle, width, height);
-}
-
-void Window::SetFullscreen(bool fullscreen)
-{
-    SDL_SetWindowFullscreen(m_handle, fullscreen);
-}
-
-bool Window::IsInFullscreen()
-{
-    return (GetFlags() & SDL_WINDOW_FULLSCREEN);
-}
-
-bool Window::IsMinimized()
-{
-    return (GetFlags() & SDL_WINDOW_MINIMIZED);
 }
 
 void Window::ToggleFullscreen()
@@ -51,10 +36,26 @@ void Window::ToggleFullscreen()
     SetFullscreen(!IsInFullscreen());
 }
 
-void* Window::GetPointer()
+void Window::SetFullscreen( const bool fullscreen ) const
 {
-    void* ptr = SDL_GetPointerProperty(SDL_GetWindowProperties(m_handle), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-    if (!ptr)
+    SDL_SetWindowFullscreen(m_handle, fullscreen);
+}
+
+bool Window::IsInFullscreen()
+{
+    return ( GetFlags() & SDL_WINDOW_FULLSCREEN );
+}
+
+bool Window::IsMinimized()
+{
+    return ( GetFlags() & SDL_WINDOW_MINIMIZED );
+}
+
+void* Window::GetPointer() const
+{
+    const auto ptr = SDL_GetPointerProperty(SDL_GetWindowProperties(m_handle), SDL_PROP_WINDOW_WIN32_HWND_POINTER,
+                                            nullptr);
+    if ( !ptr )
         FATAL_ERROR("Couldn't get window pointer from SDL window!", CMD::ENGINE);
 
     return ptr;

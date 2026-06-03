@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include "gui/panel.hpp"
 
 constexpr auto INPUT_SIZE = 128;
@@ -9,17 +7,18 @@ constexpr auto INPUT_SIZE = 128;
 class ConsolePanel : public Panel
 {
 public:
-	void Draw();
-	void DrawMenuBar();
-	void DrawLogWindow();
-	void DrawInput();
+    void Draw() override;
+    void DrawMenuBar();
+    void DrawLogWindow();
+    void DrawInput();
 
-	void ExecuteCommand(char* input);
+    void ExecuteCommand( char* input );
+
 private:
-	bool m_timeStamp;
-	bool m_autoScroll;
+    bool m_timeStamp;
+    bool m_autoScroll;
 
-	bool m_scrollToBottom;
+    bool m_scrollToBottom;
 
-	char m_input[INPUT_SIZE];
+    char m_input[ INPUT_SIZE ];
 };

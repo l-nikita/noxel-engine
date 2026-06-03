@@ -1,26 +1,24 @@
 #pragma once
 
-#include <memory>
-
-#include "gui/panel.hpp"
 #include "budget_panel.hpp"
 #include "console_panel.hpp"
 #include "dev_menu.hpp"
+#include "gui/panel.hpp"
 
 class DebugMenu : public Panel
 {
 public:
-	DebugMenu();
-	~DebugMenu() override;
+    DebugMenu();
+    ~DebugMenu() override;
 
-	BudgetPanel* m_BudgetPanel;
-	bool m_BudgetEnabled;	
-	
-	ConsolePanel* m_ConsolePanel;
-	bool m_ConsoleEnabled;
+    BudgetPanel* m_BudgetPanel;
+    bool m_BudgetEnabled;
 
-	DevPanel* m_DevPanel;
-	bool m_DevPanelEnabled;
+    ConsolePanel* m_ConsolePanel;
+    bool m_ConsoleEnabled;
 
-	void Draw();
+    DevPanel* m_DevPanel;
+    bool m_DevPanelEnabled;
+
+    void Draw() override;
 };

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "glm/glm.hpp"
 #include "renderer/lighting.hpp"
 
 struct CBTransform
@@ -37,7 +36,7 @@ struct alignas(16) CBLight
 
 struct CBLightsData
 {
-    CBLight Lights[MAX_LIGHTS];
+    CBLight Lights[ MAX_LIGHTS ];
     glm::vec3 ViewPos;
     float pad0;
 };

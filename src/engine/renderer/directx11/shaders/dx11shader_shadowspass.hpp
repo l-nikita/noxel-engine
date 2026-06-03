@@ -1,13 +1,13 @@
 #pragma once
 
-#include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
-#include "renderer/directx11/dx11helper.hpp"
-#include "renderer/directx11/dx11renderer.hpp"
-#include "renderer/vertex.hpp"
+#include "dx11shader.hpp"
+#include "dbg/debug.hpp"
 #include "renderer/rendercamera.hpp"
 #include "renderer/shaderregistry.hpp"
-#include "dbg/debug.hpp"
+#include "renderer/vertex.hpp"
+#include "renderer/directx11/dx11helper.hpp"
+#include "renderer/directx11/dx11renderer.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -15,22 +15,45 @@
 class ShadowsPassPS : public DX11Shader
 {
 public:
-    ShadowsPassPS(IShaderProgram* program)
+    ShadowsPassPS( IShaderProgram* program )
         : DX11Shader(program)
-    { }
+    {
+    }
 
-    ~ShadowsPassPS() { Release(); }
+    ~ShadowsPassPS()
+    {
+        Release();
+    }
 
-    ShaderType GetType() override { return PIXEL; }
+    ShaderType GetType() override
+    {
+        return PIXEL;
+    }
 
-    void Bind() { }
-    void Unbind() { }
-    void Release() { }
+    void Bind()
+    {
+    }
+
+    void Unbind()
+    {
+    }
+
+    void Release()
+    {
+    }
 
 private:
 };
 
-REGISTER_SHADER("shadowspassPS", ShadowsPassPS);
+REGISTER_SHADER(
+
+
+
+
+    "shadowspassPS"
+    ,
+    ShadowsPassPS
+);
 
 //-----------------------------------------------------------------------------
 //
@@ -38,12 +61,12 @@ REGISTER_SHADER("shadowspassPS", ShadowsPassPS);
 class ShadowsPassVS : public DX11Shader
 {
 public:
-    ShadowsPassVS(IShaderProgram* program)
+    ShadowsPassVS( IShaderProgram* program )
         : DX11Shader(program)
     {
         //-----------------------------------------------------------------------------
-        D3D11_INPUT_ELEMENT_DESC layout[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        D3D11_INPUT_ELEMENT_DESC layout[ ] = {
+            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0},
         };
 
         HRESULT hr = m_device->CreateInputLayout(
@@ -52,7 +75,7 @@ public:
             m_program->GetVSBlob()->GetBufferSize(),
             &m_inputLayout);
 
-        if (FAILED(hr))
+        if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create input layout.", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
@@ -67,17 +90,23 @@ public:
         DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_cbTransform);
 
         //-----------------------------------------------------------------------------
-        m_vars["model"] = glm::mat4(1.0f);
-        m_vars["lightview"] = glm::mat4(1.0f);
-        m_vars["lightproj"] = glm::mat4(1.0f);
+        m_vars[ "model" ] = glm::mat4(1.0f);
+        m_vars[ "lightview" ] = glm::mat4(1.0f);
+        m_vars[ "lightproj" ] = glm::mat4(1.0f);
     }
 
-    ~ShadowsPassVS() { Release(); }
+    ~ShadowsPassVS()
+    {
+        Release();
+    }
 
-    ShaderType GetType() override { return VERTEX; }
+    ShaderType GetType() override
+    {
+        return VERTEX;
+    }
 
-    void Bind() 
-    { 
+    void Bind()
+    {
         m_context->IASetInputLayout(m_inputLayout);
 
         glm::mat4 model = glm::mat4(1.0f);
@@ -85,15 +114,15 @@ public:
         glm::mat4 lightProj = glm::mat4(1.0f);
 
         ShaderVar& varLightView = GetVar("lightview");
-        if (auto matPtr = std::get_if<glm::mat4>(&varLightView))
+        if ( auto matPtr = std::get_if<glm::mat4>(&varLightView) )
             lightView = *matPtr;
 
         ShaderVar& varLightProj = GetVar("lightproj");
-        if (auto matPtr = std::get_if<glm::mat4>(&varLightProj))
+        if ( auto matPtr = std::get_if<glm::mat4>(&varLightProj) )
             lightProj = *matPtr;
 
         ShaderVar& varModel = GetVar("model");
-        if (auto matPtr = std::get_if<glm::mat4>(&varModel))
+        if ( auto matPtr = std::get_if<glm::mat4>(&varModel) )
             model = *matPtr;
 
         CBTransform matricesCB
@@ -107,23 +136,23 @@ public:
         m_context->VSSetConstantBuffers(0, 1, &m_cbTransform);
     }
 
-    void Unbind() 
-    { 
+    void Unbind()
+    {
         m_context->IASetInputLayout(nullptr);
 
         ID3D11Buffer* nullBuffer = nullptr;
         m_context->VSSetConstantBuffers(0, 1, &nullBuffer);
     }
 
-    void Release() 
-    { 
-        if (m_inputLayout)
+    void Release()
+    {
+        if ( m_inputLayout )
         {
             m_inputLayout->Release();
             m_inputLayout = nullptr;
         }
 
-        if (m_cbTransform)
+        if ( m_cbTransform )
         {
             m_cbTransform->Release();
             m_cbTransform = nullptr;
@@ -135,4 +164,12 @@ private:
     ID3D11Buffer* m_cbTransform = nullptr;
 };
 
-REGISTER_SHADER("shadowspassVS", ShadowsPassVS);
+REGISTER_SHADER(
+
+
+
+
+    "shadowspassVS"
+    ,
+    ShadowsPassVS
+);

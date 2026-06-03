@@ -8,7 +8,7 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-enum class TextureFormat 
+enum class TextureFormat
 {
     INVALID,
     RGBA8,
@@ -23,10 +23,10 @@ enum class TextureFormat
 
 enum class TextureUsage
 {
-    DEFAULT,    // GPU read/write
-    IMMUTABLE,  // Read-only (created once)
-    DYNAMIC,    // CPU can update
-    STAGING,    // Used to copy CPU <-> GPU.
+    DEFAULT, // GPU read/write
+    IMMUTABLE, // Read-only (created once)
+    DYNAMIC, // CPU can update
+    STAGING, // Used to copy CPU <-> GPU.
 };
 
 enum class TextureBindFlags : std::uint32_t
@@ -37,12 +37,12 @@ enum class TextureBindFlags : std::uint32_t
     DEPTH_STENCIL = 1 << 2,
 };
 
-inline TextureBindFlags operator|(TextureBindFlags a, TextureBindFlags b)
+inline TextureBindFlags operator|( TextureBindFlags a, TextureBindFlags b )
 {
     return static_cast<TextureBindFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
 }
 
-inline bool operator&(TextureBindFlags a, TextureBindFlags b)
+inline bool operator&( TextureBindFlags a, TextureBindFlags b )
 {
     return static_cast<uint32_t>(a) & static_cast<uint32_t>(b);
 }
@@ -63,7 +63,7 @@ struct TextureDesc
     std::vector<void*> Data;
 };
 
-static const std::string CUBEMAP_FACES_ORDER[] = {
+static const std::string CUBEMAP_FACES_ORDER[ ] = {
     "px", "nx", "py", "ny", "pz", "nz"
 };
 
@@ -77,8 +77,8 @@ class ITexture : public IRenderResource
 public:
     virtual ~ITexture() = default;
 
-    virtual void Bind(std::uint32_t slot = 0) = 0;
-    virtual void Unbind(std::uint32_t slot = 0) = 0;
+    virtual void Bind( std::uint32_t slot = 0 ) = 0;
+    virtual void Unbind( std::uint32_t slot = 0 ) = 0;
     virtual void Release() = 0;
 
     virtual std::uint32_t GetWidth() const = 0;

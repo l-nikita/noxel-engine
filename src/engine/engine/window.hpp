@@ -6,23 +6,30 @@
 class Window
 {
 public:
-	Window(std::string title, int width, int height);
-	~Window();
+    Window( const std::string& title, int width, int height );
+    ~Window();
 
-	void Destroy();
-	void GetSize(int *width, int *height);
+    void Destroy();
+    void GetSize( int* width, int* height ) const;
 
-	void ToggleFullscreen();
-	void SetFullscreen(bool fullscreen);
-	bool IsInFullscreen();
+    void ToggleFullscreen();
+    void SetFullscreen( bool fullscreen ) const;
+    bool IsInFullscreen();
 
-	bool IsMinimized();
+    bool IsMinimized();
 
-	void* GetPointer();
+    void* GetPointer() const;
 
-	SDL_WindowFlags GetFlags() { return SDL_GetWindowFlags(m_handle); }
-	SDL_Window* GetHandle() { return m_handle; }
+    SDL_WindowFlags GetFlags() const
+    {
+        return SDL_GetWindowFlags(m_handle);
+    }
+
+    SDL_Window* GetHandle() const
+    {
+        return m_handle;
+    }
 
 private:
-	SDL_Window* m_handle = nullptr;
+    SDL_Window* m_handle = nullptr;
 };

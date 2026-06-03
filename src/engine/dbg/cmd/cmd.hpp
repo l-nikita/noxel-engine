@@ -1,55 +1,68 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <functional>
-#include <iostream>
-#include <optional>
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
-#include "common/singleton.hpp"
-#include "cmd_log.hpp"
 #include "cmd_command.hpp"
+#include "cmd_log.hpp"
 #include "cmd_var.hpp"
+#include "common/singleton.hpp"
 
 namespace CMD
 {
-	using Commands = std::unordered_map<std::string, Command>;
-	using Vars = std::unordered_map<std::string, Var>;
+    using Commands = std::unordered_map<std::string, Command>;
+    using Vars = std::unordered_map<std::string, Var>;
 
-	class CMD : public Singleton<CMD>
-	{
-	public:
-		void Setup();
+    class CMD : public Singleton<CMD>
+    {
+    public:
+        void Setup();
 
-		void RegisterCommand(const std::string& name, const std::string& desc, const std::function<void()>& func);
-		bool IsCommandExist(const std::string& name);
-		void Execute(const std::string& name);
-		Commands GetCommands() { return m_commands; }
+        void RegisterCommand( const std::string& name, const std::string& desc, const std::function<void()>& func );
+        bool IsCommandExist( const std::string& name );
+        void Execute( const std::string& name );
 
-		void RegisterVar(const std::string& name, const std::string& desc, const VarValue& defValue, const VarCallback& callback = nullptr);
-		bool IsVarExist(const std::string& name);
-		void SetVar(const std::string& name, const VarValue& value);
-		std::optional<VarValue> GetVarValue(const std::string& name) const;
+        Commands GetCommands()
+        {
+            return m_commands;
+        }
 
-		std::vector<std::string> Tokenize(const std::string& input);
-		Vars GetVars() { return m_vars; }
+        void RegisterVar( const std::string& name, const std::string& desc, const VarValue& defValue,
+                          const VarCallback& callback = nullptr );
+        bool IsVarExist( const std::string& name );
+        void SetVar( const std::string& name, const VarValue& value );
+        std::optional<VarValue> GetVarValue( const std::string& name ) const;
 
-		VarValue ConvertStringToVarValue(const std::string& input);
+        std::vector<std::string> Tokenize( const std::string& input );
 
-		void LogMsg(const std::string& msg, LogType type, LogCategory category);
-		void ClearLogs();
-		std::vector<std::unique_ptr<Log>>& GetLogs() { return m_logs; }
+        Vars GetVars()
+        {
+            return m_vars;
+        }
 
-		void LogHelp();
+        VarValue ConvertStringToVarValue( const std::string& input );
 
-	private:
-		std::vector<std::unique_ptr<Log>> m_logs;
-		Commands m_commands;
-		Vars m_vars;
-	};
+        void LogMsg( const std::string& msg, LogType type, LogCategory category );
+        void ClearLogs();
 
-	void RegisterCommand(const std::string& name, const std::string& desc, const std::function<void()>& func);
-	void RegisterVar(const std::string& name, const std::string& desc, const VarValue& defValue, const VarCallback& callback = nullptr);
-	void Execute(const std::string& name);
+        std::vector<std::unique_ptr<Log>>& GetLogs()
+        {
+            return m_logs;
+        }
+
+        void LogHelp();
+
+    private:
+        std::vector<std::unique_ptr<Log>> m_logs;
+        Commands m_commands;
+        Vars m_vars;
+    };
+
+    void RegisterCommand( const std::string& name, const std::string& desc, const std::function<void()>& func );
+    void RegisterVar( const std::string& name, const std::string& desc, const VarValue& defValue,
+                      const VarCallback& callback = nullptr );
+    void Execute( const std::string& name );
 }

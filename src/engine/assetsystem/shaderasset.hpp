@@ -1,27 +1,28 @@
 #pragma once
 
+#include <fstream>
 #include <string>
-#include "renderer/ishaderprogram.hpp"
-#include "base_asset.hpp"
 #include "asset_system.hpp"
+#include "base_asset.hpp"
 #include "dbg/debug.hpp"
+#include "renderer/ishaderprogram.hpp"
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-static std::string LoadShaderSource(const std::string& shaderType, const std::string& assetPath)
+static std::string LoadShaderSource( const std::string& assetPath )
 {
     std::ifstream file(assetPath);
     std::ostringstream shaderStream;
 
-    if (!file)
+    if ( !file )
     {
         CMD_ERROR("Failed to load shader source file: " + assetPath, CMD::ASSETSYSTEM);
         return "";
     }
 
     std::string line;
-    while (std::getline(file, line))
+    while ( std::getline(file, line) )
     {
         shaderStream << line << '\n';
     }
@@ -31,55 +32,59 @@ static std::string LoadShaderSource(const std::string& shaderType, const std::st
 
 class ShaderAsset : public BaseAsset
 {
-private:
     std::string m_shaderPixelSource;
     std::string m_shaderVertexSource;
 
 public:
-    AssetType GetType() const override { return Type; }
-    static constexpr AssetType Type = AssetType::SHADER;
+    AssetType GetType() const override
+    {
+        return Type;
+    }
 
-    ShaderAsset(const std::string& name, const std::string& assetPath)
+    static constexpr auto Type = AssetType::SHADER;
+
+    ShaderAsset( const std::string& name, const std::string& assetPath )
     {
         m_name = name;
         m_assetPath = assetPath;
 
-        m_shaderPixelSource = LoadShaderSource("PixelShader", assetPath + "_ps.hlsl");
-        m_shaderVertexSource = LoadShaderSource("VertexShader", assetPath + "_vs.hlsl");
+        m_shaderPixelSource = LoadShaderSource(assetPath + "_ps.hlsl");
+        m_shaderVertexSource = LoadShaderSource(assetPath + "_vs.hlsl");
     }
 
-    std::string GetShaderSource(ShaderType type) const
+    std::string GetShaderSource( ShaderType type ) const
     {
-        if (type == VERTEX)
+        if ( type == VERTEX )
             return m_shaderVertexSource;
-        else if (type == PIXEL)
+
+        if ( type == PIXEL )
             return m_shaderPixelSource;
-        else
-            CMD_ERROR("Unsupported shader type.", CMD::ASSETSYSTEM);
+
+        CMD_ERROR("Unsupported shader type.", CMD::ASSETSYSTEM);
 
         return "";
     }
 
 #pragma region CreateNew/Get
-    static ShaderAsset* CreateNew(const std::string& name, const std::string& assetPath)
+    static ShaderAsset* CreateNew( const std::string& name, const std::string& assetPath )
     {
-        auto asset = new ShaderAsset(name, assetPath);
+        const auto asset = new ShaderAsset(name, assetPath);
         g_Assets->RegisterAsset(asset);
         return asset;
     }
 
-    static ShaderAsset* Get(const std::string& name)
+    static ShaderAsset* Get( const std::string& name )
     {
         auto& assets = g_Assets->GetAssets(Type);
-        auto it = assets.find(name);
+        const auto it = assets.find(name);
 
-        if (it == assets.end())
+        if ( it == assets.end() )
         {
             CMD_ERROR("Couldn't find shader [" + name + "].", CMD::ASSETSYSTEM);
             return GetError();
         }
 
-        return static_cast<ShaderAsset*>(it->second);
+        return dynamic_cast<ShaderAsset*>(it->second);
     }
 #pragma endregion
 
@@ -89,7 +94,7 @@ public:
     //TODO: Make error shader
     static ShaderAsset* GetError()
     {
-        auto asset = ShaderAsset::Get("colorpass");
+        const auto asset = ShaderAsset::Get("colorpass");
         assert(asset);
         return asset;
     }

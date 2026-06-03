@@ -1,7 +1,7 @@
 #pragma once
 
-#include "cmd/cmd.hpp"
 #include "profiler.hpp"
+#include "cmd/cmd.hpp"
 
 #define CMD_LOG(msg, type, category) CMD::CMD::GetInstance().LogMsg(std::string(msg), type, category);
 #define CMD_LOG_WITH_FILE(msg, type, category) CMD::CMD::GetInstance().LogMsg(std::string(msg) + " [" + __FILE__ + ":" + std::to_string(__LINE__) + "]", type, category);

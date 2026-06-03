@@ -13,21 +13,25 @@ class MaterialAsset;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DX11Material : public IMaterial 
+class DX11Material : public IMaterial
 {
 public:
-    DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset);
-    ~DX11Material() { Release(); }
+    DX11Material( ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset );
+
+    ~DX11Material()
+    {
+        Release();
+    }
 
     void Bind() override;
     void Unbind() override;
     void Release() override;
 
-    void SetShader(IShaderProgram* shader) override;
-    void SetTexture(std::string paramName, ITexture* texture = nullptr) override;
+    void SetShader( IShaderProgram* shader ) override;
+    void SetTexture( std::string paramName, ITexture* texture = nullptr ) override;
 
     IShaderProgram* GetShader() const override;
-    ITexture* GetTexture(std::string paramName) override;
+    ITexture* GetTexture( std::string paramName ) override;
 
 private:
     MaterialAsset* m_asset;

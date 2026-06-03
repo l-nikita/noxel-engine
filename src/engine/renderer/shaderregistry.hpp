@@ -12,7 +12,7 @@
 class ShaderRegistry
 {
 public:
-    using ShaderCreator = std::function<IShader* (IShaderProgram*)>;
+    using ShaderCreator = std::function<IShader * (IShaderProgram*)>;
 
     static std::unordered_map<std::string, ShaderCreator>& Registry()
     {
@@ -20,26 +20,25 @@ public:
         return registry;
     }
 
-    static void Register(const std::string& type, ShaderCreator creator)
+    static void Register( const std::string& type, const ShaderCreator& creator )
     {
-        Registry()[type] = creator;
+        Registry()[ type ] = creator;
     }
 
-    static IShader* Create(const std::string& type, IShaderProgram* shaderProg)
+    static IShader* Create( const std::string& type, IShaderProgram* shaderProg )
     {
-        auto it = Registry().find(type);
-        if (it != Registry().end())
+        if ( const auto it = Registry().find(type); it != Registry().end() )
             return it->second(shaderProg);
 
         return nullptr;
     }
 
-    static bool IsShaderExist(std::string name)
+    static bool IsShaderExist( std::string name )
     {
         //TODO: Make shader types enum/list etc.
-        auto it = Registry().find(name + "PS");
-        auto it2 = Registry().find(name + "VS");
-        if (it != Registry().end() && it2 != Registry().end())
+        const auto it = Registry().find(name + "PS");
+        const auto it2 = Registry().find(name + "VS");
+        if ( it != Registry().end() && it2 != Registry().end() )
             return true;
 
         return false;

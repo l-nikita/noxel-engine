@@ -6,15 +6,14 @@
 #include "itexture.hpp"
 
 using ShaderVar = std::variant<
-    int, 
-    float, 
-    bool, 
-    std::string, 
-    glm::mat4, 
-    glm::vec3, 
-    glm::vec4, 
-    ITexture*
->;
+    int,
+    float,
+    bool,
+    std::string,
+    glm::mat4,
+    glm::vec3,
+    glm::vec4,
+    ITexture*>;
 
 //-----------------------------------------------------------------------------
 //
@@ -28,6 +27,6 @@ public:
     virtual void Unbind() = 0;
     virtual void Release() = 0;
 
-    virtual void SetVar(const std::string& name, const ShaderVar& var) = 0;
-    virtual ShaderVar& GetVar(const std::string& name) = 0;
+    virtual void SetVar( const std::string& name, const ShaderVar& var ) = 0;
+    virtual ShaderVar& GetVar( const std::string& name ) = 0;
 };

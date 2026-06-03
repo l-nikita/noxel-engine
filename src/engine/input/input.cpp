@@ -14,40 +14,57 @@ void Input::Init()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Input::IsKeyDown(SDL_Scancode key)
+bool Input::IsKeyDown( const SDL_Scancode key )
 {
-    return m_keyDown[key];
+    return m_keyDown[ key ];
 }
 
-bool Input::IsKeyPressed(SDL_Scancode key)
+bool Input::IsKeyPressed( const SDL_Scancode key )
 {
-    return m_keyPressed[key];
+    return m_keyPressed[ key ];
 }
 
-bool Input::IsKeyReleased(SDL_Scancode key)
+bool Input::IsKeyReleased( const SDL_Scancode key )
 {
-    return m_keyReleased[key];
+    return m_keyReleased[ key ];
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Input::IsButtonDown(Uint8 button)
+bool Input::IsButtonDown( const Uint8 button )
 {
-    return m_mouseDown[button];
+    return m_mouseDown[ button ];
 }
 
-bool Input::IsButtonPressed(Uint8 button)
+bool Input::IsButtonPressed( const Uint8 button )
 {
-    return m_mousePressed[button];
+    return m_mousePressed[ button ];
 }
 
-bool Input::IsButtonReleased(Uint8 button)
+bool Input::IsButtonReleased( const Uint8 button )
 {
-    return m_mouseReleased[button];
+    return m_mouseReleased[ button ];
 }
 
-void Input::SetRelativeMouseMode(bool value)
+void Input::Reset()
+{
+    for ( auto i = 0; i < SDL_SCANCODE_COUNT; ++i )
+    {
+        m_keyPressed[ static_cast<SDL_Scancode>(i) ] = false;
+        m_keyReleased[ static_cast<SDL_Scancode>(i) ] = false;
+    }
+
+    for ( auto i = 0; i < 8; ++i )
+    {
+        m_mousePressed[ i ] = false;
+        m_mouseReleased[ i ] = false;
+    }
+
+    m_scrollDelta = glm::vec2(0.0f);
+}
+
+void Input::SetRelativeMouseMode( const bool value )
 {
     SDL_SetWindowRelativeMouseMode(g_Engine->GetWindow()->GetHandle(), value);
 }
@@ -76,66 +93,46 @@ glm::vec2 Input::GetMouseScroll()
     return m_scrollDelta;
 }
 
-void Input::Reset()
-{
-    for (int i = 0; i < SDL_SCANCODE_COUNT; ++i)
-    {
-        m_keyPressed[(SDL_Scancode)i] = false;
-        m_keyReleased[(SDL_Scancode)i] = false;
-    }
-
-    for (int i = 0; i < 8; ++i)
-    {
-        m_mousePressed[i] = false;
-        m_mouseReleased[i] = false;
-    }
-
-    m_scrollDelta = glm::vec2(0.0f);
-}
-
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Input::OnKey(SDL_KeyboardEvent keyEvent)
+void Input::OnKey( const SDL_KeyboardEvent keyEvent )
 {
-    if (keyEvent.type == SDL_EVENT_KEY_DOWN && !keyEvent.repeat)
+    if ( keyEvent.type == SDL_EVENT_KEY_DOWN && !keyEvent.repeat )
     {
-        m_keyDown[keyEvent.scancode] = true;
-        m_keyPressed[keyEvent.scancode] = true;
-        if (m_keyReleased[keyEvent.scancode])
-            m_keyReleased[keyEvent.scancode] = false;
-    }
-    else if (keyEvent.type == SDL_EVENT_KEY_UP)
+        m_keyDown[ keyEvent.scancode ] = true;
+        m_keyPressed[ keyEvent.scancode ] = true;
+        if ( m_keyReleased[ keyEvent.scancode ] )
+            m_keyReleased[ keyEvent.scancode ] = false;
+    } else if ( keyEvent.type == SDL_EVENT_KEY_UP )
     {
-        m_keyDown[keyEvent.scancode] = false;
-        if(!m_keyReleased[keyEvent.scancode])
-            m_keyReleased[keyEvent.scancode] = true;
+        m_keyDown[ keyEvent.scancode ] = false;
+        if ( !m_keyReleased[ keyEvent.scancode ] )
+            m_keyReleased[ keyEvent.scancode ] = true;
     }
 }
 
-void Input::OnMouseMotion(SDL_MouseMotionEvent mouseEvent)
+void Input::OnMouseMotion( SDL_MouseMotionEvent mouseEvent )
 {
-
 }
 
-void Input::OnMouseButton(SDL_MouseButtonEvent buttonEvent)
+void Input::OnMouseButton( const SDL_MouseButtonEvent buttonEvent )
 {
-    if (buttonEvent.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+    if ( buttonEvent.type == SDL_EVENT_MOUSE_BUTTON_DOWN )
     {
-        m_mouseDown[buttonEvent.button] = true;
-        m_mousePressed[buttonEvent.button] = true;
-        if (m_mouseReleased[buttonEvent.button])
-            m_mouseReleased[buttonEvent.button] = false;
-    }
-    else if (buttonEvent.type == SDL_EVENT_MOUSE_BUTTON_UP)
+        m_mouseDown[ buttonEvent.button ] = true;
+        m_mousePressed[ buttonEvent.button ] = true;
+        if ( m_mouseReleased[ buttonEvent.button ] )
+            m_mouseReleased[ buttonEvent.button ] = false;
+    } else if ( buttonEvent.type == SDL_EVENT_MOUSE_BUTTON_UP )
     {
-        m_mouseDown[buttonEvent.button] = false;
-        if (!m_mouseReleased[buttonEvent.button])
-            m_mouseReleased[buttonEvent.button] = true;
+        m_mouseDown[ buttonEvent.button ] = false;
+        if ( !m_mouseReleased[ buttonEvent.button ] )
+            m_mouseReleased[ buttonEvent.button ] = true;
     }
 }
 
-void Input::OnMouseWheel(SDL_MouseWheelEvent wheelEvent)
+void Input::OnMouseWheel( const SDL_MouseWheelEvent wheelEvent )
 {
     m_scrollDelta += glm::vec2(wheelEvent.x, wheelEvent.y);
 }

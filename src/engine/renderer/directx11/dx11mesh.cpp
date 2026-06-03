@@ -6,9 +6,9 @@
 #include <iostream>
 #include <d3d11.h>
 
-DX11Mesh::DX11Mesh(ID3D11Device* device, ID3D11DeviceContext* context,
-    const void* vertices, std::uint32_t vertexSize, std::uint32_t vertexCount,
-    const void* indices, std::uint32_t indexCount)
+DX11Mesh::DX11Mesh( ID3D11Device* device, ID3D11DeviceContext* context,
+                    const void* vertices, std::uint32_t vertexSize, std::uint32_t vertexCount,
+                    const void* indices, std::uint32_t indexCount )
     : m_context(context), m_vertexCount(vertexCount), m_indexCount(indexCount), m_vertexStride(vertexSize)
 {
     m_vertexBuffer = new DX11Buffer(
@@ -16,41 +16,41 @@ DX11Mesh::DX11Mesh(ID3D11Device* device, ID3D11DeviceContext* context,
         context,
         GPUBufferType::VERTEX,
         vertexSize * vertexCount,
-        vertices, 
+        vertices,
         vertexSize);
 
     m_indexBuffer = new DX11Buffer(
         device,
         context,
         GPUBufferType::INDEX,
-        sizeof(std::uint32_t) * indexCount,
+        sizeof( std::uint32_t ) * indexCount,
         indices);
 }
 
 void DX11Mesh::Release()
 {
-    if (IsReleased())
+    if ( IsReleased() )
         return;
 
     m_isReleased = true;
 
-    if (m_vertexBuffer)
+    if ( m_vertexBuffer )
         delete m_vertexBuffer, m_vertexBuffer = nullptr;
 
-    if (m_indexBuffer)
+    if ( m_indexBuffer )
         delete m_indexBuffer, m_indexBuffer = nullptr;
 }
 
 void DX11Mesh::Bind()
 {
-    if (m_vertexBuffer) m_vertexBuffer->Bind(0);
-    if (m_indexBuffer) m_indexBuffer->Bind(0);
+    if ( m_vertexBuffer ) m_vertexBuffer->Bind(0);
+    if ( m_indexBuffer ) m_indexBuffer->Bind(0);
 }
 
 void DX11Mesh::Unbind()
 {
-    if (m_vertexBuffer) m_vertexBuffer->Unbind(0);
-    if (m_indexBuffer) m_indexBuffer->Unbind(0);
+    if ( m_vertexBuffer ) m_vertexBuffer->Unbind(0);
+    if ( m_indexBuffer ) m_indexBuffer->Unbind(0);
 }
 
 void DX11Mesh::Draw()

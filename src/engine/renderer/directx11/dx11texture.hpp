@@ -9,24 +9,50 @@ class TextureAsset;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DX11Texture : public ITexture 
+class DX11Texture : public ITexture
 {
 public:
-    DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, const TextureDesc& desc);
-    DX11Texture(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture);
-    ~DX11Texture() { Release(); }
+    DX11Texture( ID3D11Device* device, ID3D11DeviceContext* context, const TextureDesc& desc );
+    DX11Texture( ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture );
 
-    void Bind(std::uint32_t slot = 0) override;
-    void Unbind(std::uint32_t slot = 0) override;
+    ~DX11Texture()
+    {
+        Release();
+    }
+
+    void Bind( std::uint32_t slot = 0 ) override;
+    void Unbind( std::uint32_t slot = 0 ) override;
     void Release() override;
 
-    std::uint32_t GetWidth() const override { return m_width; }
-    std::uint32_t GetHeight() const override { return m_height; }
-    TextureFormat GetFormat() const override { return m_format; }
-    bool IsCubemap() const override { return m_isCubemap; }
+    std::uint32_t GetWidth() const override
+    {
+        return m_width;
+    }
 
-    ID3D11Texture2D* GetResource() { return m_texture; }
-    ID3D11ShaderResourceView* GetSRV() { return m_srv; }
+    std::uint32_t GetHeight() const override
+    {
+        return m_height;
+    }
+
+    TextureFormat GetFormat() const override
+    {
+        return m_format;
+    }
+
+    bool IsCubemap() const override
+    {
+        return m_isCubemap;
+    }
+
+    ID3D11Texture2D* GetResource()
+    {
+        return m_texture;
+    }
+
+    ID3D11ShaderResourceView* GetSRV()
+    {
+        return m_srv;
+    }
 
 private:
     ID3D11ShaderResourceView* m_srv = nullptr;

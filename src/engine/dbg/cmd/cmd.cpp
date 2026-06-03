@@ -1,265 +1,268 @@
 #include <algorithm>
 #include <charconv>
-#include <optional>
+#include <chrono>
 #include <format>
-#include <iomanip> 
+#include <optional>
 
 #include "cmd.hpp"
 
+#include <iostream>
+
 namespace CMD
 {
-	void CMD::Setup()
-	{
-		RegisterCommand("help", "", [this]() {
-			LogHelp();
-		});
+    void CMD::Setup()
+    {
+        RegisterCommand("help", "", [this]()
+        {
+            LogHelp();
+        });
 
-		RegisterCommand("clear", "Clear console logs.", [this]() {
-			ClearLogs();
-		});
+        RegisterCommand("clear", "Clear console logs.", [this]()
+        {
+            ClearLogs();
+        });
 
-		RegisterVar("test_var", "test", false);
-		RegisterVar("test_var_str", "test", "Sex");
-		RegisterVar("test_var_int", "test", 100);
-		RegisterVar("test_var_fl", "test", 3.0f);
-	}
+        RegisterVar("test_var", "test", false);
+        RegisterVar("test_var_str", "test", "Sex");
+        RegisterVar("test_var_int", "test", 100);
+        RegisterVar("test_var_fl", "test", 3.0f);
+    }
 
-	void CMD::RegisterCommand(const std::string& name, const std::string& desc, const std::function<void()>& func)
-	{
-		if (IsCommandExist(name))
-		{
-			LogMsg("Couldn't register command [" + name + "] because it already exists.", WARNING, CONSOLE);
-			return;
-		}
+    void CMD::RegisterCommand( const std::string& name, const std::string& desc, const std::function<void()>& func )
+    {
+        if ( IsCommandExist(name) )
+        {
+            LogMsg("Couldn't register command [" + name + "] because it already exists.", WARNING, CONSOLE);
+            return;
+        }
 
-		m_commands.emplace(name, Command(name, desc, func));
-	}
+        m_commands.emplace(name, Command(name, desc, func));
+    }
 
-	bool CMD::IsCommandExist(const std::string& name)
-	{
-		auto iterator = m_commands.find(name);
-		if (iterator != m_commands.end())
-			return true;
+    bool CMD::IsCommandExist( const std::string& name )
+    {
+        auto iterator = m_commands.find(name);
+        if ( iterator != m_commands.end() )
+            return true;
 
-		return false;
-	}
+        return false;
+    }
 
-	void CMD::RegisterVar(const std::string& name, const std::string& desc, const VarValue& defValue, const VarCallback& callback)
-	{
-		if (IsVarExist(name))
-		{
-			LogMsg("Couldn't register console var [" + name + "] because it already exists.", WARNING, CONSOLE);
-			return;
-		}
+    void CMD::Execute( const std::string& name )
+    {
+        auto tokens = Tokenize(name);
+        if ( tokens.empty() )
+            return;
 
-		m_vars.emplace(name, Var(name, desc, defValue, callback));
-	}
+        const std::string& cmd = tokens[ 0 ];
 
-	bool CMD::IsVarExist(const std::string& name)
-	{
-		auto iterator = m_vars.find(name);
-		if (iterator != m_vars.end())
-			return true;
+        bool isCommand = IsCommandExist(cmd);
+        bool isConVar = IsVarExist(cmd);
 
-		return false;
-	}
+        if ( !isCommand && !isConVar )
+        {
+            LogMsg("Unknown command: " + cmd, DEFAULT, CONSOLE);
+            return;
+        }
 
-	void CMD::SetVar(const std::string& name, const VarValue& value)
-	{
-		if (!IsVarExist(name)) return;
+        LogMsg("] " + name, DEFAULT, CONSOLE);
 
-		auto& var = m_vars[name];
+        if ( isCommand )
+        {
+            m_commands[ cmd ].Func();
+        } else if ( isConVar )
+        {
+            if ( tokens.size() == 1 )
+            {
+                auto& var = m_vars[ cmd ];
+                LogMsg(cmd + " = " + var.ValueToString(), DEFAULT, CONSOLE);
+            } else
+            {
+                std::string valueStr = tokens[ 1 ];
+                auto value = ConvertStringToVarValue(valueStr);
+                SetVar(cmd, value);
+            }
+        }
+    }
 
-		if (var.Value.index() != value.index())
-		{
-			LogMsg("Type mismatch for variable [" + name + "]", WARNING, CONSOLE);
-			return;
-		}
+    void CMD::RegisterVar( const std::string& name, const std::string& desc, const VarValue& defValue,
+                           const VarCallback& callback )
+    {
+        if ( IsVarExist(name) )
+        {
+            LogMsg("Couldn't register console var [" + name + "] because it already exists.", WARNING, CONSOLE);
+            return;
+        }
 
-		if (var.Callback)
-			var.Callback(var.Value, value);
+        m_vars.emplace(name, Var(name, desc, defValue, callback));
+    }
 
-		var.Value = value;
-	}
+    bool CMD::IsVarExist( const std::string& name )
+    {
+        auto iterator = m_vars.find(name);
+        if ( iterator != m_vars.end() )
+            return true;
 
-	std::optional<VarValue> CMD::GetVarValue(const std::string& name) const
-	{
-		auto it = m_vars.find(name);
-		if (it != m_vars.end())
-			return it->second.Value;
+        return false;
+    }
 
-		return std::nullopt;
-	}
+    void CMD::SetVar( const std::string& name, const VarValue& value )
+    {
+        if ( !IsVarExist(name) ) return;
 
-	void CMD::Execute(const std::string& name)
-	{
-		auto tokens = Tokenize(name);
-		if (tokens.empty())
-			return;
+        auto& var = m_vars[ name ];
 
-		const std::string& cmd = tokens[0];
+        if ( var.Value.index() != value.index() )
+        {
+            LogMsg("Type mismatch for variable [" + name + "]", WARNING, CONSOLE);
+            return;
+        }
 
-		bool isCommand = IsCommandExist(cmd);
-		bool isConVar = IsVarExist(cmd);
+        if ( var.Callback )
+            var.Callback(var.Value, value);
 
-		if (!isCommand && !isConVar)
-		{
-			LogMsg("Unknown command: " + cmd, DEFAULT, CONSOLE);
-			return;
-		}
+        var.Value = value;
+    }
 
-		LogMsg("] " + name, DEFAULT, CONSOLE);
+    std::optional<VarValue> CMD::GetVarValue( const std::string& name ) const
+    {
+        auto it = m_vars.find(name);
+        if ( it != m_vars.end() )
+            return it->second.Value;
 
-		if (isCommand)
-		{
-			m_commands[cmd].Func();
-		}
-		else if (isConVar)
-		{
-			if (tokens.size() == 1)
-			{
-				auto& var = m_vars[cmd];
-				LogMsg(cmd + " = " + var.ValueToString(), DEFAULT, CONSOLE);
-			}
-			else
-			{
-				std::string valueStr = tokens[1];
-				auto value = ConvertStringToVarValue(valueStr);
-				SetVar(cmd, value);
-			}
-		}
-	}
+        return std::nullopt;
+    }
 
-	VarValue CMD::ConvertStringToVarValue(const std::string& input)
-	{
-		std::string trimmed = input;
-		trimmed.erase(0, trimmed.find_first_not_of(" \t\n\r"));
-		trimmed.erase(trimmed.find_last_not_of(" \t\n\r") + 1);
+    std::vector<std::string> CMD::Tokenize( const std::string& input )
+    {
+        std::vector<std::string> tokens;
+        bool inQuotes = false;
+        std::string current;
 
-		std::string lower = trimmed;
-		std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        for ( size_t i = 0; i < input.size(); ++i )
+        {
+            char c = input[ i ];
 
-		// Bool check
-		if (lower == "true")
-			return true;
+            if ( c == '"' )
+            {
+                inQuotes = !inQuotes;
+                continue; // skip the quote itself
+            }
 
-		if (lower == "false")
-			return false;
+            if ( c == ' ' && !inQuotes )
+            {
+                if ( !current.empty() )
+                {
+                    tokens.push_back(current);
+                    current.clear();
+                }
+            } else
+                current += c;
+        }
 
-		// Try int
-		int intVal;
-		auto [p1, ec1] = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), intVal);
-		if (ec1 == std::errc() && p1 == trimmed.data() + trimmed.size())
-			return intVal;
+        if ( !current.empty() )
+            tokens.push_back(current);
 
-		// Try float
-		try
-		{
-			size_t idx;
-			float floatVal = std::stof(trimmed, &idx);
-			if (idx == trimmed.size())
-				return floatVal;
-		}
-		catch (...)
-		{
-		}
+        return tokens;
+    }
 
-		return trimmed;
-	}
+    VarValue CMD::ConvertStringToVarValue( const std::string& input )
+    {
+        std::string trimmed = input;
+        trimmed.erase(0, trimmed.find_first_not_of(" \t\n\r"));
+        trimmed.erase(trimmed.find_last_not_of(" \t\n\r") + 1);
 
-	std::vector<std::string> CMD::Tokenize(const std::string& input)
-	{
-		std::vector<std::string> tokens;
-		bool inQuotes = false;
-		std::string current;
+        std::string lower = trimmed;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
 
-		for (size_t i = 0; i < input.size(); ++i)
-		{
-			char c = input[i];
+        // Bool check
+        if ( lower == "true" )
+            return true;
 
-			if (c == '"')
-			{
-				inQuotes = !inQuotes;
-				continue;  // skip the quote itself
-			}
+        if ( lower == "false" )
+            return false;
 
-			if (c == ' ' && !inQuotes)
-			{
-				if (!current.empty())
-				{
-					tokens.push_back(current);
-					current.clear();
-				}
-			}
-			else
-				current += c;
-		}
+        // Try int
+        int intVal;
+        auto [ p1, ec1 ] = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), intVal);
+        if ( ec1 == std::errc() && p1 == trimmed.data() + trimmed.size() )
+            return intVal;
 
-		if (!current.empty())
-			tokens.push_back(current);
+        // Try float
+        try
+        {
+            size_t idx;
+            float floatVal = std::stof(trimmed, &idx);
+            if ( idx == trimmed.size() )
+                return floatVal;
+        } catch ( ... )
+        {
+        }
 
-		return tokens;
-	}
+        return trimmed;
+    }
 
-	void CMD::LogMsg(const std::string& msg, LogType type, LogCategory category)
-	{
-		auto t = time(nullptr);
-		m_logs.emplace_back(std::make_unique<Log>(msg, t, type, category));
+    void CMD::LogMsg( const std::string& msg, LogType type, LogCategory category )
+    {
+        const auto now = std::chrono::system_clock::now();
 
-		std::tm* localTime = std::localtime(&t);
-		std::ostringstream oss;
-		oss << std::put_time(localTime, "%H:%M:%S");
-		std::string formattedT = oss.str();
+        auto timeT = std::chrono::system_clock::to_time_t(now);
+        m_logs.emplace_back(std::make_unique<Log>(msg, timeT, type, category));
 
-		std::string typeStr = LogTypeToString(type);
-		std::string categoryStr = (category != NONE) ? LogCategoryToString(category) : "";
+        auto localTime = std::chrono::current_zone()->to_local(now);
 
-		std::cout << std::format("[ {:8} | {:12} | {:6} ] {}\n", typeStr, categoryStr, formattedT, msg);
-	}
+        auto typeStr = LogTypeToString(type);
+        auto categoryStr = ( category != NONE ) ? LogCategoryToString(category) : "";
 
-	void CMD::ClearLogs()
-	{
-		m_logs.clear();
-	}
+        std::cout << std::format("[ {:8} | {:12} | {:%T} ] {}\n", typeStr, categoryStr, localTime, msg);
+    }
 
-	void CMD::LogHelp()
-	{
-		LogMsg("//-------- COMMANDS --------", DEFAULT, CONSOLE);
-		for (auto it = m_commands.begin(); it != m_commands.end(); ++it)
-		{
-			if (it->first != "help")
-			{
-				auto& desc = it->second.Desc;
-				if(desc.empty())
-					LogMsg(it->first, DEFAULT, CONSOLE);
-				else
-					LogMsg(it->first + " - " + it->second.Desc, DEFAULT, CONSOLE);
-			}
-		}
+    void CMD::ClearLogs()
+    {
+        m_logs.clear();
+    }
 
-		LogMsg("//-------- VARS --------", DEFAULT, CONSOLE);
-		for (auto it = m_vars.begin(); it != m_vars.end(); ++it)
-		{
-			auto& desc = it->second.Desc;
-			if (desc.empty())
-				LogMsg(it->first + " = " + it->second.ValueToString(), DEFAULT, CONSOLE);
-			else
-				LogMsg(it->first + " = " + it->second.ValueToString() + " [ default: " + it->second.DefValueToString() + " ] - " + it->second.Desc, DEFAULT, CONSOLE);
-		}
-	}
+    void CMD::LogHelp()
+    {
+        LogMsg("//-------- COMMANDS --------", DEFAULT, CONSOLE);
+        for ( auto it = m_commands.begin(); it != m_commands.end(); ++it )
+        {
+            if ( it->first != "help" )
+            {
+                auto& desc = it->second.Desc;
+                if ( desc.empty() )
+                    LogMsg(it->first, DEFAULT, CONSOLE);
+                else
+                    LogMsg(it->first + " - " + it->second.Desc, DEFAULT, CONSOLE);
+            }
+        }
 
-	void RegisterCommand(const std::string& name, const std::string& desc, const std::function<void()>& func)
-	{
-		CMD::GetInstance().RegisterCommand(name, desc, func);
-	}
+        LogMsg("//-------- VARS --------", DEFAULT, CONSOLE);
+        for ( auto it = m_vars.begin(); it != m_vars.end(); ++it )
+        {
+            auto& desc = it->second.Desc;
+            if ( desc.empty() )
+                LogMsg(it->first + " = " + it->second.ValueToString(), DEFAULT, CONSOLE);
+            else
+                LogMsg(
+                    it->first + " = " + it->second.ValueToString() + " [ default: " + it->second.DefValueToString() +
+                    " ] - " + it->second.Desc, DEFAULT, CONSOLE);
+        }
+    }
 
-	void RegisterVar(const std::string& name, const std::string& desc, const VarValue& defValue, const VarCallback& callback)
-	{
-		CMD::GetInstance().RegisterVar(name, desc, defValue, callback);
-	}
+    void RegisterCommand( const std::string& name, const std::string& desc, const std::function<void()>& func )
+    {
+        CMD::GetInstance().RegisterCommand(name, desc, func);
+    }
 
-	void Execute(const std::string& name)
-	{
-		CMD::GetInstance().Execute(name);
-	}
+    void RegisterVar( const std::string& name, const std::string& desc, const VarValue& defValue,
+                      const VarCallback& callback )
+    {
+        CMD::GetInstance().RegisterVar(name, desc, defValue, callback);
+    }
+
+    void Execute( const std::string& name )
+    {
+        CMD::GetInstance().Execute(name);
+    }
 }

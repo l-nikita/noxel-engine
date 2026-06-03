@@ -5,10 +5,10 @@
 class DevPanel : public Panel
 {
 public:
-	DevPanel();
-	void Draw();
+    DevPanel();
+    void Draw() override;
 
 private:
-	bool m_demoViewEnabled = false;
-	bool m_vsyncEnabled;
+    bool m_demoViewEnabled = false;
+    bool m_vsyncEnabled;
 };

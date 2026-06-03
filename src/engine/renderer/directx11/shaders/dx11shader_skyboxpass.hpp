@@ -1,13 +1,13 @@
 #pragma once
 
-#include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
-#include "renderer/directx11/dx11helper.hpp"
-#include "renderer/directx11/dx11renderer.hpp"
-#include "renderer/vertex.hpp"
+#include "dx11shader.hpp"
+#include "dbg/debug.hpp"
 #include "renderer/rendercamera.hpp"
 #include "renderer/shaderregistry.hpp"
-#include "dbg/debug.hpp"
+#include "renderer/vertex.hpp"
+#include "renderer/directx11/dx11helper.hpp"
+#include "renderer/directx11/dx11renderer.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -15,7 +15,7 @@
 class SkyboxPassPS : public DX11Shader
 {
 public:
-    SkyboxPassPS(IShaderProgram* program)
+    SkyboxPassPS( IShaderProgram* program )
         : DX11Shader(program)
     {
         //-----------------------------------------------------------------------------
@@ -29,7 +29,7 @@ public:
         sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
         HRESULT hr = m_device->CreateSamplerState(&sampDesc, &m_samplerState);
-        if (FAILED(hr))
+        if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create sampler state.", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
@@ -38,7 +38,7 @@ public:
         rsDesc.FillMode = D3D11_FILL_SOLID;
 
         hr = m_device->CreateRasterizerState(&rsDesc, &m_rasterState);
-        if (FAILED(hr))
+        if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create rasterizer state.", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
@@ -48,16 +48,22 @@ public:
         dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 
         hr = m_device->CreateDepthStencilState(&dsDesc, &m_depthState);
-        if (FAILED(hr))
+        if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create depth stencil state.", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
-        m_vars["cubemap"] = g_ErrorTexture;
+        m_vars[ "cubemap" ] = g_ErrorTexture;
     }
 
-    ~SkyboxPassPS() { Release(); }
+    ~SkyboxPassPS()
+    {
+        Release();
+    }
 
-    ShaderType GetType() override { return PIXEL; }
+    ShaderType GetType() override
+    {
+        return PIXEL;
+    }
 
     void Bind()
     {
@@ -65,8 +71,8 @@ public:
         m_context->RSSetState(m_rasterState);
 
         ShaderVar& texVar = GetVar("cubemap");
-        if (auto texPtr = std::get_if<ITexture*>(&texVar))
-            (*texPtr)->Bind(0);
+        if ( auto texPtr = std::get_if<ITexture*>(&texVar) )
+            ( *texPtr )->Bind(0);
 
         m_context->PSSetSamplers(0, 1, &m_samplerState);
     }
@@ -77,28 +83,28 @@ public:
         m_context->RSSetState(nullptr);
 
         ShaderVar& texVar = GetVar("cubemap");
-        if (auto texPtr = std::get_if<ITexture*>(&texVar))
-            (*texPtr)->Unbind(0);
+        if ( auto texPtr = std::get_if<ITexture*>(&texVar) )
+            ( *texPtr )->Unbind(0);
 
-        ID3D11SamplerState* nullSampler[1] = { nullptr };
+        ID3D11SamplerState* nullSampler[ 1 ] = {nullptr};
         m_context->PSSetSamplers(0, 1, nullSampler);
     }
 
     void Release()
     {
-        if (m_samplerState)
+        if ( m_samplerState )
         {
             m_samplerState->Release();
             m_samplerState = nullptr;
         }
 
-        if (m_rasterState)
+        if ( m_rasterState )
         {
             m_rasterState->Release();
             m_rasterState = nullptr;
         }
 
-        if (m_depthState)
+        if ( m_depthState )
         {
             m_depthState->Release();
             m_depthState = nullptr;
@@ -111,7 +117,15 @@ private:
     ID3D11DepthStencilState* m_depthState = nullptr;
 };
 
-REGISTER_SHADER("skyboxpassPS", SkyboxPassPS);
+REGISTER_SHADER(
+
+
+
+
+    "skyboxpassPS"
+    ,
+    SkyboxPassPS
+);
 
 //-----------------------------------------------------------------------------
 //
@@ -119,12 +133,12 @@ REGISTER_SHADER("skyboxpassPS", SkyboxPassPS);
 class SkyboxPassVS : public DX11Shader
 {
 public:
-    SkyboxPassVS(IShaderProgram* program)
+    SkyboxPassVS( IShaderProgram* program )
         : DX11Shader(program)
     {
         //-----------------------------------------------------------------------------
-        D3D11_INPUT_ELEMENT_DESC layout[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        D3D11_INPUT_ELEMENT_DESC layout[ ] = {
+            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0},
         };
 
         HRESULT hr = m_device->CreateInputLayout(
@@ -133,7 +147,7 @@ public:
             m_program->GetVSBlob()->GetBufferSize(),
             &m_inputLayout);
 
-        if (FAILED(hr))
+        if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create input layout", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
@@ -148,12 +162,18 @@ public:
         DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_cbTransform);
     }
 
-    ~SkyboxPassVS() { Release(); }
+    ~SkyboxPassVS()
+    {
+        Release();
+    }
 
-    ShaderType GetType() override { return VERTEX; }
+    ShaderType GetType() override
+    {
+        return VERTEX;
+    }
 
-    void Bind() 
-    { 
+    void Bind()
+    {
         m_context->IASetInputLayout(m_inputLayout);
 
         auto* camera = g_Renderer->GetCamera();
@@ -168,23 +188,23 @@ public:
         m_context->VSSetConstantBuffers(0, 1, &m_cbTransform);
     }
 
-    void Unbind() 
-    { 
+    void Unbind()
+    {
         m_context->IASetInputLayout(nullptr);
 
         ID3D11Buffer* nullBuffer = nullptr;
         m_context->VSSetConstantBuffers(0, 1, &nullBuffer);
     }
 
-    void Release() 
-    { 
-        if (m_inputLayout)
+    void Release()
+    {
+        if ( m_inputLayout )
         {
             m_inputLayout->Release();
             m_inputLayout = nullptr;
         }
 
-        if (m_cbTransform)
+        if ( m_cbTransform )
         {
             m_cbTransform->Release();
             m_cbTransform = nullptr;
@@ -196,4 +216,12 @@ private:
     ID3D11Buffer* m_cbTransform = nullptr;
 };
 
-REGISTER_SHADER("skyboxpassVS", SkyboxPassVS);
+REGISTER_SHADER(
+
+
+
+
+    "skyboxpassVS"
+    ,
+    SkyboxPassVS
+);

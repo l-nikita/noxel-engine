@@ -1,13 +1,12 @@
 #pragma once
 
-#include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
-#include "renderer/directx11/dx11helper.hpp"
-#include "renderer/directx11/dx11renderer.hpp"
-#include "renderer/vertex.hpp"
+#include "dx11shader.hpp"
+#include "dbg/debug.hpp"
 #include "renderer/rendercamera.hpp"
 #include "renderer/shaderregistry.hpp"
-#include "dbg/debug.hpp"
+#include "renderer/vertex.hpp"
+#include "renderer/directx11/dx11helper.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -15,7 +14,7 @@
 class GeometryPassPS : public DX11Shader
 {
 public:
-    GeometryPassPS(IShaderProgram* program)
+    GeometryPassPS( IShaderProgram* program )
         : DX11Shader(program)
     {
         //-----------------------------------------------------------------------------
@@ -31,7 +30,7 @@ public:
         sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
         HRESULT hr = m_device->CreateSamplerState(&sampDesc, &m_samplerState);
-        if (FAILED(hr))
+        if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create sampler state", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
@@ -51,45 +50,51 @@ public:
         DX11Helper::CreateBuffer(m_device, &cbd2, nullptr, &m_tintBuffer);
 
         //-----------------------------------------------------------------------------
-        m_vars["tint"] = glm::vec4(1, 1, 1, 1);
-        m_vars["emission"] = 0.0f;
-        m_vars["color"] = g_BlackTexture;
-        m_vars["normal"] = g_BlackTexture;
-        m_vars["rough"] = g_BlackTexture;
-        m_vars["metal"] = g_BlackTexture;
-        m_vars["ao"] = g_BlackTexture;
-        m_vars["height"] = g_BlackTexture;
+        m_vars[ "tint" ] = glm::vec4(1, 1, 1, 1);
+        m_vars[ "emission" ] = 0.0f;
+        m_vars[ "color" ] = g_BlackTexture;
+        m_vars[ "normal" ] = g_BlackTexture;
+        m_vars[ "rough" ] = g_BlackTexture;
+        m_vars[ "metal" ] = g_BlackTexture;
+        m_vars[ "ao" ] = g_BlackTexture;
+        m_vars[ "height" ] = g_BlackTexture;
     }
 
-    ~GeometryPassPS() { Release(); }
+    ~GeometryPassPS()
+    {
+        Release();
+    }
 
-    ShaderType GetType() override { return PIXEL; }
+    ShaderType GetType() override
+    {
+        return PIXEL;
+    }
 
     void Bind()
     {
         ShaderVar& colorVar = GetVar("color");
-        if (auto colorPtr = std::get_if<ITexture*>(&colorVar))
-            (*colorPtr)->Bind(0);
+        if ( auto colorPtr = std::get_if<ITexture*>(&colorVar) )
+            ( *colorPtr )->Bind(0);
 
         ShaderVar& normVar = GetVar("normal");
-        if (auto normPtr = std::get_if<ITexture*>(&normVar))
-            (*normPtr)->Bind(1);
+        if ( auto normPtr = std::get_if<ITexture*>(&normVar) )
+            ( *normPtr )->Bind(1);
 
         ShaderVar& roughVar = GetVar("rough");
-        if (auto roughPtr = std::get_if<ITexture*>(&roughVar))
-            (*roughPtr)->Bind(2);
+        if ( auto roughPtr = std::get_if<ITexture*>(&roughVar) )
+            ( *roughPtr )->Bind(2);
 
         ShaderVar& metalVar = GetVar("metal");
-        if (auto metalPtr = std::get_if<ITexture*>(&metalVar))
-            (*metalPtr)->Bind(3);
+        if ( auto metalPtr = std::get_if<ITexture*>(&metalVar) )
+            ( *metalPtr )->Bind(3);
 
         ShaderVar& aoVar = GetVar("ao");
-        if (auto aoPtr = std::get_if<ITexture*>(&aoVar))
-            (*aoPtr)->Bind(4);
+        if ( auto aoPtr = std::get_if<ITexture*>(&aoVar) )
+            ( *aoPtr )->Bind(4);
 
         ShaderVar& heightVar = GetVar("height");
-        if (auto heightPtr = std::get_if<ITexture*>(&heightVar))
-            (*heightPtr)->Bind(5);
+        if ( auto heightPtr = std::get_if<ITexture*>(&heightVar) )
+            ( *heightPtr )->Bind(5);
 
         CBViewData data
         {
@@ -103,11 +108,11 @@ public:
         float emis = 0.0f;
 
         ShaderVar& tintVar = GetVar("tint");
-        if (auto tintPtr = std::get_if<glm::vec4>(&tintVar))
+        if ( auto tintPtr = std::get_if<glm::vec4>(&tintVar) )
             tint = *tintPtr;
 
         ShaderVar& emissionVar = GetVar("emission");
-        if (auto emissionPtr = std::get_if<float>(&emissionVar))
+        if ( auto emissionPtr = std::get_if<float>(&emissionVar) )
             emis = *emissionPtr;
 
         CBTint data2 = {};
@@ -123,50 +128,50 @@ public:
     void Unbind()
     {
         ShaderVar& colorVar = GetVar("color");
-        if (auto colorPtr = std::get_if<ITexture*>(&colorVar))
-            (*colorPtr)->Unbind(0);
+        if ( auto colorPtr = std::get_if<ITexture*>(&colorVar) )
+            ( *colorPtr )->Unbind(0);
 
         ShaderVar& normVar = GetVar("normal");
-        if (auto normPtr = std::get_if<ITexture*>(&normVar))
-            (*normPtr)->Unbind(1);
+        if ( auto normPtr = std::get_if<ITexture*>(&normVar) )
+            ( *normPtr )->Unbind(1);
 
         ShaderVar& roughVar = GetVar("rough");
-        if (auto roughPtr = std::get_if<ITexture*>(&roughVar))
-            (*roughPtr)->Unbind(2);
+        if ( auto roughPtr = std::get_if<ITexture*>(&roughVar) )
+            ( *roughPtr )->Unbind(2);
 
         ShaderVar& metalVar = GetVar("metal");
-        if (auto metalPtr = std::get_if<ITexture*>(&metalVar))
-            (*metalPtr)->Unbind(3);
+        if ( auto metalPtr = std::get_if<ITexture*>(&metalVar) )
+            ( *metalPtr )->Unbind(3);
 
         ShaderVar& aoVar = GetVar("ao");
-        if (auto aoPtr = std::get_if<ITexture*>(&aoVar))
-            (*aoPtr)->Unbind(4);
+        if ( auto aoPtr = std::get_if<ITexture*>(&aoVar) )
+            ( *aoPtr )->Unbind(4);
 
         ShaderVar& heightVar = GetVar("height");
-        if (auto heightPtr = std::get_if<ITexture*>(&heightVar))
-            (*heightPtr)->Unbind(5);
+        if ( auto heightPtr = std::get_if<ITexture*>(&heightVar) )
+            ( *heightPtr )->Unbind(5);
 
         m_context->PSSetConstantBuffers(0, 0, nullptr);
 
-        ID3D11SamplerState* nullSampler[2] = { nullptr };
+        ID3D11SamplerState* nullSampler[ 2 ] = {nullptr};
         m_context->PSSetSamplers(0, 2, nullSampler);
     }
 
     void Release()
     {
-        if (m_samplerState)
+        if ( m_samplerState )
         {
             m_samplerState->Release();
             m_samplerState = nullptr;
         }
 
-        if (m_viewBuffer)
+        if ( m_viewBuffer )
         {
             m_viewBuffer->Release();
             m_viewBuffer = nullptr;
         }
 
-        if (m_tintBuffer)
+        if ( m_tintBuffer )
         {
             m_tintBuffer->Release();
             m_tintBuffer = nullptr;
@@ -179,7 +184,15 @@ private:
     ID3D11Buffer* m_tintBuffer = nullptr;
 };
 
-REGISTER_SHADER("geometrypassPS", GeometryPassPS);
+REGISTER_SHADER(
+
+
+
+
+    "geometrypassPS"
+    ,
+    GeometryPassPS
+);
 
 //-----------------------------------------------------------------------------
 //
@@ -187,17 +200,20 @@ REGISTER_SHADER("geometrypassPS", GeometryPassPS);
 class GeometryPassVS : public DX11Shader
 {
 public:
-    GeometryPassVS(IShaderProgram* program)
+    GeometryPassVS( IShaderProgram* program )
         : DX11Shader(program)
     {
         //-----------------------------------------------------------------------------
-        D3D11_INPUT_ELEMENT_DESC layout[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,   0, offsetof(Vertex, Normal),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "TANGENT",   0, DXGI_FORMAT_R32G32B32_FLOAT,  0, offsetof(Vertex, Tangent),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "BINORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, Bitangent),   D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,      0, offsetof(Vertex, UV),       D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT,0, offsetof(Vertex, Color),    D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        D3D11_INPUT_ELEMENT_DESC layout[ ] = {
+            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0},
+            {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0},
+            {"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, Tangent), D3D11_INPUT_PER_VERTEX_DATA, 0},
+            {
+                "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex, Bitangent), D3D11_INPUT_PER_VERTEX_DATA,
+                0
+            },
+            {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(Vertex, UV), D3D11_INPUT_PER_VERTEX_DATA, 0},
+            {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(Vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0},
         };
 
         HRESULT hr = m_device->CreateInputLayout(
@@ -206,7 +222,7 @@ public:
             m_program->GetVSBlob()->GetBufferSize(),
             &m_inputLayout);
 
-        if (FAILED(hr))
+        if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create input layout", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
@@ -221,12 +237,18 @@ public:
         DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_cbTransform);
 
         //-----------------------------------------------------------------------------
-        m_vars["model"] = glm::mat4(1.0f);
+        m_vars[ "model" ] = glm::mat4(1.0f);
     }
 
-    ~GeometryPassVS() { Release(); }
+    ~GeometryPassVS()
+    {
+        Release();
+    }
 
-    ShaderType GetType() override { return VERTEX; }
+    ShaderType GetType() override
+    {
+        return VERTEX;
+    }
 
     void Bind()
     {
@@ -236,7 +258,7 @@ public:
         glm::mat4 model = glm::mat4(1.0f);
 
         ShaderVar& varModel = GetVar("model");
-        if (auto matPtr = std::get_if<glm::mat4>(&varModel))
+        if ( auto matPtr = std::get_if<glm::mat4>(&varModel) )
             model = *matPtr;
 
         CBTransform matricesCB
@@ -260,13 +282,13 @@ public:
 
     void Release()
     {
-        if (m_inputLayout)
+        if ( m_inputLayout )
         {
             m_inputLayout->Release();
             m_inputLayout = nullptr;
         }
 
-        if (m_cbTransform)
+        if ( m_cbTransform )
         {
             m_cbTransform->Release();
             m_cbTransform = nullptr;
@@ -278,4 +300,12 @@ private:
     ID3D11Buffer* m_cbTransform = nullptr;
 };
 
-REGISTER_SHADER("geometrypassVS", GeometryPassVS);
+REGISTER_SHADER(
+
+
+
+
+    "geometrypassVS"
+    ,
+    GeometryPassVS
+);

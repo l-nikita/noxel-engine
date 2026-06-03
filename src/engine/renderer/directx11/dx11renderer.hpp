@@ -16,44 +16,73 @@
 class DX11Renderer : public IRenderer
 {
 public:
-	~DX11Renderer();
+    ~DX11Renderer();
 
-	void Init() override;
+    void Init() override;
 
-	void OnWindowResize(int width, int height) override;
+    void OnWindowResize( int width, int height ) override;
 
-	IRenderFactory* GetFactory() const { return m_factory; }
-	RenderCamera* GetCamera() const { return m_camera; }
-	void SetCamera(RenderCamera* camera) { m_camera = camera; }
+    IRenderFactory* GetFactory() const
+    {
+        return m_factory;
+    }
 
-	bool IsVSyncEnabled() override { return m_vsyncEnabled; }
-	void SetVSync(bool value) override { m_vsyncEnabled = value; }
+    RenderCamera* GetCamera() const
+    {
+        return m_camera;
+    }
 
-	void SetPrimitiveTopology(PrimitiveTopology topology) override;
+    void SetCamera( RenderCamera* camera )
+    {
+        m_camera = camera;
+    }
 
-	void CreateDevice();
-	void CreateSwapChain();
-	void Swap() override;
+    bool IsVSyncEnabled() override
+    {
+        return m_vsyncEnabled;
+    }
 
-	IRenderTexture* GetBackBufferRT() override { return m_backBuffer; }
-	void CopyToBackBuffer(IRenderTexture* rt) override;
-	void SetRenderTextures(IRenderTexture* rts[], std::uint32_t num, IDepthStencil* depthStencil) override;
-	void BindRenderTextures(IRenderTexture* rts[], std::uint32_t num) override;
-	void DrawFullScreenTriangle() override;
-	void SetViewport(IViewport* viewport) override;
+    void SetVSync( bool value ) override
+    {
+        m_vsyncEnabled = value;
+    }
 
-	ID3D11Device* GetDevice() { return m_device; }
-	ID3D11DeviceContext* GetContext() { return m_context; }
+    void SetPrimitiveTopology( PrimitiveTopology topology ) override;
+
+    void CreateDevice();
+    void CreateSwapChain();
+    void Swap() override;
+
+    IRenderTexture* GetBackBufferRT() override
+    {
+        return m_backBuffer;
+    }
+
+    void CopyToBackBuffer( IRenderTexture* rt ) override;
+    void SetRenderTextures( IRenderTexture* rts[ ], std::uint32_t num, IDepthStencil* depthStencil ) override;
+    void BindRenderTextures( IRenderTexture* rts[ ], std::uint32_t num ) override;
+    void DrawFullScreenTriangle() override;
+    void SetViewport( IViewport* viewport ) override;
+
+    ID3D11Device* GetDevice()
+    {
+        return m_device;
+    }
+
+    ID3D11DeviceContext* GetContext()
+    {
+        return m_context;
+    }
 
 private:
-	ID3D11Device* m_device = nullptr;
-	ID3D11DeviceContext* m_context = nullptr;
-	IRenderTexture* m_backBuffer;
+    ID3D11Device* m_device = nullptr;
+    ID3D11DeviceContext* m_context = nullptr;
+    IRenderTexture* m_backBuffer;
 
-	IDXGISwapChain1* m_swapChain = nullptr;
+    IDXGISwapChain1* m_swapChain = nullptr;
 
-	IRenderFactory* m_factory;
-	RenderCamera* m_camera;
+    IRenderFactory* m_factory;
+    RenderCamera* m_camera;
 
-	bool m_vsyncEnabled = true;
+    bool m_vsyncEnabled = true;
 };

@@ -14,7 +14,7 @@ class IRenderTexture : public IRenderResource
 public:
     virtual ~IRenderTexture() = default;
 
-    virtual void Clear(glm::vec4 color) = 0;
+    virtual void Clear( glm::vec4 color ) = 0;
     virtual void Bind() = 0;
     virtual void Unbind() = 0;
 

@@ -4,16 +4,16 @@
 
 enum class GraphicsAPI : int
 {
-	NONE,
-	OPENGL,
-	DIRECTX11,
-	VULKAN,
+    NONE,
+    OPENGL,
+    DIRECTX11,
+    VULKAN,
 };
 
-enum PrimitiveTopology 
+enum PrimitiveTopology
 {
-	LINES,
-	TRIANGLES,
+    LINES,
+    TRIANGLES,
 };
 
 class RenderCamera;
@@ -28,27 +28,27 @@ struct IViewport;
 class IRenderer
 {
 public:
-	virtual ~IRenderer() = default;
+    virtual ~IRenderer() = default;
 
-	virtual void Init() = 0;
-	virtual void Swap() = 0;
-	virtual void OnWindowResize(int width, int height) = 0;
+    virtual void Init() = 0;
+    virtual void Swap() = 0;
+    virtual void OnWindowResize( int width, int height ) = 0;
 
-	virtual IRenderTexture* GetBackBufferRT() = 0;
-	virtual void CopyToBackBuffer(IRenderTexture* rt) = 0;
-	virtual void SetViewport(IViewport* viewport) = 0;
-	virtual void SetRenderTextures(IRenderTexture* rts[], uint32_t num, IDepthStencil* depthStencil) = 0;
-	virtual void BindRenderTextures(IRenderTexture* rts[], uint32_t num) = 0;
-	virtual void DrawFullScreenTriangle() = 0;
+    virtual IRenderTexture* GetBackBufferRT() = 0;
+    virtual void CopyToBackBuffer( IRenderTexture* rt ) = 0;
+    virtual void SetViewport( IViewport* viewport ) = 0;
+    virtual void SetRenderTextures( IRenderTexture* rts[ ], uint32_t num, IDepthStencil* depthStencil ) = 0;
+    virtual void BindRenderTextures( IRenderTexture* rts[ ], uint32_t num ) = 0;
+    virtual void DrawFullScreenTriangle() = 0;
 
-	virtual IRenderFactory* GetFactory() const = 0;
-	virtual RenderCamera* GetCamera() const = 0;
-	virtual void SetCamera(RenderCamera* camera) = 0;
+    virtual IRenderFactory* GetFactory() const = 0;
+    virtual RenderCamera* GetCamera() const = 0;
+    virtual void SetCamera( RenderCamera* camera ) = 0;
 
-	virtual bool IsVSyncEnabled() = 0;
-	virtual void SetVSync(bool value) = 0;
+    virtual bool IsVSyncEnabled() = 0;
+    virtual void SetVSync( bool value ) = 0;
 
-	virtual void SetPrimitiveTopology(PrimitiveTopology topology) = 0;
+    virtual void SetPrimitiveTopology( PrimitiveTopology topology ) = 0;
 };
 
 extern IRenderer* g_Renderer;

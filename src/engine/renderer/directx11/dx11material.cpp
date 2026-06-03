@@ -7,31 +7,31 @@
 #include "dx11renderer.hpp"
 #include "assetsystem/materialasset.hpp"
 
-DX11Material::DX11Material(ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset)
+DX11Material::DX11Material( ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset )
     : m_device(device), m_context(context), m_asset(asset)
 {
     auto factory = g_Renderer->GetFactory();
 
     auto shaderAsset = m_asset->GetShaderAsset();
-    if (shaderAsset != nullptr)
+    if ( shaderAsset != nullptr )
         m_shader = factory->CreateShaderProgram(shaderAsset);
 
-    if (asset->IsCubemap())
-        m_textures["cubemap"] = factory->CreateCubemap(asset);
+    if ( asset->IsCubemap() )
+        m_textures[ "cubemap" ] = factory->CreateCubemap(asset);
     else
     {
-        for (const auto& [paramName, asset] : m_asset->GetTexturesAssets())
-            m_textures[paramName] = factory->CreateTexture(asset);
+        for ( const auto& [ paramName, asset ]: m_asset->GetTexturesAssets() )
+            m_textures[ paramName ] = factory->CreateTexture(asset);
     }
 }
 
 void DX11Material::Bind()
 {
-    if (m_shader)
+    if ( m_shader )
     {
-        for (const auto& [paramName, texture] : m_textures)
+        for ( const auto& [ paramName, texture ]: m_textures )
         {
-            if (texture)
+            if ( texture )
                 m_shader->SetPSVar(paramName, texture);
         }
 
@@ -41,35 +41,35 @@ void DX11Material::Bind()
 
 void DX11Material::Unbind()
 {
-    if (m_shader) m_shader->Unbind();
+    if ( m_shader ) m_shader->Unbind();
 }
 
 void DX11Material::Release()
 {
-    if (IsReleased())
+    if ( IsReleased() )
         return;
 
     m_isReleased = true;
 
     auto factory = g_Renderer->GetFactory();
-    if (m_shader)
+    if ( m_shader )
         factory->Release(m_shader), m_shader = nullptr;
 
-    for (const auto& [paramName, texture] : m_textures)
-        if(texture)
+    for ( const auto& [ paramName, texture ]: m_textures )
+        if ( texture )
             factory->Release(texture);
 
     m_textures.clear();
 }
 
-void DX11Material::SetShader(IShaderProgram* shader)
+void DX11Material::SetShader( IShaderProgram* shader )
 {
     m_shader = shader;
 }
 
-void DX11Material::SetTexture(std::string paramName, ITexture* texture)
+void DX11Material::SetTexture( std::string paramName, ITexture* texture )
 {
-    m_textures[paramName] = texture;
+    m_textures[ paramName ] = texture;
 }
 
 IShaderProgram* DX11Material::GetShader() const
@@ -78,7 +78,7 @@ IShaderProgram* DX11Material::GetShader() const
     return m_shader;
 }
 
-ITexture* DX11Material::GetTexture(std::string paramName)
+ITexture* DX11Material::GetTexture( std::string paramName )
 {
-    return m_textures[paramName];
+    return m_textures[ paramName ];
 }

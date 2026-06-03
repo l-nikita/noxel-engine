@@ -4,20 +4,19 @@
 #include <Jolt/Jolt.h>
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Core/Factory.h>
-#include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
-#include <Jolt/Physics/Collision/Shape/BoxShape.h>
-#include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyManager.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
 
-#include <glm/glm.hpp>
-#include <string>
-#include <iostream>
 #include <cstdarg>
+#include <iostream>
+#include <string>
 #include <thread>
+#include <glm/glm.hpp>
 
 #include "engine.hpp"
 #include "dbg/debug.hpp"
@@ -30,69 +29,70 @@ JPH_SUPPRESS_WARNINGS
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-static void TraceImpl(const char* inFMT, ...)
+static void TraceImpl( const char* inFMT, ... )
 {
-	// Format the message
-	va_list list;
-	va_start(list, inFMT);
-	char buffer[1024];
-	vsnprintf(buffer, sizeof(buffer), inFMT, list);
-	va_end(list);
+    // Format the message
+    va_list list;
+    va_start(list, inFMT);
+    char buffer[ 1024 ];
+    vsnprintf(buffer, sizeof( buffer ), inFMT, list);
+    va_end(list);
 
-	CMD_INFO(buffer, CMD::PHYSICS);
+    CMD_INFO(buffer, CMD::PHYSICS);
 }
 
 #ifdef JPH_ENABLE_ASSERTS
 
-static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, uint inLine)
+static bool AssertFailedImpl( const char* inExpression, const char* inMessage, const char* inFile, uint inLine )
 {
-	std::string str = inFile + std::string(":") + std::to_string(inLine) + ": (" + inExpression + ") " + (inMessage != nullptr ? inMessage : "");
-	FATAL_ERROR(str, CMD::PHYSICS);
+    auto str = inFile + std::string(":") + std::to_string(inLine) + ": (" + inExpression + ") " + (
+                   inMessage != nullptr ? inMessage : "" );
+    FATAL_ERROR(str, CMD::PHYSICS);
 
-	return true;
+    return true;
 };
 
 #endif // JPH_ENABLE_ASSERTS
 
-static JPH::BodyID g_BodyId;
+static BodyID g_BodyId;
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 JoltPhysics::~JoltPhysics()
 {
-	if (!IsRunning()) 
-		return;
-		
-	m_isRunning = false;
+    if ( !IsRunning() )
+        return;
 
-	FlushPendingDestructions();
+    m_isRunning = false;
 
-	auto& iBody = m_system->GetBodyInterface();
-	for (auto& bodyID : m_bodiesIDs)
-	{
-		iBody.RemoveBody(bodyID);
-		iBody.DestroyBody(bodyID);
-	}
+    FlushPendingDestructions();
 
-	m_bodiesIDs.clear();
-	UnregisterTypes();
+    auto& iBody = m_system->GetBodyInterface();
+    for ( auto& bodyID: m_bodiesIDs )
+    {
+        iBody.RemoveBody(bodyID);
+        iBody.DestroyBody(bodyID);
+    }
 
-	delete m_system;
-	delete m_tempAllocator;
-	delete m_jobSystem;
+    m_bodiesIDs.clear();
+    UnregisterTypes();
 
-	delete Factory::sInstance;
-	Factory::sInstance = nullptr;
+    delete m_system;
+    delete m_tempAllocator;
+    delete m_jobSystem;
 
-	delete broad_phase_layer_interface;
-	delete object_vs_broadphase_layer_filter;
-	delete object_vs_object_layer_filter;
+    delete Factory::sInstance;
+    Factory::sInstance = nullptr;
 
-	delete body_activation_listener;
-	delete contact_listener;
+    delete broad_phase_layer_interface;
+    delete object_vs_broadphase_layer_filter;
+    delete object_vs_object_layer_filter;
 
-	delete m_debugRenderer;
+    delete body_activation_listener;
+    delete contact_listener;
+
+    delete m_debugRenderer;
 }
 
 //-----------------------------------------------------------------------------
@@ -100,86 +100,87 @@ JoltPhysics::~JoltPhysics()
 //-----------------------------------------------------------------------------
 void JoltPhysics::Init()
 {
-	RegisterDefaultAllocator();
+    RegisterDefaultAllocator();
 
-	Trace = TraceImpl;
-	JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
+    Trace = TraceImpl;
+    JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;
+    )
 
-	Factory::sInstance = new Factory();
-	RegisterTypes();
+    Factory::sInstance = new Factory();
+    RegisterTypes();
 
-	m_debugRenderer = new PhysicsDebugRenderer();
+    m_debugRenderer = new PhysicsDebugRenderer();
 
-	m_tempAllocator = new TempAllocatorImpl(10 * 1024 * 1024);
-	m_jobSystem = new JobSystemThreadPool(cMaxPhysicsJobs, cMaxPhysicsBarriers, thread::hardware_concurrency() - 1);
+    m_tempAllocator = new TempAllocatorImpl(10 * 1024 * 1024);
+    m_jobSystem = new JobSystemThreadPool(cMaxPhysicsJobs, cMaxPhysicsBarriers, thread::hardware_concurrency() - 1);
 
-	const uint cMaxBodies = 1024;
-	const uint cNumBodyMutexes = 0;
-	const uint cMaxBodyPairs = 1024;
-	const uint cMaxContactConstraints = 1024;
+    constexpr uint cMaxBodies = 1024;
+    constexpr uint cNumBodyMutexes = 0;
+    constexpr uint cMaxBodyPairs = 1024;
+    constexpr uint cMaxContactConstraints = 1024;
 
-	broad_phase_layer_interface = new BPLayerInterfaceImpl();
-	object_vs_broadphase_layer_filter = new ObjectVsBroadPhaseLayerFilterImpl();
-	object_vs_object_layer_filter = new ObjectLayerPairFilterImpl();
+    broad_phase_layer_interface = new BPLayerInterfaceImpl();
+    object_vs_broadphase_layer_filter = new ObjectVsBroadPhaseLayerFilterImpl();
+    object_vs_object_layer_filter = new ObjectLayerPairFilterImpl();
 
-	m_system = new PhysicsSystem();
-	m_system->Init(cMaxBodies,
-		cNumBodyMutexes, 
-		cMaxBodyPairs, 
-		cMaxContactConstraints, 
-		*broad_phase_layer_interface,
-		*object_vs_broadphase_layer_filter, 
-		*object_vs_object_layer_filter);
+    m_system = new PhysicsSystem();
+    m_system->Init(cMaxBodies,
+                   cNumBodyMutexes,
+                   cMaxBodyPairs,
+                   cMaxContactConstraints,
+                   *broad_phase_layer_interface,
+                   *object_vs_broadphase_layer_filter,
+                   *object_vs_object_layer_filter);
 
-	body_activation_listener = new MyBodyActivationListener();
-	m_system->SetBodyActivationListener(body_activation_listener);
+    body_activation_listener = new MyBodyActivationListener();
+    m_system->SetBodyActivationListener(body_activation_listener);
 
-	contact_listener = new MyContactListener();
-	m_system->SetContactListener(contact_listener);
+    contact_listener = new MyContactListener();
+    m_system->SetContactListener(contact_listener);
 
-	//---------------------------------------------------------------------
-	JoltPhysics::CreateShapeBox(
-		RVec3(0.0f, -5.0f, 0.0f), Quat::sIdentity(),
-		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
-		new JPH::BoxShapeSettings(JPH::RVec3(20.0f, 1.0f, 20.0f)),
-		EActivation::Activate, EMotionType::Static);
+    //---------------------------------------------------------------------
+    JoltPhysics::CreateShapeBox(
+        RVec3(0.0f, -5.0f, 0.0f), Quat::sIdentity(),
+        RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+        new JPH::BoxShapeSettings(JPH::RVec3(20.0f, 1.0f, 20.0f)),
+        EActivation::Activate, EMotionType::Static);
 
-	JoltPhysics::CreateShapeBox(
-		RVec3(5.0f, -3.0f, 10.0f), Quat::sIdentity(),
-		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
-		new JPH::BoxShapeSettings(JPH::RVec3(3.0f, 1.0f, 3.0f)),
-		EActivation::Activate, EMotionType::Static);
+    JoltPhysics::CreateShapeBox(
+        RVec3(5.0f, -3.0f, 10.0f), Quat::sIdentity(),
+        RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+        new JPH::BoxShapeSettings(JPH::RVec3(3.0f, 1.0f, 3.0f)),
+        EActivation::Activate, EMotionType::Static);
 
-	//---------------------------------------------------------------------
-	JoltPhysics::CreateShapeBox(
-		RVec3(0, -3, -5), Quat::sIdentity(),
-		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
-		new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f)),
-		EActivation::Activate, EMotionType::Static);
+    //---------------------------------------------------------------------
+    JoltPhysics::CreateShapeBox(
+        RVec3(0, -3, -5), Quat::sIdentity(),
+        RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+        new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f)),
+        EActivation::Activate, EMotionType::Static);
 
-	JoltPhysics::CreateShapeBox(
-		RVec3(0, -3, 15), Quat::sIdentity(),
-		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
-		new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f)),
-		EActivation::Activate, EMotionType::Static);
+    JoltPhysics::CreateShapeBox(
+        RVec3(0, -3, 15), Quat::sIdentity(),
+        RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+        new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f)),
+        EActivation::Activate, EMotionType::Static);
 
-	JoltPhysics::CreateShapeBox(
-		RVec3(-5, -3, -2), Quat::sIdentity(),
-		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
-		new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f)),
-		EActivation::Activate, EMotionType::Static);
+    JoltPhysics::CreateShapeBox(
+        RVec3(-5, -3, -2), Quat::sIdentity(),
+        RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+        new JPH::BoxShapeSettings(JPH::RVec3(1.0f, 1.0f, 1.0f)),
+        EActivation::Activate, EMotionType::Static);
 
-	g_BodyId = JoltPhysics::CreateShapeBox(
-		RVec3(0, 0, 0), Quat::sIdentity(),
-		RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
-		new JPH::BoxShapeSettings(JPH::RVec3(0.5f, 0.5f, 0.5f)),
-		EActivation::Activate, EMotionType::Static);
+    g_BodyId = JoltPhysics::CreateShapeBox(
+        RVec3(0, 0, 0), Quat::sIdentity(),
+        RVec3(0.0f, 0.0f, 0.0f), Quat::sIdentity(),
+        new JPH::BoxShapeSettings(JPH::RVec3(0.5f, 0.5f, 0.5f)),
+        EActivation::Activate, EMotionType::Static);
 
-	//---------------------------------------------------------------------
-	m_system->OptimizeBroadPhase();
-	m_isRunning = true;
+    //---------------------------------------------------------------------
+    m_system->OptimizeBroadPhase();
+    m_isRunning = true;
 
-	CMD_INFO("Physics initialized", CMD::PHYSICS);
+    CMD_INFO("Physics initialized", CMD::PHYSICS);
 }
 
 //-----------------------------------------------------------------------------
@@ -187,72 +188,72 @@ void JoltPhysics::Init()
 //-----------------------------------------------------------------------------
 void JoltPhysics::Update()
 {
-	if (!IsRunning()) return;
+    if ( !IsRunning() ) return;
 
-	PROF_START("Physics::Update", "Physics");
+    PROF_START("Physics::Update", "Physics");
 
-	const float cDeltaTime = 1.0f / 60.0f;
-	const int cCollisionSteps = 1;
+    constexpr float cDeltaTime = 1.0f / 60.0f;
+    constexpr auto cCollisionSteps = 1;
 
-	auto& iBody = m_system->GetBodyInterface();
+    auto& iBody = m_system->GetBodyInterface();
 
-	static float totalTime = 0.0f;
-	totalTime += g_Engine->DeltaTime();
+    static auto totalTime = 0.0f;
+    totalTime += g_Engine->DeltaTime();
 
-	iBody.SetPosition(g_BodyId, JPH::Vec3(
-		sin(totalTime) * 5.0f,
-		-3.0f,
-		cos(totalTime) * 5.0f
-	), JPH::EActivation::Activate);
+    iBody.SetPosition(g_BodyId, Vec3(
+                          sin(totalTime) * 5.0f,
+                          -3.0f,
+                          cos(totalTime) * 5.0f
+                      ), EActivation::Activate);
 
-	glm::quat rot = glm::angleAxis(totalTime * 3.0f, glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
-	iBody.SetRotation(g_BodyId, Utils::JPH_Quat_GLM(rot), JPH::EActivation::Activate);
+    const auto rot = glm::angleAxis(totalTime * 3.0f, glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
+    iBody.SetRotation(g_BodyId, Utils::JPH_Quat_GLM(rot), JPH::EActivation::Activate);
 
-	// Step the world
-	m_system->Update(cDeltaTime, cCollisionSteps, m_tempAllocator, m_jobSystem);
-	FlushPendingDestructions();
+    // Step the world
+    m_system->Update(cDeltaTime, cCollisionSteps, m_tempAllocator, m_jobSystem);
+    FlushPendingDestructions();
 
-	PROF_END("Physics::Update");
+    PROF_END("Physics::Update");
 }
 
 void JoltPhysics::Render()
 {
-	if (!IsRunning()) return;
+    if ( !IsRunning() ) return;
 
-	PROF_START("Physics::Render", "Physics");
+    PROF_START("Physics::Render", "Physics");
 
-	JPH::BodyManager::DrawSettings drawSettings;
-	drawSettings.mDrawShape = false;
-	drawSettings.mDrawBoundingBox = true;
-	drawSettings.mDrawCenterOfMassTransform = true;
-	m_system->DrawBodies(drawSettings, m_debugRenderer);
+    BodyManager::DrawSettings drawSettings;
+    drawSettings.mDrawShape = false;
+    drawSettings.mDrawBoundingBox = true;
+    drawSettings.mDrawCenterOfMassTransform = true;
+    m_system->DrawBodies(drawSettings, m_debugRenderer);
 
-	PROF_END("Physics::Render");
+    PROF_END("Physics::Render");
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void JoltPhysics::MarkBodyForDestruction(JPH::BodyID bodyID)
+void JoltPhysics::MarkBodyForDestruction( const BodyID bodyID )
 {
-	for (auto& bodyToDestoryID : m_bodiesToDestroy)
-		if (bodyToDestoryID == bodyID)
-			return;
+    for ( auto& bodyToDestroyID: m_bodiesToDestroy )
+        if ( bodyToDestroyID == bodyID )
+            return;
 
-	m_bodiesToDestroy.push_back(bodyID);
+    m_bodiesToDestroy.push_back(bodyID);
 }
 
 void JoltPhysics::FlushPendingDestructions()
 {
-	auto& iBody = m_system->GetBodyInterface();
-	for (auto& bodyID : m_bodiesToDestroy)
-	{
-		iBody.RemoveBody(bodyID);
-		iBody.DestroyBody(bodyID);
+    auto& iBody = m_system->GetBodyInterface();
+    for ( auto& bodyID: m_bodiesToDestroy )
+    {
+        iBody.RemoveBody(bodyID);
+        iBody.DestroyBody(bodyID);
 
-		auto it = std::remove(m_bodiesIDs.begin(), m_bodiesIDs.end(), bodyID);
-		if (it != m_bodiesIDs.end())
-			m_bodiesIDs.erase(it, m_bodiesIDs.end());
-	}
-	m_bodiesToDestroy.clear();
+        if ( auto it = std::ranges::remove(m_bodiesIDs, bodyID).begin(); it != m_bodiesIDs.end() )
+            m_bodiesIDs.erase(it, m_bodiesIDs.end());
+    }
+
+    m_bodiesToDestroy.clear();
 }

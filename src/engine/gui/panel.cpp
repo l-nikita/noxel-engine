@@ -2,5 +2,5 @@
 
 Panel::Panel()
 {
-	m_IsVisible = true;
+    m_IsVisible = true;
 }

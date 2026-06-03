@@ -1,20 +1,50 @@
 {
-	"name": "noxel-engine",
-	"version": "1.0.0",
-	"dependencies": [
-		{ "name": "sdl3" },
-		{ "name": "vulkan" },
-		{ "name": "entt" },
-		{ "name": "glm" },
-		{ "name": "imgui", "features": [
-			{ "name": "sdl3-binding" }, 
-			{ "name": "dx11-binding", "platform": "windows" }
-		]},
-		{ "name": "joltphysics", "features": ["debugrenderer", "rtti"] },
-		{ "name": "nlohmann-json" },
-		{ "name": "protobuf" },
-		{ "name": "gamenetworkingsockets" },
-		{ "name": "stb" }
-	],
-	"builtin-baseline": "05442024c3fda64320bd25d2251cc9807b84fb6f"
+  "name": "noxel-engine",
+  "version": "1.0.0",
+  "dependencies": [
+    {
+      "name": "sdl3"
+    },
+    {
+      "name": "vulkan"
+    },
+    {
+      "name": "entt"
+    },
+    {
+      "name": "glm"
+    },
+    {
+      "name": "imgui",
+      "features": [
+        {
+          "name": "sdl3-binding"
+        },
+        {
+          "name": "dx11-binding",
+          "platform": "windows"
+        }
+      ]
+    },
+    {
+      "name": "joltphysics",
+      "features": [
+        "debugrenderer",
+        "rtti"
+      ]
+    },
+    {
+      "name": "nlohmann-json"
+    },
+    {
+      "name": "protobuf"
+    },
+    {
+      "name": "gamenetworkingsockets"
+    },
+    {
+      "name": "stb"
+    }
+  ],
+  "builtin-baseline": "05442024c3fda64320bd25d2251cc9807b84fb6f"
 }

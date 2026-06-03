@@ -2,14 +2,14 @@
 
 #include <array>
 
-#include "dx11shader.hpp"
 #include "dx11cbuffers.hpp"
-#include "renderer/directx11/dx11helper.hpp"
-#include "renderer/directx11/dx11renderer.hpp"
+#include "dx11shader.hpp"
+#include "dbg/debug.hpp"
+#include "renderer/lighting.hpp"
 #include "renderer/rendercamera.hpp"
 #include "renderer/shaderregistry.hpp"
-#include "renderer/lighting.hpp"
-#include "dbg/debug.hpp"
+#include "renderer/directx11/dx11helper.hpp"
+#include "renderer/directx11/dx11renderer.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -17,7 +17,7 @@
 class LightingPassPS : public DX11Shader
 {
 public:
-    LightingPassPS(IShaderProgram* program)
+    LightingPassPS( IShaderProgram* program )
         : DX11Shader(program)
     {
         //-----------------------------------------------------------------------------
@@ -29,12 +29,13 @@ public:
         sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 
         HRESULT hr = m_device->CreateSamplerState(&sampDesc, &m_samplerState);
-        if (FAILED(hr))
+        if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create sampler state.", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
         D3D11_SAMPLER_DESC samp2Desc = {};
-        samp2Desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT; // D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT // D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT
+        samp2Desc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+        // D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT // D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT
         samp2Desc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
         samp2Desc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
         samp2Desc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -43,7 +44,7 @@ public:
         samp2Desc.MaxLOD = D3D11_FLOAT32_MAX;
 
         hr = m_device->CreateSamplerState(&samp2Desc, &m_sampler2State);
-        if (FAILED(hr))
+        if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create sampler state.", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
@@ -86,12 +87,18 @@ public:
         LightManager::GetInstance().AddLight(m_light4);
 
         //-----------------------------------------------------------------------------
-        m_vars["cubemap"] = g_BlackTexture;
+        m_vars[ "cubemap" ] = g_BlackTexture;
     }
 
-    ~LightingPassPS() { Release(); }
+    ~LightingPassPS()
+    {
+        Release();
+    }
 
-    ShaderType GetType() override { return PIXEL; }
+    ShaderType GetType() override
+    {
+        return PIXEL;
+    }
 
     void Bind()
     {
@@ -103,22 +110,22 @@ public:
         CBLightsData data{};
         data.ViewPos = camTransform.Position;
 
-        ID3D11ShaderResourceView* shadowMapSRVs[MAX_SHADOWS_MAPS] = { nullptr };
+        ID3D11ShaderResourceView* shadowMapSRVs[ MAX_SHADOWS_MAPS ] = {nullptr};
         int shadowCount = 0;
-        
-        auto& lights = LightManager::GetInstance().GetLights();
-        for (int i = 0; i < lights.size(); i++)
-        {
-            if (i >= MAX_LIGHTS) continue;
 
-            auto light = lights[i];
-            if (!light)
+        auto& lights = LightManager::GetInstance().GetLights();
+        for ( int i = 0; i < lights.size(); i++ )
+        {
+            if ( i >= MAX_LIGHTS ) continue;
+
+            auto light = lights[ i ];
+            if ( !light )
                 continue;
 
             auto& transform = light->GetTransform();
 
             auto type = light->GetType();
-            auto& dataLight = data.Lights[i];
+            auto& dataLight = data.Lights[ i ];
 
             dataLight.Type = type;
             dataLight.Color = light->GetColor();
@@ -126,30 +133,30 @@ public:
             dataLight.Pos = transform.Position;
             dataLight.ShadowMapIndex = -1;
 
-            if (dataLight.Type == LIGHT_SPOT)
+            if ( dataLight.Type == LIGHT_SPOT )
             {
                 dataLight.Cutoff = cos(glm::radians(light->GetFOV() * 0.5f));
                 dataLight.Dir = light->GetTransform().Forward();
                 dataLight.View = glm::transpose(light->GetViewMatrix());
                 dataLight.Projection = glm::transpose(light->GetProjectionMatrix());
 
-                if (light->IsShadowsEnabled() && shadowCount < MAX_SHADOWS_MAPS)
+                if ( light->IsShadowsEnabled() && shadowCount < MAX_SHADOWS_MAPS )
                 {
                     dataLight.ShadowMapIndex = shadowCount;
                     auto srv = static_cast<DX11Texture*>(light->GetShadowMap()->GetDepth()->GetTexture())->GetSRV();
-                    shadowMapSRVs[shadowCount] = srv;
+                    shadowMapSRVs[ shadowCount ] = srv;
                     shadowCount++;
                 }
             }
         }
 
-        if (shadowCount > 0)
+        if ( shadowCount > 0 )
             m_context->PSSetShaderResources(4, shadowCount, shadowMapSRVs);
 
         ShaderVar& cubemapVar = GetVar("cubemap");
-        if (auto cubemapPtr = std::get_if<ITexture*>(&cubemapVar))
-            (*cubemapPtr)->Bind(10);
-        
+        if ( auto cubemapPtr = std::get_if<ITexture*>(&cubemapVar) )
+            ( *cubemapPtr )->Bind(10);
+
         //------------------------
         auto pos = glm::vec3(sin(totalTime) * 5.0f, -3.0f, cos(totalTime) * 5.0f);
         m_light1->SetPosition(pos);
@@ -170,34 +177,34 @@ public:
 
     void Unbind()
     {
-        ID3D11ShaderResourceView* nullSRVs[MAX_SHADOWS_MAPS] = { nullptr };
+        ID3D11ShaderResourceView* nullSRVs[ MAX_SHADOWS_MAPS ] = {nullptr};
         m_context->PSSetShaderResources(4, MAX_SHADOWS_MAPS, nullSRVs);
 
         ShaderVar& cubemapVar = GetVar("cubemap");
-        if (auto cubemapPtr = std::get_if<ITexture*>(&cubemapVar))
-            (*cubemapPtr)->Unbind(10);
+        if ( auto cubemapPtr = std::get_if<ITexture*>(&cubemapVar) )
+            ( *cubemapPtr )->Unbind(10);
 
         m_context->PSSetConstantBuffers(0, 0, nullptr);
 
-        ID3D11SamplerState* nullSampler[2] = { nullptr };
+        ID3D11SamplerState* nullSampler[ 2 ] = {nullptr};
         m_context->PSSetSamplers(0, 2, nullSampler);
     }
 
     void Release()
     {
-        if (m_samplerState)
+        if ( m_samplerState )
         {
             m_samplerState->Release();
             m_samplerState = nullptr;
         }
 
-        if (m_sampler2State)
+        if ( m_sampler2State )
         {
             m_sampler2State->Release();
             m_sampler2State = nullptr;
         }
 
-        if (m_lightBuffer)
+        if ( m_lightBuffer )
         {
             m_lightBuffer->Release();
             m_lightBuffer = nullptr;
@@ -214,7 +221,15 @@ private:
     Light* m_light4 = nullptr;
 };
 
-REGISTER_SHADER("lightingpassPS", LightingPassPS);
+REGISTER_SHADER(
+
+
+
+
+    "lightingpassPS"
+    ,
+    LightingPassPS
+);
 
 //-----------------------------------------------------------------------------
 //
@@ -222,17 +237,40 @@ REGISTER_SHADER("lightingpassPS", LightingPassPS);
 class LightingPassVS : public DX11Shader
 {
 public:
-    LightingPassVS(IShaderProgram* program)
+    LightingPassVS( IShaderProgram* program )
         : DX11Shader(program)
-    { }
+    {
+    }
 
-    ~LightingPassVS() { Release(); }
+    ~LightingPassVS()
+    {
+        Release();
+    }
 
-    ShaderType GetType() override { return VERTEX; }
+    ShaderType GetType() override
+    {
+        return VERTEX;
+    }
 
-    void Bind() { }
-    void Unbind() { }
-    void Release() { }
+    void Bind()
+    {
+    }
+
+    void Unbind()
+    {
+    }
+
+    void Release()
+    {
+    }
 };
 
-REGISTER_SHADER("lightingpassVS", LightingPassVS);
+REGISTER_SHADER(
+
+
+
+
+    "lightingpassVS"
+    ,
+    LightingPassVS
+);

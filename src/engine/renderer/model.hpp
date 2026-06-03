@@ -1,11 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <memory>
-
-#include "imesh.hpp"
-#include "ishader.hpp"
 #include "imaterial.hpp"
+#include "imesh.hpp"
 #include "common/transformable.hpp"
 
 //-----------------------------------------------------------------------------
@@ -14,20 +11,20 @@
 class Model : public Transformable
 {
 public:
-    Model(const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials);
-    Model(IMesh* mesh, IMaterial* material);
+    Model( const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials );
+    Model( IMesh* mesh, IMaterial* material );
 
-    void SetMaterial(IMaterial* material, size_t index = 0);
+    void SetMaterial( IMaterial* material, size_t index = 0 );
 
     IMaterial* GetMaterial() const;
-    IMaterial* GetMaterial(size_t index) const;
+    IMaterial* GetMaterial( size_t index ) const;
     std::vector<IMaterial*> GetMaterials() const;
 
     IMesh* GetMesh() const;
-    IMesh* GetMesh(size_t index) const;
+    IMesh* GetMesh( size_t index ) const;
     std::vector<IMesh*> GetMeshes() const;
 
-    void Draw();
+    void Draw() const;
 
     bool m_CastShadows = true;
 

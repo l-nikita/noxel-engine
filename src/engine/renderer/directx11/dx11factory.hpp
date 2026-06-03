@@ -7,28 +7,33 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DX11Factory : public IRenderFactory 
+class DX11Factory : public IRenderFactory
 {
 public:
-    DX11Factory(ID3D11Device* device, ID3D11DeviceContext* context);
-    ~DX11Factory() { Shutdown(); }
+    DX11Factory( ID3D11Device* device, ID3D11DeviceContext* context );
 
-    ITexture* CreateTexture(TextureAsset* asset) override;
-    ITexture* CreateTexture(const TextureDesc& desc) override;
-    ITexture* CreateCubemap(MaterialAsset* asset) override;
+    ~DX11Factory()
+    {
+        Shutdown();
+    }
 
-    IMaterial* CreateMaterial(MaterialAsset* asset) override;
-    IMaterial* CreateMaterial(std::string assetName) override;
+    ITexture* CreateTexture( TextureAsset* asset ) override;
+    ITexture* CreateTexture( const TextureDesc& desc ) override;
+    ITexture* CreateCubemap( MaterialAsset* asset ) override;
 
-    IMesh* CreateMesh(const MeshData& data) override;
-    IShaderProgram* CreateShaderProgram(ShaderAsset* asset) override;
+    IMaterial* CreateMaterial( MaterialAsset* asset ) override;
+    IMaterial* CreateMaterial( std::string assetName ) override;
 
-    IRenderTexture* CreateRenderTexture(int width, int height, bool depth, TextureFormat format = TextureFormat::RGBA32F) override;
-    IDepthStencil* CreateDepthStencil(int width, int height, bool bindable = false) override;
+    IMesh* CreateMesh( const MeshData& data ) override;
+    IShaderProgram* CreateShaderProgram( ShaderAsset* asset ) override;
 
-    IViewport* CreateViewport(int x, int y, int width, int height) override;
+    IRenderTexture* CreateRenderTexture( int width, int height, bool depth,
+                                         TextureFormat format = TextureFormat::RGBA32F ) override;
+    IDepthStencil* CreateDepthStencil( int width, int height, bool bindable = false ) override;
 
-    void Release(IRenderResource* resource) override;
+    IViewport* CreateViewport( int x, int y, int width, int height ) override;
+
+    void Release( IRenderResource* resource ) override;
     void Shutdown() override;
 
 private:

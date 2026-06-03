@@ -9,7 +9,8 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* context, int width, int height, bool bindable)
+DX11DepthStencil::DX11DepthStencil( ID3D11Device* device, ID3D11DeviceContext* context, int width, int height,
+                                    bool bindable )
     : m_device(device), m_context(context)
 {
     auto factory = g_Renderer->GetFactory();
@@ -19,7 +20,7 @@ DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* co
     desc.Height = height;
     desc.MipLevels = 1;
 
-    if (!bindable)
+    if ( !bindable )
     {
         desc.Format = TextureFormat::DEPTH24STENCIL8;
         desc.BindFlags = TextureBindFlags::DEPTH_STENCIL;
@@ -28,8 +29,7 @@ DX11DepthStencil::DX11DepthStencil(ID3D11Device* device, ID3D11DeviceContext* co
         auto res = static_cast<DX11Texture*>(m_texture)->GetResource();
 
         DX11Helper::CreateDepthStencilView(m_device, res, nullptr, &m_dsv);
-    }
-    else
+    } else
     {
         desc.Format = TextureFormat::R32_TYPELESS;
         desc.ShaderFormat = TextureFormat::R32_FLOAT;
@@ -56,14 +56,14 @@ void DX11DepthStencil::Clear()
 
 void DX11DepthStencil::Release()
 {
-    if (IsReleased())
+    if ( IsReleased() )
         return;
 
     m_isReleased = true;
 
-    if (m_dsv)
+    if ( m_dsv )
         m_dsv->Release(), m_dsv = nullptr;
 
-    if (m_texture)
+    if ( m_texture )
         g_Renderer->GetFactory()->Release(m_texture), m_texture = nullptr;
 }

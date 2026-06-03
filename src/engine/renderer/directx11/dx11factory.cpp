@@ -10,18 +10,18 @@
 #include "dx11viewport.hpp"
 #include "assetsystem/materialasset.hpp"
 
-DX11Factory::DX11Factory(ID3D11Device* device, ID3D11DeviceContext* context) 
-	: m_device(device), m_context(context)
+DX11Factory::DX11Factory( ID3D11Device* device, ID3D11DeviceContext* context )
+    : m_device(device), m_context(context)
 {
 }
 
-IMesh* DX11Factory::CreateMesh(const MeshData& data)
+IMesh* DX11Factory::CreateMesh( const MeshData& data )
 {
     auto mesh = new DX11Mesh(
         m_device,
         m_context,
         data.Vertices.data(),
-        sizeof(Vertex),
+        sizeof( Vertex ),
         static_cast<std::uint32_t>(std::size(data.Vertices)),
         data.Indices.data(),
         static_cast<std::uint32_t>(std::size(data.Indices))
@@ -31,7 +31,7 @@ IMesh* DX11Factory::CreateMesh(const MeshData& data)
     return mesh;
 }
 
-IShaderProgram* DX11Factory::CreateShaderProgram(ShaderAsset* asset)
+IShaderProgram* DX11Factory::CreateShaderProgram( ShaderAsset* asset )
 {
     assert(asset);
 
@@ -40,7 +40,7 @@ IShaderProgram* DX11Factory::CreateShaderProgram(ShaderAsset* asset)
     return shader;
 }
 
-ITexture* DX11Factory::CreateTexture(TextureAsset* asset)
+ITexture* DX11Factory::CreateTexture( TextureAsset* asset )
 {
     assert(asset);
 
@@ -51,7 +51,7 @@ ITexture* DX11Factory::CreateTexture(TextureAsset* asset)
     desc.Height = data->Height;
     desc.Format = TextureFormat::RGBA8;
     desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
-    desc.Data = { data->Image };
+    desc.Data = {data->Image};
     desc.MipLevels = 1;
 
     auto tex = CreateTexture(desc);
@@ -60,42 +60,43 @@ ITexture* DX11Factory::CreateTexture(TextureAsset* asset)
     return tex;
 }
 
-ITexture* DX11Factory::CreateTexture(const TextureDesc& desc)
+ITexture* DX11Factory::CreateTexture( const TextureDesc& desc )
 {
     auto tex = new DX11Texture(m_device, m_context, desc);
     m_resources.push_back(tex);
     return tex;
 }
 
-ITexture* DX11Factory::CreateCubemap(MaterialAsset* asset)
+ITexture* DX11Factory::CreateCubemap( MaterialAsset* asset )
 {
-    if (!asset->IsCubemap())
+    if ( !asset->IsCubemap() )
     {
-        CMD_ERROR("DX11 Factory: Failed to create cubemap because material [" + asset->GetName() + "] isn't cubemap.", CMD::RENDERING);
+        CMD_ERROR("DX11 Factory: Failed to create cubemap because material [" + asset->GetName() + "] isn't cubemap.",
+                  CMD::RENDERING);
         return nullptr;
     }
 
     std::vector<void*> datas;
     int width = 0, height = 0;
 
-    for (const auto& faceName : CUBEMAP_FACES_ORDER)
+    for ( const auto& faceName: CUBEMAP_FACES_ORDER )
     {
         TextureAsset* faceAsset = nullptr;
 
-        for (const auto& [paramName, asset] : asset->GetTexturesAssets())
+        for ( const auto& [ paramName, asset ]: asset->GetTexturesAssets() )
         {
-            if (paramName == faceName)
+            if ( paramName == faceName )
                 faceAsset = asset;
         }
 
-        if (!faceAsset)
+        if ( !faceAsset )
         {
             CMD_ERROR("Cubemap missing face: " + faceName, CMD::RENDERING);
             continue;
         }
 
         TextureData* data = faceAsset->Load();
-        if (!data || !data->Image)
+        if ( !data || !data->Image )
         {
             CMD_ERROR("Failed to load cubemap face: " + faceName, CMD::RENDERING);
             continue;
@@ -106,7 +107,7 @@ ITexture* DX11Factory::CreateCubemap(MaterialAsset* asset)
         datas.push_back(data->Image);
     }
 
-    if (datas.size() < CUBEMAP_FACES_COUNT)
+    if ( datas.size() < CUBEMAP_FACES_COUNT )
     {
         CMD_ERROR("Failed to load cubemap.", CMD::RENDERING);
         return nullptr;
@@ -122,13 +123,13 @@ ITexture* DX11Factory::CreateCubemap(MaterialAsset* asset)
     desc.MipLevels = 1;
 
     auto tex = CreateTexture(desc);
-    for (auto data : datas)
+    for ( auto data: datas )
         delete data;
 
     return tex;
 }
 
-IMaterial* DX11Factory::CreateMaterial(MaterialAsset* asset)
+IMaterial* DX11Factory::CreateMaterial( MaterialAsset* asset )
 {
     assert(asset);
 
@@ -137,7 +138,7 @@ IMaterial* DX11Factory::CreateMaterial(MaterialAsset* asset)
     return mat;
 }
 
-IMaterial* DX11Factory::CreateMaterial(std::string assetName)
+IMaterial* DX11Factory::CreateMaterial( std::string assetName )
 {
     assert(!assetName.empty());
 
@@ -146,36 +147,36 @@ IMaterial* DX11Factory::CreateMaterial(std::string assetName)
     return mat;
 }
 
-IRenderTexture* DX11Factory::CreateRenderTexture(int width, int height, bool depth, TextureFormat format)
+IRenderTexture* DX11Factory::CreateRenderTexture( int width, int height, bool depth, TextureFormat format )
 {
     auto rt = new DX11RenderTexture(m_device, m_context, width, height, depth, format);
     m_resources.push_back(rt);
     return rt;
 }
 
-IDepthStencil* DX11Factory::CreateDepthStencil(int width, int height, bool bindable)
+IDepthStencil* DX11Factory::CreateDepthStencil( int width, int height, bool bindable )
 {
     auto depth = new DX11DepthStencil(m_device, m_context, width, height, bindable);
     m_resources.push_back(depth);
     return depth;
 }
 
-IViewport* DX11Factory::CreateViewport(int x, int y, int width, int height)
+IViewport* DX11Factory::CreateViewport( int x, int y, int width, int height )
 {
     auto vp = new DX11Viewport(x, y, width, height);
     m_resources.push_back(vp);
     return vp;
 }
 
-void DX11Factory::Release(IRenderResource* resource)
+void DX11Factory::Release( IRenderResource* resource )
 {
     assert(resource);
 
     auto it = std::find(m_resources.begin(), m_resources.end(), resource);
-    if (it == m_resources.end())
+    if ( it == m_resources.end() )
         return;
 
-    if (resource->IsReleased()) 
+    if ( resource->IsReleased() )
         return;
 
     delete resource;
@@ -184,10 +185,10 @@ void DX11Factory::Release(IRenderResource* resource)
 
 void DX11Factory::Shutdown()
 {
-    for (auto resource : m_resources)
+    for ( auto resource: m_resources )
         resource->Release();
 
-    for (auto resource : m_resources)
+    for ( auto resource: m_resources )
         delete resource;
 
     m_resources.clear();

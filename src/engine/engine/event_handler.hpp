@@ -1,11 +1,11 @@
 #pragma once
 
-#include "SDL3/SDL.h"
+#include <SDL3/SDL.h>
 #include "common/singleton.hpp"
 
 class EventHandler : public Singleton<EventHandler>
 {
 public:
-	void HandleEvents();
-	void OnEvent(SDL_Event& event);
+    static void HandleEvents();
+    static void OnEvent( const SDL_Event& event );
 };

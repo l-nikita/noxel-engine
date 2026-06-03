@@ -1,56 +1,63 @@
 #pragma once
 
-#include <iostream>
-#include <fstream>
 #include <unordered_map>
-#include <memory>
-
-#include "common/singleton.hpp"
-#include "iasset_system.hpp"
 #include "asset_type.hpp"
 #include "base_asset.hpp"
+#include "iasset_system.hpp"
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 class AssetSystem : public IAssetSystem
 {
-private:
-	std::unordered_map<AssetType, AssetsMap> m_assets;
+    std::unordered_map<AssetType, AssetsMap> m_assets;
     std::filesystem::path m_rootPath;
     std::filesystem::path m_binPath;
     std::filesystem::path m_assetsPath;
 
 public:
-	void Init() override;
+    void Init() override;
 
-    std::filesystem::path GetRootPath() override { return m_rootPath; }
-    std::filesystem::path GetBinPath() override { return m_binPath; }
-    std::filesystem::path GetAssetsPath() override { return m_assetsPath; }
-
-    std::filesystem::path GetMaterialsPath() override { return GetAssetsPath() / "materials"; }
-
-	void RegisterAsset(BaseAsset* asset);
-
-    const AssetsMap& GetAssets(AssetType type) override
+    std::filesystem::path GetRootPath() override
     {
-        auto it = m_assets.find(type);
-        if (it == m_assets.end())
-            return m_assets[type];
+        return m_rootPath;
+    }
+
+    std::filesystem::path GetBinPath() override
+    {
+        return m_binPath;
+    }
+
+    std::filesystem::path GetAssetsPath() override
+    {
+        return m_assetsPath;
+    }
+
+    std::filesystem::path GetMaterialsPath() override
+    {
+        return GetAssetsPath() / "materials";
+    }
+
+    void RegisterAsset( BaseAsset* asset ) override;
+
+    const AssetsMap& GetAssets( const AssetType type ) override
+    {
+        const auto it = m_assets.find(type);
+        if ( it == m_assets.end() )
+            return m_assets[ type ];
 
         return it->second;
     }
 
-    BaseAsset* GetAsset(AssetType type, const std::string& name) override
+    BaseAsset* GetAsset( const AssetType type, const std::string& name ) override
     {
-        auto typeIt = m_assets.find(type);
-        if (typeIt == m_assets.end())
+        const auto typeIt = m_assets.find(type);
+        if ( typeIt == m_assets.end() )
             return nullptr;
 
         const auto& assetsMap = typeIt->second;
 
-        auto assetIt = assetsMap.find(name);
-        if (assetIt != assetsMap.end())
+        if ( const auto assetIt = assetsMap.find(name); assetIt != assetsMap.end() )
             return assetIt->second;
 
         return nullptr;

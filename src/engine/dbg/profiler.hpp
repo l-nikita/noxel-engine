@@ -1,11 +1,9 @@
 #pragma once
 
-#include <iostream>
 #include <chrono>
-#include <vector>
+#include <iostream>
 #include <string>
 #include <unordered_map>
-#include <cassert>
 
 #include "common.hpp"
 
@@ -14,13 +12,13 @@
 namespace Profiler
 {
     class Profiler;
-    using Profilers = std::unordered_map<std::string, Profiler*>;
+    using Profilers = std::unordered_map<std::string, std::unique_ptr<Profiler>>;
 
     class ENGINE_API Profiler
     {
     public:
         static Profilers m_all;
-        Profiler(const std::string& name, const std::string& category);
+        Profiler( const std::string& name, const std::string& category );
 
     private:
         std::string m_name;
@@ -33,13 +31,24 @@ namespace Profiler
         void Start();
         void End();
 
-        float GetTime() const { return m_lastFrameTime; }
-        std::string GetName() const { return m_name; }
-        std::string GetCategory() const { return m_category; }
+        float GetTime() const
+        {
+            return m_lastFrameTime;
+        }
+
+        std::string GetName() const
+        {
+            return m_name;
+        }
+
+        std::string GetCategory() const
+        {
+            return m_category;
+        }
     };
 
-    Profilers GetAll();
+    const Profilers& GetAll();
 
-    void Start(const std::string& name, const std::string& category);
-    void End(const std::string& name);
+    void Start( const std::string& name, const std::string& category );
+    void End( const std::string& name );
 }

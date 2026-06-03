@@ -2,8 +2,8 @@
 
 #include <d3d11.h>
 #include <unordered_map>
-#include "renderer/directx11/dx11shaderprogram.hpp"
 #include "dbg/debug.hpp"
+#include "renderer/directx11/dx11shaderprogram.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -11,9 +11,10 @@
 class DX11Shader : public IShader
 {
 public:
-    DX11Shader(IShaderProgram* program)
-        : m_program(static_cast<DX11ShaderProgram*>(program)), m_device(m_program->GetDevice()), m_context(m_program->GetContext())
-    { 
+    DX11Shader( IShaderProgram* program )
+        : m_program(static_cast<DX11ShaderProgram*>(program)), m_device(m_program->GetDevice()),
+          m_context(m_program->GetContext())
+    {
         // parameters, buffers, resources...
     }
 
@@ -23,23 +24,23 @@ public:
     virtual void Unbind() = 0;
     virtual void Release() = 0;
 
-    void SetVar(const std::string& name, const ShaderVar& var) override
+    void SetVar( const std::string& name, const ShaderVar& var ) override
     {
-        if (m_vars.find(name) == m_vars.end())
+        if ( m_vars.find(name) == m_vars.end() )
         {
             CMD_ERROR("Unknown shader variable [" + name + "].", CMD::RENDERING);
             return;
         }
 
-        m_vars[name] = var;
+        m_vars[ name ] = var;
     }
 
-    ShaderVar& GetVar(const std::string& name) override
+    ShaderVar& GetVar( const std::string& name ) override
     {
-        if (m_vars.find(name) == m_vars.end())
+        if ( m_vars.find(name) == m_vars.end() )
             FATAL_ERROR("Unknown shader variable [" + name + "].", CMD::RENDERING)
 
-        return m_vars[name];
+        return m_vars[ name ];
     }
 
 protected:
