@@ -55,7 +55,7 @@ struct TextureDesc
     std::uint32_t Width = 0;
     std::uint32_t Height = 0;
     std::uint32_t MipLevels = 1;
-    bool IsCubemap = 0;
+    bool IsCubemap = false;
     TextureFormat Format = TextureFormat::RGBA8;
     TextureFormat ShaderFormat = TextureFormat::RGBA8;
     TextureUsage Usage = TextureUsage::DEFAULT;

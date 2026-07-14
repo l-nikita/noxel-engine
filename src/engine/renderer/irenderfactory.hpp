@@ -15,7 +15,7 @@ class TextureAsset;
 class MaterialAsset;
 
 //-----------------------------------------------------------------------------
-// ��� Create... ��� ������ Release...
+// Кто Create... Тот делает Release...
 //-----------------------------------------------------------------------------
 class IRenderFactory
 {
@@ -34,7 +34,7 @@ public:
 
     virtual IRenderTexture* CreateRenderTexture( int width, int height, bool depth,
                                                  TextureFormat format = TextureFormat::RGBA32F ) = 0;
-    virtual IDepthStencil* CreateDepthStencil( int width, int height, bool bindable ) = 0;
+    virtual IDepthStencil* CreateDepthStencil( int width, int height, bool bindable = false ) = 0;
 
     virtual IViewport* CreateViewport( int x, int y, int width, int height ) = 0;
 

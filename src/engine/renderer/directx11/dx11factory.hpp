@@ -12,7 +12,7 @@ class DX11Factory : public IRenderFactory
 public:
     DX11Factory( ID3D11Device* device, ID3D11DeviceContext* context );
 
-    ~DX11Factory()
+    ~DX11Factory() override
     {
         Shutdown();
     }
@@ -27,9 +27,8 @@ public:
     IMesh* CreateMesh( const MeshData& data ) override;
     IShaderProgram* CreateShaderProgram( ShaderAsset* asset ) override;
 
-    IRenderTexture* CreateRenderTexture( int width, int height, bool depth,
-                                         TextureFormat format = TextureFormat::RGBA32F ) override;
-    IDepthStencil* CreateDepthStencil( int width, int height, bool bindable = false ) override;
+    IRenderTexture* CreateRenderTexture( int width, int height, bool depth, TextureFormat format ) override;
+    IDepthStencil* CreateDepthStencil( int width, int height, bool bindable ) override;
 
     IViewport* CreateViewport( int x, int y, int width, int height ) override;
 
