@@ -1,8 +1,8 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <variant>
 #include <string>
+#include <glm/glm.hpp>
 #include "itexture.hpp"
 
 using ShaderVar = std::variant<

@@ -11,7 +11,7 @@
 class DX11Shader : public IShader
 {
 public:
-    DX11Shader( IShaderProgram* program )
+    explicit DX11Shader( IShaderProgram* program )
         : m_program(static_cast<DX11ShaderProgram*>(program)), m_device(m_program->GetDevice()),
           m_context(m_program->GetContext())
     {
@@ -20,13 +20,13 @@ public:
 
     virtual ShaderType GetType() = 0;
 
-    virtual void Bind() = 0;
-    virtual void Unbind() = 0;
-    virtual void Release() = 0;
+    void Bind() override = 0;
+    void Unbind() override = 0;
+    void Release() override = 0;
 
     void SetVar( const std::string& name, const ShaderVar& var ) override
     {
-        if ( m_vars.find(name) == m_vars.end() )
+        if ( !m_vars.contains(name) )
         {
             CMD_ERROR("Unknown shader variable [" + name + "].", CMD::RENDERING);
             return;
@@ -37,7 +37,7 @@ public:
 
     ShaderVar& GetVar( const std::string& name ) override
     {
-        if ( m_vars.find(name) == m_vars.end() )
+        if ( !m_vars.contains(name) )
             FATAL_ERROR("Unknown shader variable [" + name + "].", CMD::RENDERING)
 
         return m_vars[ name ];

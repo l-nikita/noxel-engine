@@ -39,17 +39,17 @@ Player* g_Player = nullptr;
 //-----------------------------------------------------------------------------
 bool Engine::Init()
 {
-    CMD_INFO("Hello! I am engine!", CMD::ENGINE);
+    CMD_INFO( "Hello! I am engine!", CMD::ENGINE );
 
 #ifdef _DEBUG
-    CMD_INFO("Built in DEBUG mode.", CMD::ENGINE);
+    CMD_INFO( "Built in DEBUG mode.", CMD::ENGINE );
 #else
-    CMD_INFO("Built in RELEASE mode.", CMD::ENGINE);
+    CMD_INFO( "Built in RELEASE mode.", CMD::ENGINE );
 #endif
 
-    if ( !SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) )
+    if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_EVENTS ) )
     {
-        CMD_ERROR("SDL_Init Error: " + std::string(SDL_GetError()), CMD::ENGINE);
+        CMD_ERROR( "SDL_Init Error: " + std::string(SDL_GetError()), CMD::ENGINE );
         return false;
     }
 
@@ -69,7 +69,7 @@ bool Engine::Init()
 
     if ( g_Engine->GetGraphicsAPI() == GraphicsAPI::VULKAN )
     {
-        assert(false);
+        assert( false );
     }
 #ifdef DX11
     else if ( g_Engine->GetGraphicsAPI() == GraphicsAPI::DIRECTX11 )
@@ -97,9 +97,9 @@ bool Engine::Init()
     g_Physics->Init();
 
     if ( g_Renderer )
-        g_Player = new Player(g_Renderer->GetCamera());
+        g_Player = new Player( g_Renderer->GetCamera() );
 
-    CMD_INFO("Engine initialized successfully.", CMD::ENGINE);
+    CMD_INFO( "Engine initialized successfully.", CMD::ENGINE );
     return true;
 }
 
@@ -108,7 +108,7 @@ bool Engine::Init()
 //-----------------------------------------------------------------------------
 void Engine::InitWindow()
 {
-    m_window = new Window(ENGINE_NAME, 1920, 1080);
+    m_window = new Window( ENGINE_NAME, 1920, 1080 );
 }
 
 //-----------------------------------------------------------------------------
@@ -125,17 +125,17 @@ void Engine::Run()
     while ( m_isRunning )
     {
         auto currentTime = high_resolution_clock::now();
-        m_deltaTime = duration<float>(currentTime - lastTime);
+        m_deltaTime = duration<float>( currentTime - lastTime );
         lastTime = currentTime;
-        m_elapsedTime = duration<float>(currentTime - startTime);
+        m_elapsedTime = duration<float>( currentTime - startTime );
 
-        PROF_START("Engine::Update", "Engine");
+        PROF_START( "Engine::Update", "Engine" );
         Update();
-        PROF_END("Engine::Update");
+        PROF_END( "Engine::Update" );
 
-        PROF_START("Engine::Render", "Engine");
+        PROF_START( "Engine::Render", "Engine" );
         Render();
-        PROF_END("Engine::Render");
+        PROF_END( "Engine::Render" );
     }
 
     Shutdown();
@@ -181,7 +181,7 @@ void Engine::Shutdown()
         delete m_window, m_window = nullptr;
 
     SDL_Quit();
-    CMD_INFO("Engine stopped.", CMD::ENGINE);
+    CMD_INFO( "Engine stopped.", CMD::ENGINE );
 }
 
 //-----------------------------------------------------------------------------
@@ -196,15 +196,15 @@ void Engine::Update()
 
     g_Physics->Update();
 
-    const bool isGrave = g_Input->IsKeyPressed(SDL_SCANCODE_GRAVE);
-    const bool isF3 = g_Input->IsKeyPressed(SDL_SCANCODE_F3);
-    const bool isF11 = g_Input->IsKeyPressed(SDL_SCANCODE_F11);
+    const bool isGrave = g_Input->IsKeyPressed( SDL_SCANCODE_GRAVE );
+    const bool isF3 = g_Input->IsKeyPressed( SDL_SCANCODE_F3 );
+    const bool isF11 = g_Input->IsKeyPressed( SDL_SCANCODE_F11 );
 
     const auto gui = dynamic_cast<Gui*>(g_Gui);
     if ( isGrave )
         gui->m_DebugMenu->m_IsVisible = !gui->m_DebugMenu->m_IsVisible;
     if ( isF3 )
-        g_Input->SetRelativeMouseMode(!g_Input->GetRelativeMouseMode());
+        g_Input->SetRelativeMouseMode( !g_Input->GetRelativeMouseMode() );
     else if ( isF11 )
         GetWindow()->ToggleFullscreen();
 
@@ -231,8 +231,8 @@ void Engine::DrawPlayer()
 void Engine::OnWindowResize()
 {
     int width, height;
-    GetWindow()->GetSize(&width, &height);
+    GetWindow()->GetSize( &width, &height );
 
     if ( g_RenderPipeline )
-        g_RenderPipeline->OnWindowResize(width, height);
+        g_RenderPipeline->OnWindowResize( width, height );
 }

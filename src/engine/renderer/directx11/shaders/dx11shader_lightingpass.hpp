@@ -265,12 +265,4 @@ public:
     }
 };
 
-REGISTER_SHADER(
-
-
-
-
-    "lightingpassVS"
-    ,
-    LightingPassVS
-);
+REGISTER_SHADER("lightingpassVS", LightingPassVS);
