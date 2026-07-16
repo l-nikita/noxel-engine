@@ -37,7 +37,7 @@ Player* g_Player = nullptr;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-bool Engine::Init()
+void Engine::Init()
 {
     CMD_INFO( "Hello! I am engine!", CMD::ENGINE );
 
@@ -48,12 +48,9 @@ bool Engine::Init()
 #endif
 
     if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_EVENTS ) )
-    {
-        CMD_ERROR( "SDL_Init Error: " + std::string(SDL_GetError()), CMD::ENGINE );
-        return false;
-    }
+        FATAL_ERROR( "SDL_Init Error: " + std::string(SDL_GetError()), CMD::ENGINE );
 
-    InitWindow();
+    SetupWindow();
 
 #ifdef WIN32
     m_graphicsAPI = GraphicsAPI::DIRECTX11;
@@ -67,16 +64,22 @@ bool Engine::Init()
     g_Input = new Input();
     g_Input->Init();
 
-    if ( g_Engine->GetGraphicsAPI() == GraphicsAPI::VULKAN )
+    switch ( g_Engine->GetGraphicsAPI() )
     {
-        assert( false );
-    }
+        case GraphicsAPI::OPENGL:
+            FATAL_ERROR( "OpenGL is NOT supported!", CMD::ENGINE );
+        case GraphicsAPI::DIRECTX11:
 #ifdef DX11
-    else if ( g_Engine->GetGraphicsAPI() == GraphicsAPI::DIRECTX11 )
-    {
-        g_Renderer = new DX11Renderer();
-    }
+            g_Renderer = new DX11Renderer();
+#else
+            FATAL_ERROR( "DirectX 11 is NOT supported on your platform!", CMD::ENGINE );
 #endif
+            break;
+        case GraphicsAPI::VULKAN:
+            assert( false );
+        default:
+            FATAL_ERROR( "No graphics API!", CMD::ENGINE );
+    }
 
     if ( g_Renderer )
     {
@@ -100,13 +103,12 @@ bool Engine::Init()
         g_Player = new Player( g_Renderer->GetCamera() );
 
     CMD_INFO( "Engine initialized successfully.", CMD::ENGINE );
-    return true;
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Engine::InitWindow()
+void Engine::SetupWindow()
 {
     m_window = new Window( ENGINE_NAME, 1920, 1080 );
 }

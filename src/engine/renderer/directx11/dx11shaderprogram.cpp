@@ -8,35 +8,36 @@
 #include "assetsystem/shaderasset.hpp"
 
 DX11ShaderProgram::DX11ShaderProgram( ID3D11Device* device, ID3D11DeviceContext* context, ShaderAsset* asset )
-    : m_device(device), m_context(context), m_vs(nullptr), m_ps(nullptr), m_vsBlob(nullptr), m_psBlob(nullptr)
+    : m_device( device ), m_context( context ), m_vs( nullptr ), m_ps( nullptr ), m_vsBlob( nullptr ),
+      m_psBlob( nullptr )
 {
-    if ( !ShaderRegistry::IsShaderExist(asset->GetName()) )
-        FATAL_ERROR("Shader [" + asset->GetName() + "] not found in registry.", CMD::RENDERING);
+    if ( !ShaderRegistry::IsShaderExist( asset->GetName() ) )
+        FATAL_ERROR( "Shader [" + asset->GetName() + "] not found in registry.", CMD::RENDERING );
 
-    Compile(asset, VERTEX);
-    Compile(asset, PIXEL);
+    Compile( asset, VERTEX );
+    Compile( asset, PIXEL );
 
     HRESULT hr = m_device->CreateVertexShader(
         m_vsBlob->GetBufferPointer(), m_vsBlob->GetBufferSize(),
-        nullptr, &m_vs);
+        nullptr, &m_vs );
 
-    if ( FAILED(hr) )
-        FATAL_ERROR("DX11: Failed to create vertex dx11 shader", CMD::RENDERING);
+    if ( FAILED( hr ) )
+        FATAL_ERROR( "DX11: Failed to create vertex dx11 shader", CMD::RENDERING );
 
     hr = m_device->CreatePixelShader(
         m_psBlob->GetBufferPointer(), m_psBlob->GetBufferSize(),
-        nullptr, &m_ps);
+        nullptr, &m_ps );
 
-    if ( FAILED(hr) )
-        FATAL_ERROR("DX11: Failed to create pixel dx11 shader", CMD::RENDERING);
+    if ( FAILED( hr ) )
+        FATAL_ERROR( "DX11: Failed to create pixel dx11 shader", CMD::RENDERING );
 
-    m_vShader = ShaderRegistry::Create(asset->GetName() + "VS", this);
+    m_vShader = ShaderRegistry::Create( asset->GetName() + "VS", this );
     if ( !m_vShader )
-        FATAL_ERROR("DX11: Failed to create pixel shader", CMD::RENDERING);
+        FATAL_ERROR( "DX11: Failed to create pixel shader", CMD::RENDERING );
 
-    m_pShader = ShaderRegistry::Create(asset->GetName() + "PS", this);
+    m_pShader = ShaderRegistry::Create( asset->GetName() + "PS", this );
     if ( !m_pShader )
-        FATAL_ERROR("DX11: Failed to create pixel shader", CMD::RENDERING);
+        FATAL_ERROR( "DX11: Failed to create pixel shader", CMD::RENDERING );
 }
 
 void DX11ShaderProgram::Compile( ShaderAsset* asset, ShaderType type )
@@ -82,22 +83,23 @@ void DX11ShaderProgram::Compile( ShaderAsset* asset, ShaderType type )
             &errorBlob
         );
     } else
-        FATAL_ERROR("DX11: Unknown shader type!", CMD::RENDERING);
+        FATAL_ERROR( "DX11: Unknown shader type!", CMD::RENDERING );
 
-    if ( FAILED(hr) )
+    if ( FAILED( hr ) )
     {
         if ( errorBlob )
         {
-            OutputDebugStringA((char*) errorBlob->GetBufferPointer());
-            CMD_ERROR("DX11: Shader compilation error: " + std::string((char*) errorBlob->GetBufferPointer()),
-                      CMD::RENDERING);
+            OutputDebugStringA( static_cast<char*>(errorBlob->GetBufferPointer()) );
+            CMD_ERROR(
+                "DX11: Shader compilation error: " + std::string(static_cast<char*>(errorBlob->GetBufferPointer())),
+                CMD::RENDERING );
             errorBlob->Release();
         }
 
         if ( type == VERTEX )
-            FATAL_ERROR("DX11: Failed to compile vertex shader! [" + asset->GetName() + "]", CMD::RENDERING)
+            FATAL_ERROR( "DX11: Failed to compile vertex shader! [" + asset->GetName() + "]", CMD::RENDERING );
         else if ( type == PIXEL )
-            FATAL_ERROR("DX11: Failed to compile pixel shader! [" + asset->GetName() + "]", CMD::RENDERING)
+            FATAL_ERROR( "DX11: Failed to compile pixel shader! [" + asset->GetName() + "]", CMD::RENDERING );
     }
 }
 
@@ -105,16 +107,16 @@ void DX11ShaderProgram::Bind()
 {
     if ( m_vShader ) m_vShader->Bind();
     if ( m_pShader ) m_pShader->Bind();
-    m_context->VSSetShader(m_vs, nullptr, 0);
-    m_context->PSSetShader(m_ps, nullptr, 0);
+    m_context->VSSetShader( m_vs, nullptr, 0 );
+    m_context->PSSetShader( m_ps, nullptr, 0 );
 }
 
 void DX11ShaderProgram::Unbind()
 {
     if ( m_vShader ) m_vShader->Unbind();
     if ( m_pShader ) m_pShader->Unbind();
-    m_context->VSSetShader(nullptr, nullptr, 0);
-    m_context->PSSetShader(nullptr, nullptr, 0);
+    m_context->VSSetShader( nullptr, nullptr, 0 );
+    m_context->PSSetShader( nullptr, nullptr, 0 );
 }
 
 void DX11ShaderProgram::Release()
@@ -145,12 +147,12 @@ void DX11ShaderProgram::Release()
 
 ID3DBlob* DX11ShaderProgram::GetVSBlob() const
 {
-    assert(m_vsBlob);
+    assert( m_vsBlob );
     return m_vsBlob;
 }
 
 ID3DBlob* DX11ShaderProgram::GetPSBlob() const
 {
-    assert(m_psBlob);
+    assert( m_psBlob );
     return m_psBlob;
 }

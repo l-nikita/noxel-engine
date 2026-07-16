@@ -1,5 +1,6 @@
 #include "model.hpp"
 #include "irenderer.hpp"
+#include "irenderfactory.hpp"
 #include "ishaderprogram.hpp"
 #include "dbg/debug.hpp"
 
@@ -9,7 +10,7 @@
 Model::Model( const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials )
 {
     m_meshes = meshes;
-    m_materials.reserve(meshes.size());
+    m_materials.reserve( meshes.size() );
 
     for ( size_t i = 0; i < m_meshes.size(); ++i )
     {
@@ -17,18 +18,18 @@ Model::Model( const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& 
                        ? materials[ i ]
                        : g_ErrorMaterial;
 
-        m_materials.push_back(mat);
+        m_materials.push_back( mat );
     }
 }
 
 Model::Model( IMesh* mesh, IMaterial* material )
 {
-    m_meshes.push_back(mesh);
+    m_meshes.push_back( mesh );
 
     if ( !material )
         material = g_ErrorMaterial;
 
-    m_materials.push_back(material);
+    m_materials.push_back( material );
 }
 
 //-----------------------------------------------------------------------------
@@ -36,12 +37,14 @@ Model::Model( IMesh* mesh, IMaterial* material )
 //-----------------------------------------------------------------------------
 void Model::SetMaterial( IMaterial* material, size_t index )
 {
-    assert(material);
-    assert(index < m_materials.size());
+    assert( material );
+    assert( index < m_materials.size() );
 
     if ( m_materials[ index ] )
     {
-        delete m_materials[ index ];
+        const auto factory = g_Renderer->GetFactory();
+        factory->Release( m_materials[ index ] );
+
         m_materials[ index ] = nullptr;
     }
 
@@ -59,7 +62,7 @@ IMaterial* Model::GetMaterial( size_t index ) const
     return ( index < m_materials.size() ) ? m_materials[ index ] : nullptr;
 }
 
-std::vector<IMaterial*> Model::GetMaterials() const
+std::vector<IMaterial*>& Model::GetMaterials()
 {
     return m_materials;
 }
@@ -77,7 +80,7 @@ IMesh* Model::GetMesh( size_t index ) const
     return ( index < m_meshes.size() ) ? m_meshes[ index ] : nullptr;
 }
 
-std::vector<IMesh*> Model::GetMeshes() const
+std::vector<IMesh*>& Model::GetMeshes()
 {
     return m_meshes;
 }
@@ -89,16 +92,16 @@ void Model::Draw() const
 {
     for ( size_t i = 0; i < m_meshes.size(); ++i )
     {
-        const auto mat = GetMaterial(i);
+        const auto mat = GetMaterial( i );
         if ( !mat )
         {
-            CMD_ERROR("Material is invalid!", CMD::RENDERING);
+            CMD_ERROR( "Material is invalid!", CMD::RENDERING );
             continue;
         }
 
-        mat->GetShader()->SetVSVar("model", m_Transform.GetTransformMatrix());
+        mat->GetShader()->SetVSVar( "model", m_Transform.GetTransformMatrix() );
         mat->Bind();
-        g_Renderer->SetPrimitiveTopology(TRIANGLES);
+        g_Renderer->SetPrimitiveTopology( TRIANGLES );
         m_meshes[ i ]->Draw();
         mat->Unbind();
     }

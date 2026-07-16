@@ -10,8 +10,8 @@ class Window;
 class ENGINE_API Engine : public IEngine
 {
 public:
-    bool Init() override;
-    void InitWindow();
+    void Init() override;
+    void SetupWindow();
 
     void Run() override;
     void Stop() override;

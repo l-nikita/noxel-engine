@@ -12,36 +12,36 @@ namespace CMD
 {
     void CMD::Setup()
     {
-        RegisterCommand("help", "", [this]()
+        RegisterCommand( "help", "", [this]()
         {
             LogHelp();
-        });
+        } );
 
-        RegisterCommand("clear", "Clear console logs.", [this]()
+        RegisterCommand( "clear", "Clear console logs.", [this]()
         {
             ClearLogs();
-        });
+        } );
 
-        RegisterVar("test_var", "test", false);
-        RegisterVar("test_var_str", "test", "Sex");
-        RegisterVar("test_var_int", "test", 100);
-        RegisterVar("test_var_fl", "test", 3.0f);
+        RegisterVar( "test_var", "test", false );
+        RegisterVar( "test_var_str", "test", "Sex" );
+        RegisterVar( "test_var_int", "test", 100 );
+        RegisterVar( "test_var_fl", "test", 3.0f );
     }
 
     void CMD::RegisterCommand( const std::string& name, const std::string& desc, const std::function<void()>& func )
     {
-        if ( IsCommandExist(name) )
+        if ( IsCommandExist( name ) )
         {
-            LogMsg("Couldn't register command [" + name + "] because it already exists.", WARNING, CONSOLE);
+            LogMsg( "Couldn't register command [" + name + "] because it already exists.", WARNING, CONSOLE );
             return;
         }
 
-        m_commands.emplace(name, Command(name, desc, func));
+        m_commands.emplace( name, Command( name, desc, func ) );
     }
 
     bool CMD::IsCommandExist( const std::string& name )
     {
-        auto iterator = m_commands.find(name);
+        auto iterator = m_commands.find( name );
         if ( iterator != m_commands.end() )
             return true;
 
@@ -50,22 +50,22 @@ namespace CMD
 
     void CMD::Execute( const std::string& name )
     {
-        auto tokens = Tokenize(name);
+        auto tokens = Tokenize( name );
         if ( tokens.empty() )
             return;
 
         const std::string& cmd = tokens[ 0 ];
 
-        bool isCommand = IsCommandExist(cmd);
-        bool isConVar = IsVarExist(cmd);
+        bool isCommand = IsCommandExist( cmd );
+        bool isConVar = IsVarExist( cmd );
 
         if ( !isCommand && !isConVar )
         {
-            LogMsg("Unknown command: " + cmd, DEFAULT, CONSOLE);
+            LogMsg( "Unknown command: " + cmd, DEFAULT, CONSOLE );
             return;
         }
 
-        LogMsg("] " + name, DEFAULT, CONSOLE);
+        LogMsg( "] " + name, DEFAULT, CONSOLE );
 
         if ( isCommand )
         {
@@ -75,12 +75,12 @@ namespace CMD
             if ( tokens.size() == 1 )
             {
                 auto& var = m_vars[ cmd ];
-                LogMsg(cmd + " = " + var.ValueToString(), DEFAULT, CONSOLE);
+                LogMsg( cmd + " = " + var.ValueToString(), DEFAULT, CONSOLE );
             } else
             {
                 std::string valueStr = tokens[ 1 ];
-                auto value = ConvertStringToVarValue(valueStr);
-                SetVar(cmd, value);
+                auto value = ConvertStringToVarValue( valueStr );
+                SetVar( cmd, value );
             }
         }
     }
@@ -88,19 +88,19 @@ namespace CMD
     void CMD::RegisterVar( const std::string& name, const std::string& desc, const VarValue& defValue,
                            const VarCallback& callback )
     {
-        if ( IsVarExist(name) )
+        if ( IsVarExist( name ) )
         {
-            LogMsg("Couldn't register console var [" + name + "] because it already exists.", WARNING, CONSOLE);
+            LogMsg( "Couldn't register console var [" + name + "] because it already exists.", WARNING, CONSOLE );
             return;
         }
 
-        m_vars.emplace(name, Var(name, desc, defValue, callback));
+        m_vars.emplace( name, Var( name, desc, defValue, callback ) );
     }
 
     bool CMD::IsVarExist( const std::string& name )
     {
-        auto iterator = m_vars.find(name);
-        if ( iterator != m_vars.end() )
+        auto it = m_vars.find( name );
+        if ( it != m_vars.end() )
             return true;
 
         return false;
@@ -108,29 +108,44 @@ namespace CMD
 
     void CMD::SetVar( const std::string& name, const VarValue& value )
     {
-        if ( !IsVarExist(name) ) return;
+        if ( !IsVarExist( name ) ) return;
 
         auto& var = m_vars[ name ];
 
         if ( var.Value.index() != value.index() )
         {
-            LogMsg("Type mismatch for variable [" + name + "]", WARNING, CONSOLE);
+            LogMsg( "Type mismatch for variable [" + name + "]", WARNING, CONSOLE );
             return;
         }
 
         if ( var.Callback )
-            var.Callback(var.Value, value);
+            var.Callback( var.Value, value );
 
         var.Value = value;
     }
 
     std::optional<VarValue> CMD::GetVarValue( const std::string& name ) const
     {
-        auto it = m_vars.find(name);
+        auto it = m_vars.find( name );
         if ( it != m_vars.end() )
             return it->second.Value;
 
         return std::nullopt;
+    }
+
+    Commands& CMD::GetCommands()
+    {
+        return m_commands;
+    }
+
+    Vars& CMD::GetVars()
+    {
+        return m_vars;
+    }
+
+    Logs& CMD::GetLogs()
+    {
+        return m_logs;
     }
 
     std::vector<std::string> CMD::Tokenize( const std::string& input )
@@ -153,7 +168,7 @@ namespace CMD
             {
                 if ( !current.empty() )
                 {
-                    tokens.push_back(current);
+                    tokens.push_back( current );
                     current.clear();
                 }
             } else
@@ -161,7 +176,7 @@ namespace CMD
         }
 
         if ( !current.empty() )
-            tokens.push_back(current);
+            tokens.push_back( current );
 
         return tokens;
     }
@@ -169,11 +184,11 @@ namespace CMD
     VarValue CMD::ConvertStringToVarValue( const std::string& input )
     {
         std::string trimmed = input;
-        trimmed.erase(0, trimmed.find_first_not_of(" \t\n\r"));
-        trimmed.erase(trimmed.find_last_not_of(" \t\n\r") + 1);
+        trimmed.erase( 0, trimmed.find_first_not_of( " \t\n\r" ) );
+        trimmed.erase( trimmed.find_last_not_of( " \t\n\r" ) + 1 );
 
         std::string lower = trimmed;
-        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        std::transform( lower.begin(), lower.end(), lower.begin(), ::tolower );
 
         // Bool check
         if ( lower == "true" )
@@ -184,7 +199,7 @@ namespace CMD
 
         // Try int
         int intVal;
-        auto [ p1, ec1 ] = std::from_chars(trimmed.data(), trimmed.data() + trimmed.size(), intVal);
+        auto [ p1, ec1 ] = std::from_chars( trimmed.data(), trimmed.data() + trimmed.size(), intVal );
         if ( ec1 == std::errc() && p1 == trimmed.data() + trimmed.size() )
             return intVal;
 
@@ -192,7 +207,7 @@ namespace CMD
         try
         {
             size_t idx;
-            float floatVal = std::stof(trimmed, &idx);
+            float floatVal = std::stof( trimmed, &idx );
             if ( idx == trimmed.size() )
                 return floatVal;
         } catch ( ... )
@@ -202,19 +217,22 @@ namespace CMD
         return trimmed;
     }
 
-    void CMD::LogMsg( const std::string& msg, LogType type, LogCategory category )
+    void CMD::LogMsg( const std::string& msg, LogType type, LogCategory category,
+                      TimePoint time )
     {
-        const auto now = std::chrono::system_clock::now();
+        auto timeT = std::chrono::system_clock::to_time_t( time );
+        m_logs.emplace_back( Log{msg, timeT, type, category} );
 
-        auto timeT = std::chrono::system_clock::to_time_t(now);
-        m_logs.emplace_back(std::make_unique<Log>(msg, timeT, type, category));
+        auto localTime = std::chrono::current_zone()->to_local( time );
 
-        auto localTime = std::chrono::current_zone()->to_local(now);
+        auto typeStr = LogTypeToString( type );
+        auto categoryStr = ( category != NONE ) ? LogCategoryToString( category ) : "";
 
-        auto typeStr = LogTypeToString(type);
-        auto categoryStr = ( category != NONE ) ? LogCategoryToString(category) : "";
-
-        std::cout << std::format("[ {:8} | {:12} | {:%T} ] {}\n", typeStr, categoryStr, localTime, msg);
+        auto formatedMsg = std::format( "[ {:8} | {:12} | {:%F %T} ] {}", typeStr, categoryStr, localTime, msg );
+        if ( type == FATAL_ERROR )
+            std::cerr << formatedMsg << std::endl;
+        else
+            std::cout << formatedMsg << std::endl;
     }
 
     void CMD::ClearLogs()
@@ -224,45 +242,45 @@ namespace CMD
 
     void CMD::LogHelp()
     {
-        LogMsg("//-------- COMMANDS --------", DEFAULT, CONSOLE);
+        LogMsg( "//-------- COMMANDS --------", DEFAULT, CONSOLE );
         for ( auto it = m_commands.begin(); it != m_commands.end(); ++it )
         {
             if ( it->first != "help" )
             {
                 auto& desc = it->second.Desc;
                 if ( desc.empty() )
-                    LogMsg(it->first, DEFAULT, CONSOLE);
+                    LogMsg( it->first, DEFAULT, CONSOLE );
                 else
-                    LogMsg(it->first + " - " + it->second.Desc, DEFAULT, CONSOLE);
+                    LogMsg( it->first + " - " + it->second.Desc, DEFAULT, CONSOLE );
             }
         }
 
-        LogMsg("//-------- VARS --------", DEFAULT, CONSOLE);
+        LogMsg( "//-------- VARS --------", DEFAULT, CONSOLE );
         for ( auto it = m_vars.begin(); it != m_vars.end(); ++it )
         {
             auto& desc = it->second.Desc;
             if ( desc.empty() )
-                LogMsg(it->first + " = " + it->second.ValueToString(), DEFAULT, CONSOLE);
+                LogMsg( it->first + " = " + it->second.ValueToString(), DEFAULT, CONSOLE );
             else
                 LogMsg(
                     it->first + " = " + it->second.ValueToString() + " [ default: " + it->second.DefValueToString() +
-                    " ] - " + it->second.Desc, DEFAULT, CONSOLE);
+                    " ] - " + it->second.Desc, DEFAULT, CONSOLE );
         }
     }
 
     void RegisterCommand( const std::string& name, const std::string& desc, const std::function<void()>& func )
     {
-        CMD::GetInstance().RegisterCommand(name, desc, func);
+        CMD::GetInstance().RegisterCommand( name, desc, func );
     }
 
     void RegisterVar( const std::string& name, const std::string& desc, const VarValue& defValue,
                       const VarCallback& callback )
     {
-        CMD::GetInstance().RegisterVar(name, desc, defValue, callback);
+        CMD::GetInstance().RegisterVar( name, desc, defValue, callback );
     }
 
     void Execute( const std::string& name )
     {
-        CMD::GetInstance().Execute(name);
+        CMD::GetInstance().Execute( name );
     }
 }

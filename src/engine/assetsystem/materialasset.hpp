@@ -20,10 +20,10 @@ struct MaterialData
 
 inline void from_json( const nlohmann::json& json, MaterialData& data )
 {
-    data.Shader = json.value("shader", "geometrypass");
-    data.IsCubemap = json.value("iscubemap", false);
+    data.Shader = json.value( "shader", "geometrypass" );
+    data.IsCubemap = json.value( "iscubemap", false );
 
-    if ( json.contains("parameters") )
+    if ( json.contains( "parameters" ) )
         data.Parameters = json[ "parameters" ];
 }
 
@@ -53,11 +53,11 @@ public:
         m_name = name;
         m_assetPath = assetPath;
 
-        std::ifstream inFile(m_assetPath);
+        std::ifstream inFile( m_assetPath );
 
         if ( !inFile.is_open() )
         {
-            CMD_ERROR("Couldn't open file [" + m_assetPath.string() + "].", CMD::ASSETSYSTEM);
+            CMD_ERROR( "Couldn't open file [" + m_assetPath.string() + "].", CMD::ASSETSYSTEM );
             return;
         }
 
@@ -69,7 +69,7 @@ public:
             m_data = json.get<MaterialData>();
         } catch ( const nlohmann::json::exception& e )
         {
-            CMD_ERROR("JSON parse error: " + std::string(e.what()), CMD::ASSETSYSTEM);
+            CMD_ERROR( "JSON parse error: " + std::string(e.what()), CMD::ASSETSYSTEM );
             return;
         }
 
@@ -84,12 +84,12 @@ public:
 
                 TextureAsset* texAsset = nullptr;
 
-                if ( std::filesystem::exists(fullPath) )
+                if ( std::filesystem::exists( fullPath ) )
                 {
-                    texAsset = TextureAsset::CreateOrGet(fullPath.stem().string(), fullPath.string());
+                    texAsset = TextureAsset::CreateOrGet( fullPath.stem().string(), fullPath.string() );
                 } else
                 {
-                    CMD_ERROR("Texture not found: " + fullPath.string(), CMD::ASSETSYSTEM)
+                    CMD_ERROR( "Texture not found: " + fullPath.string(), CMD::ASSETSYSTEM );
                     texAsset = TextureAsset::GetError();
                 }
 
@@ -97,16 +97,16 @@ public:
             }
         }
 
-        auto shaderAsset = ShaderAsset::Get(m_data.Shader); // TODO: Make fallback shader in code
+        auto shaderAsset = ShaderAsset::Get( m_data.Shader ); // TODO: Make fallback shader in code
         if ( shaderAsset == nullptr )
-            FATAL_ERROR("Shader [" + m_data.Shader + "] not found!", CMD::ASSETSYSTEM)
+            FATAL_ERROR( "Shader [" + m_data.Shader + "] not found!", CMD::ASSETSYSTEM );
 
         m_shaderAsset = shaderAsset;
     }
 
     ShaderAsset* GetShaderAsset() const
     {
-        assert(m_shaderAsset); // Shader required always
+        assert( m_shaderAsset ); // Shader required always
         return m_shaderAsset;
     }
 
@@ -133,19 +133,19 @@ public:
 #pragma region CreateNew/Get
     static MaterialAsset* CreateNew( const std::string& name, const std::string& assetPath )
     {
-        const auto asset = new MaterialAsset(name, assetPath);
-        g_Assets->RegisterAsset(asset);
+        const auto asset = new MaterialAsset( name, assetPath );
+        g_Assets->RegisterAsset( asset );
         return asset;
     }
 
     static MaterialAsset* Get( const std::string& name )
     {
-        auto& assets = g_Assets->GetAssets(Type);
-        const auto it = assets.find(name);
+        auto& assets = g_Assets->GetAssets( Type );
+        const auto it = assets.find( name );
 
         if ( it == assets.end() )
         {
-            CMD_ERROR("Couldn't find material [" + name + "].", CMD::ASSETSYSTEM);
+            CMD_ERROR( "Couldn't find material [" + name + "].", CMD::ASSETSYSTEM );
             return GetError();
         }
 
@@ -158,7 +158,7 @@ public:
 
     static MaterialAsset* GetError()
     {
-        assert(m_error != nullptr);
+        assert( m_error != nullptr );
         return m_error;
     }
 };

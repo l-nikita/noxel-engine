@@ -5,7 +5,7 @@
 
 void ConsolePanel::Draw()
 {
-    if ( ImGui::Begin("Console", NULL, ( ImGuiWindowFlags_MenuBar )) )
+    if ( ImGui::Begin( "Console", NULL, ( ImGuiWindowFlags_MenuBar ) ) )
     {
         DrawMenuBar();
         DrawLogWindow();
@@ -20,10 +20,10 @@ void ConsolePanel::DrawMenuBar()
 {
     if ( ImGui::BeginMenuBar() )
     {
-        if ( ImGui::BeginMenu("Settings") )
+        if ( ImGui::BeginMenu( "Settings" ) )
         {
-            ImGui::Checkbox("Time stamps", &m_timeStamp);
-            ImGui::Checkbox("Auto scroll", &m_autoScroll);
+            ImGui::Checkbox( "Time stamps", &m_timeStamp );
+            ImGui::Checkbox( "Auto scroll", &m_autoScroll );
             ImGui::EndMenu();
         }
 
@@ -34,53 +34,52 @@ void ConsolePanel::DrawMenuBar()
 void ConsolePanel::DrawLogWindow()
 {
     const float footerHeightToReserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
-    if ( ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footerHeightToReserve)) )
+    if ( ImGui::BeginChild( "ScrollingRegion", ImVec2( 0, -footerHeightToReserve ) ) )
     {
-        const float timestampWidth = ImGui::CalcTextSize("00:00:00").x;
+        const float timestampWidth = ImGui::CalcTextSize( "00:00:00" ).x;
 
         ImGui::PushTextWrapPos();
 
         auto& logs = CMD::CMD::GetInstance().GetLogs();
-        for ( auto it = logs.begin(); it != logs.end(); ++it )
+        for ( auto log = logs.begin(); log != logs.end(); ++log )
         {
-            auto* log = it->get();
-            ImGui::PushTextWrapPos(ImGui::GetColumnWidth() - timestampWidth);
+            ImGui::PushTextWrapPos( ImGui::GetColumnWidth() - timestampWidth );
 
             ImVec4 color;
             switch ( log->Type )
             {
-                case CMD::LogType::INFO: color = ImVec4(0.4f, 1.0f, 1.0f, 1.0f);
+                case CMD::LogType::INFO: color = ImVec4( 0.4f, 1.0f, 1.0f, 1.0f );
                     break;
-                case CMD::LogType::WARNING: color = ImVec4(0.9f, 0.7f, 0.0f, 1.0f);
+                case CMD::LogType::WARNING: color = ImVec4( 0.9f, 0.7f, 0.0f, 1.0f );
                     break;
-                case CMD::LogType::ERROR: color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+                case CMD::LogType::ERROR: color = ImVec4( 1.0f, 0.0f, 0.0f, 1.0f );
                     break;
-                default: color = ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
+                default: color = ImVec4( 0.8f, 0.8f, 0.8f, 1.0f );
                     break;
             }
 
-            ImGui::PushStyleColor(ImGuiCol_Text, color);
+            ImGui::PushStyleColor( ImGuiCol_Text, color );
 
             std::string formated;
             if ( log->Category != CMD::CONSOLE )
-                formated = std::format("[{:12}] {}\n", CMD::LogCategoryToString(log->Category), log->Text);
+                formated = std::format( "[{:12}] {}\n", CMD::LogCategoryToString( log->Category ), log->Text );
             else
                 formated = log->Text;
 
-            ImGui::Text(formated.c_str());
+            ImGui::Text( "%s", formated.c_str() );
             ImGui::PopStyleColor();
 
             if ( m_timeStamp )
             {
                 ImGui::PopTextWrapPos();
-                ImGui::SameLine(ImGui::GetColumnWidth() - timestampWidth);
+                ImGui::SameLine( ImGui::GetColumnWidth() - timestampWidth );
 
-                const auto timeInfo = std::localtime(&log->Time);
+                const auto timeInfo = std::localtime( &log->Time );
                 char timeBuffer[ 32 ];
-                std::strftime(timeBuffer, sizeof( timeBuffer ), "%H:%M:%S", timeInfo);
+                std::strftime( timeBuffer, sizeof( timeBuffer ), "%H:%M:%S", timeInfo );
 
-                ImGui::PushStyleColor(ImGuiCol_Text, color);
-                ImGui::Text(timeBuffer);
+                ImGui::PushStyleColor( ImGuiCol_Text, color );
+                ImGui::Text( timeBuffer );
                 ImGui::PopStyleColor();
             }
         }
@@ -89,7 +88,7 @@ void ConsolePanel::DrawLogWindow()
 
         if ( m_scrollToBottom )
         {
-            ImGui::SetScrollHereY(1.0f);
+            ImGui::SetScrollHereY( 1.0f );
             m_scrollToBottom = false;
         }
     }
@@ -99,26 +98,26 @@ void ConsolePanel::DrawLogWindow()
 
 void ConsolePanel::DrawInput()
 {
-    if ( ImGui::Button("Clear") )
-        CMD::CMD::GetInstance().Execute("clear");
+    if ( ImGui::Button( "Clear" ) )
+        CMD::CMD::GetInstance().Execute( "clear" );
 
     ImGui::SameLine();
 
     bool reclaimFocus = false;
 
-    ImGui::PushItemWidth(-ImGui::GetStyle().ItemSpacing.x * 1);
+    ImGui::PushItemWidth( -ImGui::GetStyle().ItemSpacing.x * 1 );
 
-    if ( ImGui::InputText("##", m_input, INPUT_SIZE, ImGuiInputTextFlags_EnterReturnsTrue) )
+    if ( ImGui::InputText( "##", m_input, INPUT_SIZE, ImGuiInputTextFlags_EnterReturnsTrue ) )
     {
         reclaimFocus = true;
-        ExecuteCommand(m_input);
+        ExecuteCommand( m_input );
     }
 
     ImGui::PopItemWidth();
 
     ImGui::SetItemDefaultFocus();
     if ( reclaimFocus )
-        ImGui::SetKeyboardFocusHere(-1);
+        ImGui::SetKeyboardFocusHere( -1 );
 }
 
 void ConsolePanel::ExecuteCommand( char* input )
@@ -131,7 +130,7 @@ void ConsolePanel::ExecuteCommand( char* input )
     if ( m_autoScroll )
         m_scrollToBottom = true;
 
-    CMD::Execute(str);
+    CMD::Execute( str );
 
-    memset(input, 0, INPUT_SIZE);
+    memset( input, 0, INPUT_SIZE );
 }

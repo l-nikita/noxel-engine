@@ -4,7 +4,7 @@
 #ifdef _WIN32
 #include <windows.h>
 
-    BOOL WINAPI ConsoleHandler( DWORD signal )
+BOOL WINAPI ConsoleHandler( DWORD signal )
 {
     if ( signal == CTRL_C_EVENT || signal == CTRL_CLOSE_EVENT )
         return TRUE;
@@ -18,21 +18,23 @@
 int main()
 {
 #ifdef _WIN32
-    if ( !SetConsoleCtrlHandler(ConsoleHandler, TRUE) )
+    if ( !SetConsoleCtrlHandler( ConsoleHandler, TRUE ) )
     {
         std::cerr << "Error: Couldn't set control handler for console!" << std::endl;
         return 1;
     }
 #endif
 
-    g_Engine = new Engine();
-
-    if ( g_Engine->Init() )
+    try
+    {
+        g_Engine = new Engine();
+        g_Engine->Init();
         g_Engine->Run();
-    else
-        std::cerr << "Error: Couldn't init engine!!!" << std::endl;
+    } catch ( ... )
+    {
+        return EXIT_FAILURE;
+    }
 
     delete g_Engine;
-
-    return 0;
+    g_Engine = nullptr;
 }

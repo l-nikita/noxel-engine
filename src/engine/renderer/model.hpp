@@ -18,11 +18,11 @@ public:
 
     IMaterial* GetMaterial() const;
     IMaterial* GetMaterial( size_t index ) const;
-    std::vector<IMaterial*> GetMaterials() const;
+    std::vector<IMaterial*>& GetMaterials();
 
     IMesh* GetMesh() const;
     IMesh* GetMesh( size_t index ) const;
-    std::vector<IMesh*> GetMeshes() const;
+    std::vector<IMesh*>& GetMeshes();
 
     void Draw() const;
 
