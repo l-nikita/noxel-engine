@@ -30,6 +30,7 @@ class IRenderer : public ISystem
 {
 public:
     virtual void Swap() = 0;
+    virtual void WaitForFrame() = 0;
     virtual void OnWindowResize( int width, int height ) = 0;
 
     virtual IRenderTexture* GetBackBufferRT() = 0;

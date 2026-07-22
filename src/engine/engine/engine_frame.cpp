@@ -22,6 +22,9 @@ void Engine::Run()
 
     while ( m_isRunning )
     {
+        if ( g_Renderer && !GetWindow()->IsMinimized() )
+            g_Renderer->WaitForFrame();
+
         auto currentTime = high_resolution_clock::now();
         m_deltaTime = duration<float>( currentTime - lastTime );
         lastTime = currentTime;

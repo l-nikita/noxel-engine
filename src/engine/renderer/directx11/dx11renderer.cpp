@@ -28,7 +28,12 @@
 #define INITGUID
 #include <d3d11.h>
 #include <dxgidebug.h>
-#include <dxgi1_3.h>
+#include <dxgi1_5.h>
+
+namespace
+{
+    constexpr UINT cSwapChainBufferCount = 3;
+}
 
 //-----------------------------------------------------------------------------
 //
@@ -107,8 +112,10 @@ void DX11Renderer::OnWindowResize( int width, int height )
         m_backBuffer = nullptr;
     }
 
-    HRESULT hr = m_swapChain->ResizeBuffers( 2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM,
-                                             DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING );
+    const UINT flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT |
+                       ( m_tearingSupported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0 );
+    HRESULT hr = m_swapChain->ResizeBuffers( cSwapChainBufferCount, width, height,
+                                             DXGI_FORMAT_R8G8B8A8_UNORM, flags );
     if ( FAILED( hr ) )
         FATAL_ERROR( "DX11: Failed to resize swap chain buffers.", CMD::RENDERING );
 
@@ -182,23 +189,71 @@ void DX11Renderer::CreateSwapChain()
     scDesc.Stereo = FALSE;
     scDesc.SampleDesc.Count = 1;
     scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    scDesc.BufferCount = 3;
+    scDesc.BufferCount = cSwapChainBufferCount;
     scDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
     scDesc.Scaling = DXGI_SCALING_STRETCH;
 
-    HRESULT hr = dxgiFactory->CreateSwapChainForHwnd( m_device, hwnd, &scDesc, nullptr, nullptr, &m_swapChain );
+    IDXGIFactory5* dxgiFactory5 = nullptr;
+    if ( SUCCEEDED( dxgiFactory->QueryInterface( IID_PPV_ARGS( &dxgiFactory5 ) ) ) )
+    {
+        BOOL allowTearing = FALSE;
+        if ( SUCCEEDED( dxgiFactory5->CheckFeatureSupport( DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+            &allowTearing, sizeof( allowTearing ) ) ) )
+            m_tearingSupported = allowTearing == TRUE;
+
+        dxgiFactory5->Release();
+    }
+
+    scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT |
+                   ( m_tearingSupported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0 );
+
+    IDXGISwapChain1* swapChain = nullptr;
+    HRESULT hr = dxgiFactory->CreateSwapChainForHwnd( m_device, hwnd, &scDesc, nullptr, nullptr, &swapChain );
     if ( FAILED( hr ) )
         FATAL_ERROR( "DX11: CreateSwapChainForHwnd failed.", CMD::RENDERING );
+
+    hr = swapChain->QueryInterface( IID_PPV_ARGS( &m_swapChain ) );
+    swapChain->Release();
+    if ( FAILED( hr ) )
+        FATAL_ERROR( "DX11: IDXGISwapChain2 is not available.", CMD::RENDERING );
+
+    hr = m_swapChain->SetMaximumFrameLatency( 1 );
+    if ( FAILED( hr ) )
+        FATAL_ERROR( "DX11: Failed to set maximum frame latency.", CMD::RENDERING );
+
+    m_frameLatencyWaitableObject = m_swapChain->GetFrameLatencyWaitableObject();
+    if ( !m_frameLatencyWaitableObject )
+        FATAL_ERROR( "DX11: Failed to get frame latency waitable object.", CMD::RENDERING );
 
     dxgiDevice->Release();
     dxgiAdapter->Release();
     dxgiFactory->Release();
 }
 
+void DX11Renderer::WaitForFrame()
+{
+    if ( m_vsyncEnabled && m_frameLatencyWaitableObject )
+        WaitForSingleObjectEx( m_frameLatencyWaitableObject, 1000, TRUE );
+}
+
+void DX11Renderer::SetVSync( const bool value )
+{
+    if ( m_vsyncEnabled == value )
+        return;
+
+    m_vsyncEnabled = value;
+
+    if ( m_swapChain )
+    {
+        const UINT maximumFrameLatency = m_vsyncEnabled ? 1 : cSwapChainBufferCount;
+        m_swapChain->SetMaximumFrameLatency( maximumFrameLatency );
+    }
+}
+
 void DX11Renderer::Swap()
 {
-    m_swapChain->Present( m_vsyncEnabled ? 1 : 0, m_vsyncEnabled ? 0 : DXGI_PRESENT_ALLOW_TEARING );
+    const bool allowTearing = !m_vsyncEnabled && m_tearingSupported && !g_Engine->GetWindow()->IsInFullscreen();
+    m_swapChain->Present( m_vsyncEnabled ? 1 : 0, allowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0 );
 }
 
 //-----------------------------------------------------------------------------
@@ -215,7 +270,7 @@ void DX11Renderer::CopyToBackBuffer( IRenderTexture* rt )
 void DX11Renderer::SetRenderTextures( IRenderTexture* rts[ ], std::uint32_t num, IDepthStencil* depthStencil )
 {
     ID3D11RenderTargetView* rtvs[ 8 ] = {nullptr};
-    for ( int i = 0; i < num; ++i )
+    for ( auto i = 0; i < num; ++i )
         rtvs[ i ] = static_cast<ID3D11RenderTargetView*>(rts[ i ]->GetResource());
 
     ID3D11DepthStencilView* dsv = nullptr;
@@ -228,11 +283,11 @@ void DX11Renderer::SetRenderTextures( IRenderTexture* rts[ ], std::uint32_t num,
 void DX11Renderer::BindRenderTextures( IRenderTexture* rts[ ], std::uint32_t num )
 {
     DX11Texture* textures[ 8 ] = {nullptr};
-    for ( int i = 0; i < num; ++i )
+    for ( auto i = 0; i < num; ++i )
         textures[ i ] = static_cast<DX11Texture*>(rts[ i ]->GetTexture());
 
     ID3D11ShaderResourceView* srvs[ 8 ];
-    for ( int i = 0; i < num; ++i )
+    for ( auto i = 0; i < num; ++i )
         srvs[ i ] = textures[ i ]->GetSRV();
 
     m_context->PSSetShaderResources( 0, num, srvs );

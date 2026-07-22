@@ -1,7 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
-#include <dxgi1_2.h>
+#include <dxgi1_3.h>
 
 #include "common.hpp"
 #include "renderer/irenderer.hpp"
@@ -38,15 +38,13 @@ public:
         return m_vsyncEnabled;
     }
 
-    void SetVSync( bool value ) override
-    {
-        m_vsyncEnabled = value;
-    }
+    void SetVSync( bool value ) override;
 
     void SetPrimitiveTopology( PrimitiveTopology topology ) override;
 
     void CreateDevice();
     void CreateSwapChain();
+    void WaitForFrame() override;
     void Swap() override;
 
     IRenderTexture* GetBackBufferRT() override
@@ -75,7 +73,9 @@ private:
     ID3D11DeviceContext* m_context = nullptr;
     IRenderTexture* m_backBuffer = nullptr;
 
-    IDXGISwapChain1* m_swapChain = nullptr;
+    IDXGISwapChain2* m_swapChain = nullptr;
+    HANDLE m_frameLatencyWaitableObject = nullptr;
+    bool m_tearingSupported = false;
 
     IRenderFactory* m_factory = nullptr;
     RenderCamera* m_camera = nullptr;
