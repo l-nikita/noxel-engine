@@ -35,25 +35,26 @@ namespace Debug
         );
     }
 
-    inline void FatalError( std::string message, CMD::LogCategory category,
+    inline void FatalError( const std::string& message, CMD::LogCategory category,
                             const std::source_location& location = std::source_location::current() )
     {
         const auto now = std::chrono::system_clock::now();
         auto localTime = std::chrono::current_zone()->to_local( now );
 
-        message = "Error: " + message + "\n";
+        auto formatedMsg = "Error: " + message + "\n";
 
-        message += "\nSource: [" + std::string( location.file_name() ) + ":" + std::to_string( location.line() ) + "]";
-        message += std::format(
+        formatedMsg += "\nSource: [" + std::string( location.file_name() ) + ":" + std::to_string( location.line() ) +
+                "]";
+        formatedMsg += std::format(
             "\nTime: {:%F %T}",
             localTime
         );
 
-        message += "\n";
-        message += GetSystemDebugInfo();
+        formatedMsg += "\n";
+        formatedMsg += GetSystemDebugInfo();
 
         CMD::CMD::GetInstance().LogMsg(
-            message,
+            formatedMsg,
             CMD::FATAL_ERROR,
             category,
             now
@@ -64,7 +65,7 @@ namespace Debug
         SDL_ShowSimpleMessageBox(
             SDL_MESSAGEBOX_ERROR,
             title.c_str(),
-            message.c_str(),
+            formatedMsg.c_str(),
             nullptr
         );
 

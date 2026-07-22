@@ -29,6 +29,7 @@ namespace CMD
         PHYSICS,
         RENDERING,
         ASSETSYSTEM,
+        FILESYSTEM,
         CONSOLE,
         INPUT,
     };
@@ -44,7 +45,7 @@ namespace CMD
         const LogCategory Category;
 
         Log( const std::string& text, std::time_t time, LogType type, LogCategory cat )
-            : Text(text), Time(time), Type(type), Category(cat)
+            : Text( text ), Time( time ), Type( type ), Category( cat )
         {
         }
     };

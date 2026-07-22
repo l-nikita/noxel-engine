@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "common.hpp"
 
 enum class GraphicsAPI : int
 {
@@ -25,12 +26,9 @@ struct IViewport;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class IRenderer
+class IRenderer : public ISystem
 {
 public:
-    virtual ~IRenderer() = default;
-
-    virtual void Init() = 0;
     virtual void Swap() = 0;
     virtual void OnWindowResize( int width, int height ) = 0;
 

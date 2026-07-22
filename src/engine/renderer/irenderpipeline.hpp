@@ -1,14 +1,13 @@
 #pragma once
 
+#include "common.hpp"
+
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class IRenderPipeline
+class IRenderPipeline : public ISystem
 {
 public:
-    virtual ~IRenderPipeline() = default;
-
-    virtual void Init() = 0;
     virtual void Render() = 0;
     virtual void OnWindowResize( int width, int height ) = 0;
 

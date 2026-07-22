@@ -14,7 +14,6 @@
 #include "assetsystem/materialasset.hpp"
 #include "engine/iengine.hpp"
 #include "engine/window.hpp"
-#include "physics/iphysics.hpp"
 
 ITexture* g_ErrorTexture = nullptr;
 ITexture* g_BlackTexture = nullptr;
@@ -27,8 +26,8 @@ void CalculateTangents( std::vector<Vertex>& vertices, const std::vector<uint32_
 {
     for ( auto& v: vertices )
     {
-        v.Tangent = glm::vec3(0.0f);
-        v.Bitangent = glm::vec3(0.0f);
+        v.Tangent = glm::vec3( 0.0f );
+        v.Bitangent = glm::vec3( 0.0f );
     }
 
     for ( size_t i = 0; i < indices.size(); i += 3 )
@@ -66,55 +65,21 @@ void CalculateTangents( std::vector<Vertex>& vertices, const std::vector<uint32_
 
     for ( auto& v: vertices )
     {
-        v.Tangent = glm::normalize(v.Tangent - v.Normal * glm::dot(v.Normal, v.Tangent));
-        v.Bitangent = glm::normalize(glm::cross(v.Normal, v.Tangent));
+        v.Tangent = glm::normalize( v.Tangent - v.Normal * glm::dot( v.Normal, v.Tangent ) );
+        v.Bitangent = glm::normalize( glm::cross( v.Normal, v.Tangent ) );
     }
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-DeferredRenderPipeline::~DeferredRenderPipeline()
-{
-    LightManager::GetInstance().Release();
-
-    for ( const auto model: m_Models )
-        delete model;
-
-    m_Models.clear();
-    m_GBuffer.Release();
-
-    if ( m_mainCamera )
-        delete m_mainCamera, m_mainCamera = nullptr;
-
-    const auto factory = g_Renderer->GetFactory();
-
-    if ( m_backBufferVP )
-        factory->Release(m_backBufferVP), m_backBufferVP = nullptr;
-
-    if ( m_shadowsMapsVP )
-        factory->Release(m_shadowsMapsVP), m_shadowsMapsVP = nullptr;
-
-    if ( m_shadowsShader )
-        factory->Release(m_shadowsShader), m_shadowsShader = nullptr;
-
-    if ( m_lightingShader )
-        factory->Release(m_lightingShader), m_lightingShader = nullptr;
-
-    if ( m_skyboxMat )
-        factory->Release(m_skyboxMat), m_skyboxMat = nullptr;
-
-    if ( m_skyboxMesh )
-        factory->Release(m_skyboxMesh), m_skyboxMesh = nullptr;
-}
-
-void DeferredRenderPipeline::Init()
+SysInit DeferredRenderPipeline::Initialize()
 {
     const auto factory = g_Renderer->GetFactory();
 
     //----------------------------------------------------
-    g_ErrorTexture = factory->CreateTexture(TextureAsset::GetError());
-    g_ErrorMaterial = factory->CreateMaterial(MaterialAsset::GetError());
+    g_ErrorTexture = factory->CreateTexture( TextureAsset::GetError() );
+    g_ErrorMaterial = factory->CreateMaterial( MaterialAsset::GetError() );
 
     TextureDesc desc = {};
     desc.Width = 1;
@@ -123,7 +88,7 @@ void DeferredRenderPipeline::Init()
     desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
     desc.MipLevels = 1;
 
-    g_BlackTexture = factory->CreateTexture(desc);
+    g_BlackTexture = factory->CreateTexture( desc );
 
     //----------------------------------------------------
     std::vector<Vertex> cubeVertices
@@ -181,13 +146,13 @@ void DeferredRenderPipeline::Init()
         20, 21, 22, 22, 23, 20
     };
 
-    CalculateTangents(cubeVertices, cubeIndices);
+    CalculateTangents( cubeVertices, cubeIndices );
 
     //----------------------------------------------------
     // TODO: Memory leak, make resource manager
-    auto* mat = factory->CreateMaterial("metal1");
-    auto* mat2 = factory->CreateMaterial("dirt1");
-    auto* mesh = factory->CreateMesh(MeshData{cubeVertices, cubeIndices});
+    auto* mat = factory->CreateMaterial( "metal1" );
+    auto* mat2 = factory->CreateMaterial( "dirt1" );
+    auto* mesh = factory->CreateMesh( MeshData{cubeVertices, cubeIndices} );
 
     /*
 	for (int i = 0; i < 45; i++)
@@ -204,62 +169,98 @@ void DeferredRenderPipeline::Init()
 	}
 	*/
 
-    const auto model = new Model(mesh, mat);
-    model->m_Transform.Position = glm::vec3(0, 0, 5) + glm::vec3(0, -3, -10);
-    m_Models.push_back(model);
+    const auto model = new Model( mesh, mat );
+    model->m_Transform.Position = glm::vec3( 0, 0, 5 ) + glm::vec3( 0, -3, -10 );
+    m_Models.push_back( model );
 
-    const auto model2 = new Model(mesh, mat2);
-    model2->m_Transform.Position = glm::vec3(0, 0, 8) + glm::vec3(0, -3, 7);
-    m_Models.push_back(model2);
+    const auto model2 = new Model( mesh, mat2 );
+    model2->m_Transform.Position = glm::vec3( 0, 0, 8 ) + glm::vec3( 0, -3, 7 );
+    m_Models.push_back( model2 );
 
-    const auto model3 = new Model(mesh, mat);
-    model3->m_Transform.Position = glm::vec3(-5, 0, 8) + glm::vec3(0, -3, -10);
-    m_Models.push_back(model3);
+    const auto model3 = new Model( mesh, mat );
+    model3->m_Transform.Position = glm::vec3( -5, 0, 8 ) + glm::vec3( 0, -3, -10 );
+    m_Models.push_back( model3 );
 
-    g_TestModel = new Model(mesh, mat);
-    g_TestModel->m_Transform.Scale = glm::vec3(0.5f);
-    m_Models.push_back(g_TestModel);
+    g_TestModel = new Model( mesh, mat );
+    g_TestModel->m_Transform.Scale = glm::vec3( 0.5f );
+    m_Models.push_back( g_TestModel );
 
-    g_TestModel2 = new Model(mesh, mat);
-    g_TestModel2->m_Transform.Position = glm::vec3(0, -5, 0);
-    g_TestModel2->m_Transform.Scale = glm::vec3(20, 1, 20);
+    g_TestModel2 = new Model( mesh, mat );
+    g_TestModel2->m_Transform.Position = glm::vec3( 0, -5, 0 );
+    g_TestModel2->m_Transform.Scale = glm::vec3( 20, 1, 20 );
     g_TestModel2->m_CastShadows = true;
-    m_Models.push_back(g_TestModel2);
+    m_Models.push_back( g_TestModel2 );
 
     //----------------------------------------------------
     int width, height;
-    g_Engine->GetWindow()->GetSize(&width, &height);
+    g_Engine->GetWindow()->GetSize( &width, &height );
 
-    m_backBufferVP = factory->CreateViewport(0, 0, width, height);
-    m_mainCamera = new RenderCamera(width, height);
-    m_mainCamera->SetFOV(95.0f);
-    m_mainCamera->SetNear(0.1f);
-    m_mainCamera->SetFar(100.0f);
+    m_backBufferVP = factory->CreateViewport( 0, 0, width, height );
+    m_mainCamera = new RenderCamera( width, height );
+    m_mainCamera->SetFOV( 95.0f );
+    m_mainCamera->SetNear( 0.1f );
+    m_mainCamera->SetFar( 100.0f );
 
-    g_Renderer->SetCamera(m_mainCamera);
-    g_Renderer->SetViewport(m_backBufferVP);
+    g_Renderer->SetCamera( m_mainCamera );
+    g_Renderer->SetViewport( m_backBufferVP );
 
-    SetupGBuffer(width, height);
+    SetupGBuffer( width, height );
     SetupShadows();
     SetupSkybox();
 
-    m_shadowsShader = factory->CreateShaderProgram(ShaderAsset::Get("shadowspass"));
-    m_lightingShader = factory->CreateShaderProgram(ShaderAsset::Get("lightingpass"));
+    m_shadowsShader = factory->CreateShaderProgram( ShaderAsset::Get( "shadowspass" ) );
+    m_lightingShader = factory->CreateShaderProgram( ShaderAsset::Get( "lightingpass" ) );
 
-    CMD_INFO("RenderPipeline initialized", CMD::RENDERING);
+    CMD_INFO( "RenderPipeline initialized", CMD::RENDERING );
+
+    return {};
+}
+
+void DeferredRenderPipeline::Shutdown()
+{
+    LightManager::GetInstance().Release();
+
+    for ( const auto model: m_Models )
+        delete model;
+
+    m_Models.clear();
+    m_GBuffer.Release();
+
+    if ( m_mainCamera )
+        delete m_mainCamera, m_mainCamera = nullptr;
+
+    const auto factory = g_Renderer->GetFactory();
+
+    if ( m_backBufferVP )
+        factory->Release( m_backBufferVP ), m_backBufferVP = nullptr;
+
+    if ( m_shadowsMapsVP )
+        factory->Release( m_shadowsMapsVP ), m_shadowsMapsVP = nullptr;
+
+    if ( m_shadowsShader )
+        factory->Release( m_shadowsShader ), m_shadowsShader = nullptr;
+
+    if ( m_lightingShader )
+        factory->Release( m_lightingShader ), m_lightingShader = nullptr;
+
+    if ( m_skyboxMat )
+        factory->Release( m_skyboxMat ), m_skyboxMat = nullptr;
+
+    if ( m_skyboxMesh )
+        factory->Release( m_skyboxMesh ), m_skyboxMesh = nullptr;
 }
 
 //-----------------------------------------------------------------------------
 void DeferredRenderPipeline::Render()
 {
     auto backBuffer = g_Renderer->GetBackBufferRT();
-    backBuffer->Clear(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    backBuffer->Clear( glm::vec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
 
     DoGeometryPass();
     DoShadowPass();
 
-    g_Renderer->SetViewport(m_backBufferVP);
-    g_Renderer->SetRenderTextures(&backBuffer, 1, nullptr);
+    g_Renderer->SetViewport( m_backBufferVP );
+    g_Renderer->SetRenderTextures( &backBuffer, 1, nullptr );
     DoLightingPass();
     //DoSkyboxPass();
 
@@ -278,13 +279,13 @@ void DeferredRenderPipeline::OnWindowResize( const int width, const int height )
 {
     m_GBuffer.Release();
 
-    g_Renderer->OnWindowResize(width, height);
+    g_Renderer->OnWindowResize( width, height );
 
-    m_backBufferVP->Resize(width, height);
-    g_Renderer->SetViewport(m_backBufferVP);
+    m_backBufferVP->Resize( width, height );
+    g_Renderer->SetViewport( m_backBufferVP );
 
-    SetupGBuffer(width, height);
-    m_mainCamera->OnFrameBufferResize(width, height);
+    SetupGBuffer( width, height );
+    m_mainCamera->OnFrameBufferResize( width, height );
 }
 
 //-----------------------------------------------------------------------------
@@ -300,9 +301,9 @@ void DeferredRenderPipeline::DoGeometryPass() const
     };
 
     // 0.1f, 0.2f, 0.3f, 1.0f
-    auto color = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    auto color = glm::vec4( 0.0f, 0.0f, 0.0f, 0.0f );
     for ( auto& rt: rts )
-        rt->Clear(color);
+        rt->Clear( color );
 
     m_GBuffer.DepthStencil->Clear();
 
@@ -312,10 +313,10 @@ void DeferredRenderPipeline::DoGeometryPass() const
     auto context = dxrenderer->GetContext();
 
     ID3D11ShaderResourceView* nullSRVs[ 4 ] = {nullptr, nullptr, nullptr, nullptr};
-    context->PSSetShaderResources(0, 4, nullSRVs);
+    context->PSSetShaderResources( 0, 4, nullSRVs );
 #endif
 
-    g_Renderer->SetRenderTextures(rts, 4, m_GBuffer.DepthStencil);
+    g_Renderer->SetRenderTextures( rts, 4, m_GBuffer.DepthStencil );
 
     //g_Physics->Render();
     g_Engine->DrawPlayer();
@@ -326,23 +327,22 @@ void DeferredRenderPipeline::DoGeometryPass() const
     static auto totalTime = 0.0f;
     totalTime += g_Engine->DeltaTime();
 
-    g_TestModel->SetPosition(glm::vec3(
-        sin(totalTime) * 5.0f,
+    g_TestModel->SetPosition( glm::vec3(
+        sin( totalTime ) * 5.0f,
         -3.0f,
-        cos(totalTime) * 5.0f
-    ));
+        cos( totalTime ) * 5.0f
+    ) );
 
-    glm::quat rot = glm::angleAxis(totalTime * 3.0f, glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
-    g_TestModel->SetRotation(rot);
+    glm::quat rot = glm::angleAxis( totalTime * 3.0f, glm::normalize( glm::vec3( 0.0f, 1.0f, 0.0f ) ) );
+    g_TestModel->SetRotation( rot );
 }
 
 //-----------------------------------------------------------------------------
 void DeferredRenderPipeline::DoShadowPass() const
 {
     auto& lights = LightManager::GetInstance().GetLights();
-    for ( size_t i = 0; i < lights.size(); i++ )
+    for ( auto light: lights )
     {
-        const auto light = lights[ i ];
         if ( !light || ( light && !light->IsShadowsEnabled() ) )
             continue;
 
@@ -350,14 +350,14 @@ void DeferredRenderPipeline::DoShadowPass() const
         const auto depth = shadowMap->GetDepth();
         const int size = shadowMap->GetSize();
 
-        m_shadowsMapsVP->Resize(size, size);
-        g_Renderer->SetViewport(m_shadowsMapsVP);
+        m_shadowsMapsVP->Resize( size, size );
+        g_Renderer->SetViewport( m_shadowsMapsVP );
 
-        g_Renderer->SetRenderTextures(nullptr, 0, depth);
+        g_Renderer->SetRenderTextures( nullptr, 0, depth );
         depth->Clear();
 
-        m_shadowsShader->SetVSVar("lightview", light->GetViewMatrix());
-        m_shadowsShader->SetVSVar("lightproj", light->GetProjectionMatrix());
+        m_shadowsShader->SetVSVar( "lightview", light->GetViewMatrix() );
+        m_shadowsShader->SetVSVar( "lightproj", light->GetProjectionMatrix() );
 
         // draw scene
         for ( const auto model: m_Models )
@@ -367,7 +367,7 @@ void DeferredRenderPipeline::DoShadowPass() const
 
             for ( const auto mesh: model->GetMeshes() )
             {
-                m_shadowsShader->SetVSVar("model", model->m_Transform.GetTransformMatrix());
+                m_shadowsShader->SetVSVar( "model", model->m_Transform.GetTransformMatrix() );
                 m_shadowsShader->Bind();
                 mesh->Draw();
                 m_shadowsShader->Unbind();
@@ -375,7 +375,7 @@ void DeferredRenderPipeline::DoShadowPass() const
         }
     }
 
-    g_Renderer->SetRenderTextures(nullptr, 0, nullptr);
+    g_Renderer->SetRenderTextures( nullptr, 0, nullptr );
 }
 
 //-----------------------------------------------------------------------------
@@ -389,7 +389,7 @@ void DeferredRenderPipeline::DoLightingPass() const
     };
 
     // move to lighting shader
-    g_Renderer->BindRenderTextures(rts, 4);
+    g_Renderer->BindRenderTextures( rts, 4 );
 
     //m_lightingShader->SetPSVar("cubemap", m_skyboxMat->GetTexture("cubemap"));
     m_lightingShader->Bind();
@@ -401,10 +401,10 @@ void DeferredRenderPipeline::DoLightingPass() const
 void DeferredRenderPipeline::DoSkyboxPass() const
 {
     auto backBuffer = g_Renderer->GetBackBufferRT();
-    g_Renderer->SetRenderTextures(&backBuffer, 1, m_GBuffer.DepthStencil);
+    g_Renderer->SetRenderTextures( &backBuffer, 1, m_GBuffer.DepthStencil );
 
     m_skyboxMat->Bind();
-    g_Renderer->SetPrimitiveTopology(TRIANGLES);
+    g_Renderer->SetPrimitiveTopology( TRIANGLES );
     m_skyboxMesh->Draw();
     m_skyboxMat->Unbind();
 }
@@ -416,17 +416,17 @@ void DeferredRenderPipeline::SetupGBuffer( int width, int height )
 {
     const auto factory = g_Renderer->GetFactory();
 
-    m_GBuffer.DepthStencil = factory->CreateDepthStencil(width, height, false);
-    m_GBuffer.Color = factory->CreateRenderTexture(width, height, false);
-    m_GBuffer.Normal = factory->CreateRenderTexture(width, height, false);
-    m_GBuffer.Position = factory->CreateRenderTexture(width, height, false);
-    m_GBuffer.Specular = factory->CreateRenderTexture(width, height, false);
+    m_GBuffer.DepthStencil = factory->CreateDepthStencil( width, height, false );
+    m_GBuffer.Color = factory->CreateRenderTexture( width, height, false );
+    m_GBuffer.Normal = factory->CreateRenderTexture( width, height, false );
+    m_GBuffer.Position = factory->CreateRenderTexture( width, height, false );
+    m_GBuffer.Specular = factory->CreateRenderTexture( width, height, false );
 }
 
 void DeferredRenderPipeline::SetupShadows()
 {
     const auto factory = g_Renderer->GetFactory();
-    m_shadowsMapsVP = factory->CreateViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+    m_shadowsMapsVP = factory->CreateViewport( 0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE );
 }
 
 void DeferredRenderPipeline::SetupSkybox()
@@ -488,6 +488,6 @@ void DeferredRenderPipeline::SetupSkybox()
         20, 21, 22, 22, 23, 20
     };
 
-    m_skyboxMat = factory->CreateMaterial("skybox");
-    m_skyboxMesh = factory->CreateMesh(MeshData{cubeVertices, cubeIndices});
+    m_skyboxMat = factory->CreateMaterial( "skybox" );
+    m_skyboxMesh = factory->CreateMesh( MeshData{cubeVertices, cubeIndices} );
 }

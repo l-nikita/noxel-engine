@@ -2,7 +2,7 @@
 
 #include <filesystem>
 #include <string>
-#include "asset_type.hpp"
+#include "assettype.hpp"
 
 class BaseAsset
 {

@@ -1,8 +1,10 @@
 ﻿#pragma once
 
 #include <algorithm>
+#include <Jolt/Jolt.h>
 #include <Jolt/Physics/Character/Character.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
+
 #include "engine.hpp"
 #include "common/transformable.hpp"
 #include "input/iinput.hpp"
@@ -20,60 +22,61 @@ class Player
 {
 public:
     explicit Player( RenderCamera* camera )
-        : m_Camera(camera)
+        : m_Camera( camera )
     {
         const JPH::Ref settings = new JPH::CharacterVirtualSettings();
-        settings->mShape = new JPH::BoxShape(JPH::Vec3(CHARACTER_RADIUS, 0.5f * CHARACTER_HEIGHT + CHARACTER_RADIUS,
-                                                       CHARACTER_RADIUS));
+        settings->mShape = new JPH::BoxShape( JPH::Vec3( CHARACTER_RADIUS, 0.5f * CHARACTER_HEIGHT + CHARACTER_RADIUS,
+                                                         CHARACTER_RADIUS ) );
 
-        m_character = new JPH::CharacterVirtual(settings, JPH::RVec3(0.0f, 1.0f, 0.0f), JPH::Quat::sIdentity(),
-                                                GetPhysics()->GetSystem());
-        m_character->SetUp(JPH::Vec3(0, 1, 0));
+        m_character = new JPH::CharacterVirtual( settings, JPH::RVec3( 0.0f, 1.0f, 0.0f ), JPH::Quat::sIdentity(),
+                                                 GetPhysics()->GetSystem() );
+        m_character->SetUp( JPH::Vec3( 0, 1, 0 ) );
     }
 
     ~Player() = default;
 
     void UpdateCamera( const float dt )
     {
-        const auto pos = Utils::GLM_Vec3_JPH(m_character->GetPosition()) - glm::vec3(0, ( CHARACTER_HEIGHT / 2 ), 0);
-        auto eyePos = pos + glm::vec3(0, CHARACTER_EYE_HEIGHT, 0);
+        const auto pos = Utils::GLM_Vec3_JPH( m_character->GetPosition() ) -
+                         glm::vec3( 0, ( CHARACTER_HEIGHT / 2 ), 0 );
+        auto eyePos = pos + glm::vec3( 0, CHARACTER_EYE_HEIGHT, 0 );
 
         const auto delta = g_Input->GetMouseDelta();
         if ( g_Input->GetRelativeMouseMode() )
         {
             m_yaw += delta.x * SENSITIVITY * dt;
             m_pitch += delta.y * SENSITIVITY * dt;
-            m_pitch = std::clamp(m_pitch, -85.0f, 85.0f);
+            m_pitch = std::clamp( m_pitch, -85.0f, 85.0f );
 
-            glm::quat qPitch = glm::angleAxis(glm::radians(m_pitch), glm::vec3(1, 0, 0));
-            glm::quat qYaw = glm::angleAxis(glm::radians(m_yaw), glm::vec3(0, 1, 0));
-            m_Camera->SetRotation(qYaw * qPitch);
+            glm::quat qPitch = glm::angleAxis( glm::radians( m_pitch ), glm::vec3( 1, 0, 0 ) );
+            glm::quat qYaw = glm::angleAxis( glm::radians( m_yaw ), glm::vec3( 0, 1, 0 ) );
+            m_Camera->SetRotation( qYaw * qPitch );
         }
 
-        if ( g_Input->IsKeyPressed(SDL_SCANCODE_C) )
+        if ( g_Input->IsKeyPressed( SDL_SCANCODE_C ) )
             m_thirdPerson = !m_thirdPerson;
 
         auto eyeForward = m_Camera->Forward();
         if ( m_thirdPerson )
             eyePos += eyeForward * -3.0f;
 
-        m_Camera->SetPosition(eyePos);
+        m_Camera->SetPosition( eyePos );
     }
 
     glm::vec3 GetMovementDir() const
     {
-        auto dir = glm::vec3(0);
+        auto dir = glm::vec3( 0 );
 
-        const auto forward = glm::vec3(m_Camera->Forward().x, 0, m_Camera->Forward().z);
-        const auto right = glm::vec3(m_Camera->Right().x, 0, m_Camera->Right().z);
+        const auto forward = glm::vec3( m_Camera->Forward().x, 0, m_Camera->Forward().z );
+        const auto right = glm::vec3( m_Camera->Right().x, 0, m_Camera->Right().z );
 
-        if ( g_Input->IsKeyDown(SDL_SCANCODE_W) ) dir += forward;
-        if ( g_Input->IsKeyDown(SDL_SCANCODE_S) ) dir -= forward;
-        if ( g_Input->IsKeyDown(SDL_SCANCODE_A) ) dir -= right;
-        if ( g_Input->IsKeyDown(SDL_SCANCODE_D) ) dir += right;
+        if ( g_Input->IsKeyDown( SDL_SCANCODE_W ) ) dir += forward;
+        if ( g_Input->IsKeyDown( SDL_SCANCODE_S ) ) dir -= forward;
+        if ( g_Input->IsKeyDown( SDL_SCANCODE_A ) ) dir -= right;
+        if ( g_Input->IsKeyDown( SDL_SCANCODE_D ) ) dir += right;
 
-        if ( glm::length(dir) > 0.0f )
-            dir = glm::normalize(dir);
+        if ( glm::length( dir ) > 0.0f )
+            dir = glm::normalize( dir );
 
         return dir;
     }
@@ -100,11 +103,11 @@ public:
     {
         m_character->UpdateGroundVelocity();
 
-        const auto up = Utils::GLM_Vec3_JPH(m_character->GetUp());
-        auto currentVelocity = Utils::GLM_Vec3_JPH(m_character->GetLinearVelocity());
+        const auto up = Utils::GLM_Vec3_JPH( m_character->GetUp() );
+        auto currentVelocity = Utils::GLM_Vec3_JPH( m_character->GetLinearVelocity() );
         const auto currentVerticalVelocity = Utils::GLM_Vec3_JPH(
-            m_character->GetLinearVelocity().Dot(m_character->GetUp()) * m_character->GetUp());
-        const auto groundVelocity = Utils::GLM_Vec3_JPH(m_character->GetGroundVelocity());
+            m_character->GetLinearVelocity().Dot( m_character->GetUp() ) * m_character->GetUp() );
+        const auto groundVelocity = Utils::GLM_Vec3_JPH( m_character->GetGroundVelocity() );
         glm::vec3 vel;
 
         m_wishVelocity = GetMovementDir();
@@ -114,7 +117,7 @@ public:
         {
             vel = groundVelocity;
 
-            if ( g_Input->IsKeyPressed(SDL_SCANCODE_SPACE) )
+            if ( g_Input->IsKeyPressed( SDL_SCANCODE_SPACE ) )
                 vel += 8.0f * up;
         } else
             vel = currentVerticalVelocity;
@@ -128,29 +131,29 @@ public:
 
         //std::cout << m_wishVelocity.x << " " << m_wishVelocity.y << " " << m_wishVelocity.z << std::endl;
 
-        m_character->SetLinearVelocity(Utils::JPH_Vec3_GLM(vel));
+        m_character->SetLinearVelocity( Utils::JPH_Vec3_GLM( vel ) );
     }
 
     void Update()
     {
         const float dt = g_Engine->DeltaTime();
 
-        UpdateCamera(dt);
-        UpdateMovement(dt);
-        UpdatePhysics(dt);
+        UpdateCamera( dt );
+        UpdateMovement( dt );
+        UpdatePhysics( dt );
     }
 
     void UpdatePhysics( const float dt ) const
     {
         const JPH::CharacterVirtual::ExtendedUpdateSettings updateSettings;
-        m_character->ExtendedUpdate(dt,
-                                    g_Physics->GetGravity().length() * -m_character->GetUp(),
-                                    updateSettings,
-                                    GetPhysics()->GetSystem()->GetDefaultBroadPhaseLayerFilter(Layers::MOVING),
-                                    GetPhysics()->GetSystem()->GetDefaultLayerFilter(Layers::MOVING),
-                                    {},
-                                    {},
-                                    *GetPhysics()->GetTempAllocator());
+        m_character->ExtendedUpdate( dt,
+                                     g_Physics->GetGravity().length() * -m_character->GetUp(),
+                                     updateSettings,
+                                     GetPhysics()->GetSystem()->GetDefaultBroadPhaseLayerFilter( Layers::MOVING ),
+                                     GetPhysics()->GetSystem()->GetDefaultLayerFilter( Layers::MOVING ),
+                                     {},
+                                     {},
+                                     *GetPhysics()->GetTempAllocator() );
     }
 
     void Draw() const
@@ -158,8 +161,8 @@ public:
         if ( m_thirdPerson )
         {
             const auto com = m_character->GetCenterOfMassTransform();
-            m_character->GetShape()->Draw(JPH::DebugRenderer::sInstance, com, JPH::Vec3::sOne(), JPH::Color::sGreen,
-                                          false, true);
+            m_character->GetShape()->Draw( JPH::DebugRenderer::sInstance, com, JPH::Vec3::sOne(), JPH::Color::sGreen,
+                                           false, true );
         }
     }
 

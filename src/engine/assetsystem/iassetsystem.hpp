@@ -2,17 +2,14 @@
 
 #include <filesystem>
 #include <unordered_map>
-#include "base_asset.hpp"
+#include "common.hpp"
+#include "baseasset.hpp"
 
 typedef std::unordered_map<std::string, BaseAsset*> AssetsMap;
 
-class IAssetSystem
+class IAssetSystem : public ISystem
 {
 public:
-    virtual ~IAssetSystem() = default;
-
-    virtual void Init() = 0;
-
     virtual std::filesystem::path GetRootPath() = 0;
     virtual std::filesystem::path GetBinPath() = 0;
     virtual std::filesystem::path GetAssetsPath() = 0;

@@ -2,8 +2,8 @@
 
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include "asset_system.hpp"
-#include "base_asset.hpp"
+#include "assetsystem.hpp"
+#include "baseasset.hpp"
 #include "shaderasset.hpp"
 #include "textureasset.hpp"
 #include "dbg/debug.hpp"

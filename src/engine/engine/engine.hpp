@@ -5,76 +5,87 @@
 #include "iengine.hpp"
 #include "renderer/irenderer.hpp"
 
-class Window;
+class IFileSystem;
+class IAssetSystem;
+class IInput;
+class IPhysics;
+class IRenderPipeline;
+class IGui;
+union SDL_Event;
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class ENGINE_API Engine : public IEngine
 {
 public:
-    void Init() override;
-    void SetupWindow();
+    void Initialize() override;
 
     void Run() override;
     void Stop() override;
     void Shutdown() override;
 
-    bool IsRunning() override
-    {
-        return m_isRunning;
-    }
+    bool IsRunning() override;
 
     void Update() override;
     void Render() override;
     void DrawPlayer() override; // REMOVE
 
-    // Current active window.
-    Window* GetWindow() override
-    {
-        return m_window;
-    }
+    //-------------------------------------------------
 
+    // Current active window.
+    Window* GetWindow() override;
     void OnWindowResize() override;
 
     //-------------------------------------------------
-    std::chrono::duration<float> DeltaDuration() const
-    {
-        return m_deltaTime;
-    }
 
-    // Delta time (ms)
-    float DeltaTime() override
-    {
-        return m_deltaTime.count();
-    }
+    std::chrono::duration<float> DeltaDuration() const;
+    float DeltaTime() override;
 
-    std::chrono::duration<float> ElapsedDuration() const
-    {
-        return m_elapsedTime;
-    }
+    std::chrono::duration<float> ElapsedDuration() const;
+    float ElapsedTime() override;
 
-    // Elapsed time since engine loop ran (ms)
-    float ElapsedTime() override
-    {
-        return m_elapsedTime.count();
-    }
-
-    float GetFPS() override
-    {
-        return 1.0f / DeltaTime();
-    }
+    float GetFPS() override;
 
     //-------------------------------------------------
 
-    GraphicsAPI GetGraphicsAPI() override
-    {
-        return m_graphicsAPI;
-    }
+    GraphicsAPI GetGraphicsAPI() override;
+
+private:
+    void SetupWindow();
+
+    void HandleEvents();
+    void OnEvent( const SDL_Event& event );
+
+private:
+    void InitializeSystems();
+    void ShutdownSystems();
+
+    IFileSystem* m_fileSystem = nullptr;
+    IAssetSystem* m_assetSystem = nullptr;
+    IInput* m_input = nullptr;
+    IPhysics* m_physics = nullptr;
+    IRenderer* m_renderer = nullptr;
+    IRenderPipeline* m_renderPipeline = nullptr;
+    IGui* m_gui = nullptr;
+
+    std::vector<ISystem*> m_systems = {};
+
+public:
+    IFileSystem& FileSystem() const override;
+    IAssetSystem& AssetSystem() const override;
+    IInput& Input() const override;
+    IPhysics& Physics() const override;
+    IRenderer& Renderer() const override;
+    IRenderPipeline& RenderPipeline() const override;
+    IGui& Gui() const override;
 
 private:
     Window* m_window = nullptr;
     bool m_isRunning = false;
 
-    std::chrono::duration<float> m_deltaTime{};
-    std::chrono::duration<float> m_elapsedTime{};
+    std::chrono::duration<float> m_deltaTime = {};
+    std::chrono::duration<float> m_elapsedTime = {};
 
     GraphicsAPI m_graphicsAPI = GraphicsAPI::NONE;
 };

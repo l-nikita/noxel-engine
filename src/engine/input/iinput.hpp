@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <SDL3/SDL.h>
+#include "common.hpp"
 
 typedef uint8_t Uint8;
 
@@ -10,13 +11,9 @@ struct SDL_MouseMotionEvent;
 struct SDL_MouseButtonEvent;
 struct SDL_MouseWheelEvent;
 
-class IInput
+class IInput : public ISystem
 {
 public:
-    virtual ~IInput() = default;
-
-    virtual void Init() = 0;
-
     virtual bool IsKeyDown( SDL_Scancode key ) = 0;
     virtual bool IsKeyPressed( SDL_Scancode key ) = 0;
     virtual bool IsKeyReleased( SDL_Scancode key ) = 0;

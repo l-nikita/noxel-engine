@@ -180,17 +180,16 @@ void DX11Factory::Release( IRenderResource* resource )
     if ( resource->IsReleased() )
         return;
 
+    m_resources.erase( it );
     delete resource;
-    std::erase( m_resources, resource );
 }
 
 void DX11Factory::Shutdown()
 {
-    for ( auto resource: m_resources )
-        resource->Release();
-
-    for ( auto resource: m_resources )
+    while ( !m_resources.empty() )
+    {
+        auto* resource = m_resources.back();
+        m_resources.pop_back();
         delete resource;
-
-    m_resources.clear();
+    }
 }

@@ -6,7 +6,7 @@
 #include "irenderer.hpp"
 #include "irenderfactory.hpp"
 #include "irendertexture.hpp"
-#include "irender_pipeline.hpp"
+#include "irenderpipeline.hpp"
 #include "ishaderprogram.hpp"
 
 class Model;
@@ -25,32 +25,32 @@ struct GBuffer
         const auto factory = g_Renderer->GetFactory();
 
         if ( DepthStencil )
-            factory->Release(DepthStencil), DepthStencil = nullptr;
+            factory->Release( DepthStencil ), DepthStencil = nullptr;
 
         if ( Color )
-            factory->Release(Color), Color = nullptr;
+            factory->Release( Color ), Color = nullptr;
 
         if ( Normal )
-            factory->Release(Normal), Normal = nullptr;
+            factory->Release( Normal ), Normal = nullptr;
 
         if ( Position )
-            factory->Release(Position), Position = nullptr;
+            factory->Release( Position ), Position = nullptr;
 
         if ( Specular )
-            factory->Release(Specular), Specular = nullptr;
+            factory->Release( Specular ), Specular = nullptr;
     }
 };
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DeferredRenderPipeline : public IRenderPipeline
+class DeferredRenderPipeline final : public IRenderPipeline
 {
 public:
     DeferredRenderPipeline() = default;
-    ~DeferredRenderPipeline() override;
 
-    void Init() override;
+    SysInit Initialize() override;
+    void Shutdown() override;
     void Render() override;
     void OnWindowResize( int width, int height ) override;
 
@@ -73,7 +73,7 @@ public:
 
 public:
 #ifdef _DEBUG
-    std::uint32_t m_DrawCallCount;
+    std::uint32_t m_DrawCallCount = 0;
 #endif
 
     std::vector<Model*> m_Models;
@@ -87,7 +87,7 @@ private:
     IMesh* m_skyboxMesh = nullptr;
     IMaterial* m_skyboxMat = nullptr;
 
-    GBuffer m_GBuffer;
+    GBuffer m_GBuffer{};
     IShaderProgram* m_shadowsShader = nullptr;
     IShaderProgram* m_lightingShader = nullptr;
 

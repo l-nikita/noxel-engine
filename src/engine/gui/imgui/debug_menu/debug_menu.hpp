@@ -11,14 +11,14 @@ public:
     DebugMenu();
     ~DebugMenu() override;
 
-    BudgetPanel* m_BudgetPanel;
-    bool m_BudgetEnabled;
+    BudgetPanel* m_BudgetPanel = nullptr;
+    bool m_BudgetEnabled = true;
 
-    ConsolePanel* m_ConsolePanel;
-    bool m_ConsoleEnabled;
+    ConsolePanel* m_ConsolePanel = nullptr;
+    bool m_ConsoleEnabled = true;
 
-    DevPanel* m_DevPanel;
-    bool m_DevPanelEnabled;
+    DevPanel* m_DevPanel = nullptr;
+    bool m_DevPanelEnabled = true;
 
     void Draw() override;
 };

@@ -1,13 +1,12 @@
 #pragma once
 
+#include "common.hpp"
+
 class Panel;
 
-class IGui
+class IGui : public ISystem
 {
 public:
-    virtual ~IGui() = default;
-
-    virtual void Init() = 0;
     virtual void Render() = 0;
     virtual void Update() = 0;
 };

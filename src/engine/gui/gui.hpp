@@ -7,16 +7,12 @@ class DebugMenu;
 class Gui : public IGui
 {
 public:
-    ~Gui();
-
-    void Init() override;
+    SysInit Initialize() override;
+    void Shutdown() override;
     void Render() override;
     void Update() override;
 
-    std::vector<Panel*>& GetPanels()
-    {
-        return m_panels;
-    }
+    std::vector<Panel*>& GetPanels();
 
     DebugMenu* m_DebugMenu;
 

@@ -2,8 +2,8 @@
 
 #include <fstream>
 #include <string>
-#include "asset_system.hpp"
-#include "base_asset.hpp"
+#include "assetsystem.hpp"
+#include "baseasset.hpp"
 #include "dbg/debug.hpp"
 #include "renderer/ishaderprogram.hpp"
 

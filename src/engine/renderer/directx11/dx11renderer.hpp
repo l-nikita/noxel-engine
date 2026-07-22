@@ -2,23 +2,19 @@
 
 #include <d3d11.h>
 #include <dxgi1_2.h>
-#include <initguid.h>
-#include <cstdint>
-#include <vector>
 
+#include "common.hpp"
 #include "renderer/irenderer.hpp"
 #include "renderer/irendertexture.hpp"
-#include "renderer/iviewport.hpp"
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DX11Renderer : public IRenderer
+class DX11Renderer final : public IRenderer
 {
 public:
-    ~DX11Renderer();
-
-    void Init() override;
+    SysInit Initialize() override;
+    void Shutdown() override;
 
     void OnWindowResize( int width, int height ) override;
 
@@ -77,12 +73,12 @@ public:
 private:
     ID3D11Device* m_device = nullptr;
     ID3D11DeviceContext* m_context = nullptr;
-    IRenderTexture* m_backBuffer;
+    IRenderTexture* m_backBuffer = nullptr;
 
     IDXGISwapChain1* m_swapChain = nullptr;
 
-    IRenderFactory* m_factory;
-    RenderCamera* m_camera;
+    IRenderFactory* m_factory = nullptr;
+    RenderCamera* m_camera = nullptr;
 
     bool m_vsyncEnabled = true;
 };

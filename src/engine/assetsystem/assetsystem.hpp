@@ -1,9 +1,9 @@
 #pragma once
 
 #include <unordered_map>
-#include "asset_type.hpp"
-#include "base_asset.hpp"
-#include "iasset_system.hpp"
+#include "assettype.hpp"
+#include "baseasset.hpp"
+#include "iassetsystem.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -16,7 +16,8 @@ class AssetSystem : public IAssetSystem
     std::filesystem::path m_assetsPath;
 
 public:
-    void Init() override;
+    SysInit Initialize() override;
+    void Shutdown() override;
 
     std::filesystem::path GetRootPath() override
     {
@@ -42,7 +43,7 @@ public:
 
     const AssetsMap& GetAssets( const AssetType type ) override
     {
-        const auto it = m_assets.find(type);
+        const auto it = m_assets.find( type );
         if ( it == m_assets.end() )
             return m_assets[ type ];
 
@@ -51,13 +52,13 @@ public:
 
     BaseAsset* GetAsset( const AssetType type, const std::string& name ) override
     {
-        const auto typeIt = m_assets.find(type);
+        const auto typeIt = m_assets.find( type );
         if ( typeIt == m_assets.end() )
             return nullptr;
 
         const auto& assetsMap = typeIt->second;
 
-        if ( const auto assetIt = assetsMap.find(name); assetIt != assetsMap.end() )
+        if ( const auto assetIt = assetsMap.find( name ); assetIt != assetsMap.end() )
             return assetIt->second;
 
         return nullptr;

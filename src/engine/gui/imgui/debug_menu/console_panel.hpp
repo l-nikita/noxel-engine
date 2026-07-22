@@ -15,10 +15,10 @@ public:
     void ExecuteCommand( char* input );
 
 private:
-    bool m_timeStamp;
-    bool m_autoScroll;
+    bool m_timeStamp = false;
+    bool m_autoScroll = true;
 
-    bool m_scrollToBottom;
+    bool m_scrollToBottom = true;
 
-    char m_input[ INPUT_SIZE ];
+    char m_input[ INPUT_SIZE ] = {};
 };

@@ -6,9 +6,14 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Input::Init()
+SysInit Input::Initialize()
 {
-    CMD_INFO("Input initialized", CMD::INPUT);
+    CMD_INFO( "Input initialized", CMD::INPUT );
+    return {};
+}
+
+void Input::Shutdown()
+{
 }
 
 //-----------------------------------------------------------------------------
@@ -61,31 +66,31 @@ void Input::Reset()
         m_mouseReleased[ i ] = false;
     }
 
-    m_scrollDelta = glm::vec2(0.0f);
+    m_scrollDelta = glm::vec2( 0.0f );
 }
 
 void Input::SetRelativeMouseMode( const bool value )
 {
-    SDL_SetWindowRelativeMouseMode(g_Engine->GetWindow()->GetHandle(), value);
+    SDL_SetWindowRelativeMouseMode( g_Engine->GetWindow()->GetHandle(), value );
 }
 
 bool Input::GetRelativeMouseMode()
 {
-    return SDL_GetWindowRelativeMouseMode(g_Engine->GetWindow()->GetHandle());
+    return SDL_GetWindowRelativeMouseMode( g_Engine->GetWindow()->GetHandle() );
 }
 
 glm::vec2 Input::GetMousePos()
 {
     float x, y;
-    SDL_GetMouseState(&x, &y);
-    return glm::vec2(x, y);
+    SDL_GetMouseState( &x, &y );
+    return glm::vec2( x, y );
 }
 
 glm::vec2 Input::GetMouseDelta()
 {
     float dx, dy;
-    SDL_GetRelativeMouseState(&dx, &dy);
-    return glm::vec2(dx, dy);
+    SDL_GetRelativeMouseState( &dx, &dy );
+    return glm::vec2( dx, dy );
 }
 
 glm::vec2 Input::GetMouseScroll()
@@ -134,5 +139,5 @@ void Input::OnMouseButton( const SDL_MouseButtonEvent buttonEvent )
 
 void Input::OnMouseWheel( const SDL_MouseWheelEvent wheelEvent )
 {
-    m_scrollDelta += glm::vec2(wheelEvent.x, wheelEvent.y);
+    m_scrollDelta += glm::vec2( wheelEvent.x, wheelEvent.y );
 }

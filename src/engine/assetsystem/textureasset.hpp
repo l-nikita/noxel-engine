@@ -2,8 +2,8 @@
 
 #include <cassert>
 #include <stb_image.h>
-#include "asset_system.hpp"
-#include "base_asset.hpp"
+#include "assetsystem.hpp"
+#include "baseasset.hpp"
 #include "dbg/debug.hpp"
 
 //-----------------------------------------------------------------------------

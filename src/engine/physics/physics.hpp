@@ -14,12 +14,11 @@
 
 class PhysicsDebugRenderer;
 
-class JoltPhysics : public IPhysics
+class JoltPhysics final : public IPhysics
 {
 public:
-    ~JoltPhysics() override;
-
-    void Init() override;
+    SysInit Initialize() override;
+    void Shutdown() override;
     void Update() override;
     void Render() override;
 
@@ -30,7 +29,7 @@ public:
 
     glm::vec3 GetGravity() const override
     {
-        return Utils::GLM_Vec3_JPH(m_system->GetGravity());
+        return Utils::GLM_Vec3_JPH( m_system->GetGravity() );
     }
 
     JPH::PhysicsSystem* GetSystem() const
@@ -75,23 +74,23 @@ public:
     }
 
 private:
-    bool m_isRunning;
+    bool m_isRunning = false;
 
-    PhysicsDebugRenderer* m_debugRenderer;
+    PhysicsDebugRenderer* m_debugRenderer = nullptr;
 
     std::vector<JPH::BodyID> m_bodiesIDs;
     std::vector<JPH::BodyID> m_bodiesToDestroy;
 
-    JPH::PhysicsSystem* m_system;
-    JPH::TempAllocatorImpl* m_tempAllocator;
-    JPH::JobSystemThreadPool* m_jobSystem;
+    JPH::PhysicsSystem* m_system = nullptr;
+    JPH::TempAllocatorImpl* m_tempAllocator = nullptr;
+    JPH::JobSystemThreadPool* m_jobSystem = nullptr;
 
-    BPLayerInterfaceImpl* broad_phase_layer_interface;
-    ObjectVsBroadPhaseLayerFilterImpl* object_vs_broadphase_layer_filter;
-    ObjectLayerPairFilterImpl* object_vs_object_layer_filter;
+    BPLayerInterfaceImpl* broad_phase_layer_interface = nullptr;
+    ObjectVsBroadPhaseLayerFilterImpl* object_vs_broadphase_layer_filter = nullptr;
+    ObjectLayerPairFilterImpl* object_vs_object_layer_filter = nullptr;
 
-    MyBodyActivationListener* body_activation_listener;
-    MyContactListener* contact_listener;
+    MyBodyActivationListener* body_activation_listener = nullptr;
+    MyContactListener* contact_listener = nullptr;
 };
 
 // not good
@@ -104,12 +103,12 @@ struct EPhysicsBody
 {
     JPH::BodyID BodyID;
 
-    explicit EPhysicsBody( const JPH::BodyID id ) : BodyID(id)
+    explicit EPhysicsBody( const JPH::BodyID id ) : BodyID( id )
     {
     }
 
     ~EPhysicsBody() // Calls 2 times ?
     {
-        GetPhysics()->MarkBodyForDestruction(BodyID);
+        GetPhysics()->MarkBodyForDestruction( BodyID );
     }
 };

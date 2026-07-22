@@ -25,15 +25,9 @@ int main()
     }
 #endif
 
-    try
-    {
-        g_Engine = new Engine();
-        g_Engine->Init();
-        g_Engine->Run();
-    } catch ( ... )
-    {
-        return EXIT_FAILURE;
-    }
+    g_Engine = new Engine();
+    g_Engine->Initialize();
+    g_Engine->Run();
 
     delete g_Engine;
     g_Engine = nullptr;

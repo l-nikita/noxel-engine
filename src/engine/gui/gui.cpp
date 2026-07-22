@@ -21,7 +21,32 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-Gui::~Gui()
+SysInit Gui::Initialize()
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+
+    auto api = g_Engine->GetGraphicsAPI();
+    if ( api == GraphicsAPI::VULKAN )
+    {
+    } else if ( api == GraphicsAPI::DIRECTX11 )
+    {
+#ifdef DX11
+        const auto dx11render = static_cast<DX11Renderer*>(g_Renderer);
+        ImGui_ImplSDL3_InitForD3D( g_Engine->GetWindow()->GetHandle() );
+        ImGui_ImplDX11_Init( dx11render->GetDevice(), dx11render->GetContext() );
+#endif
+    }
+
+    m_DebugMenu = new DebugMenu();
+    m_DebugMenu->m_IsVisible = false;
+    m_panels.push_back( m_DebugMenu );
+
+    return {};
+}
+
+void Gui::Shutdown()
 {
     if ( m_DebugMenu )
     {
@@ -45,32 +70,6 @@ Gui::~Gui()
 
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void Gui::Init()
-{
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui::StyleColorsDark();
-
-    auto api = g_Engine->GetGraphicsAPI();
-    if ( api == GraphicsAPI::VULKAN )
-    {
-    } else if ( api == GraphicsAPI::DIRECTX11 )
-    {
-#ifdef DX11
-        const auto dx11render = static_cast<DX11Renderer*>(g_Renderer);
-        ImGui_ImplSDL3_InitForD3D(g_Engine->GetWindow()->GetHandle());
-        ImGui_ImplDX11_Init(dx11render->GetDevice(), dx11render->GetContext());
-#endif
-    }
-
-    m_DebugMenu = new DebugMenu();
-    m_DebugMenu->m_IsVisible = false;
-    m_panels.push_back(m_DebugMenu);
 }
 
 //-----------------------------------------------------------------------------
@@ -107,7 +106,7 @@ void Gui::Render()
     } else if ( api == GraphicsAPI::DIRECTX11 )
     {
 #ifdef DX11
-        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        ImGui_ImplDX11_RenderDrawData( ImGui::GetDrawData() );
 #endif
     }
 }
@@ -115,4 +114,9 @@ void Gui::Render()
 //-----------------------------------------------------------------------------
 void Gui::Update()
 {
+}
+
+std::vector<Panel*>& Gui::GetPanels()
+{
+    return m_panels;
 }

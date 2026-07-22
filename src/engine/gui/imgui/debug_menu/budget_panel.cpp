@@ -6,7 +6,7 @@
 
 #include "engine.hpp"
 #include "dbg/profiler.hpp"
-#include "renderer/irender_pipeline.hpp"
+#include "renderer/irenderpipeline.hpp"
 
 static ImGuiTableFlags table_flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH
                                      | ImGuiTableFlags_Resizable

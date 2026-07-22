@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/isystem.hpp"
+
 constexpr auto ENGINE_NAME = "Noxel Engine";
 
 #ifdef _WIN32
