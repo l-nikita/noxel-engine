@@ -29,7 +29,7 @@ struct alignas(16) CBLight
     float Radius;
     float Cutoff;
     int ShadowMapIndex;
-    float _pad6;
+    float ShadowSoftness;
     glm::mat4 View;
     glm::mat4 Projection;
 };
@@ -38,7 +38,11 @@ struct CBLightsData
 {
     CBLight Lights[ MAX_LIGHTS ];
     glm::vec3 ViewPos;
-    float pad0;
+    int DebugView;
+    int DebugLightIndex;
+    float DebugOverlayOpacity;
+    float DebugVisualizationScale;
+    float DebugExposure;
 };
 
 struct CBViewData

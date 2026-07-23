@@ -90,6 +90,22 @@ public:
         DX11Helper::CreateBuffer(m_device, &cbd, nullptr, &m_cbTransform);
 
         //-----------------------------------------------------------------------------
+        // Offset shadow casters in depth space. Receiver-side bias alone cannot
+        // reliably remove acne from surfaces viewed at a grazing angle.
+        D3D11_RASTERIZER_DESC rasterDesc = {};
+        rasterDesc.FillMode = D3D11_FILL_SOLID;
+        rasterDesc.CullMode = D3D11_CULL_BACK;
+        rasterDesc.FrontCounterClockwise = FALSE;
+        rasterDesc.DepthBias = 1000;
+        rasterDesc.DepthBiasClamp = 0.01f;
+        rasterDesc.SlopeScaledDepthBias = 2.0f;
+        rasterDesc.DepthClipEnable = TRUE;
+
+        hr = m_device->CreateRasterizerState(&rasterDesc, &m_shadowRasterState);
+        if ( FAILED(hr) )
+            FATAL_ERROR("DX11: Failed to create shadow rasterizer state.", CMD::RENDERING);
+
+        //-----------------------------------------------------------------------------
         m_vars[ "model" ] = glm::mat4(1.0f);
         m_vars[ "lightview" ] = glm::mat4(1.0f);
         m_vars[ "lightproj" ] = glm::mat4(1.0f);
@@ -108,6 +124,7 @@ public:
     void Bind()
     {
         m_context->IASetInputLayout(m_inputLayout);
+        m_context->RSSetState(m_shadowRasterState);
 
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 lightView = glm::mat4(1.0f);
@@ -139,6 +156,7 @@ public:
     void Unbind()
     {
         m_context->IASetInputLayout(nullptr);
+        m_context->RSSetState(nullptr);
 
         ID3D11Buffer* nullBuffer = nullptr;
         m_context->VSSetConstantBuffers(0, 1, &nullBuffer);
@@ -157,11 +175,18 @@ public:
             m_cbTransform->Release();
             m_cbTransform = nullptr;
         }
+
+        if ( m_shadowRasterState )
+        {
+            m_shadowRasterState->Release();
+            m_shadowRasterState = nullptr;
+        }
     }
 
 private:
     ID3D11InputLayout* m_inputLayout = nullptr;
     ID3D11Buffer* m_cbTransform = nullptr;
+    ID3D11RasterizerState* m_shadowRasterState = nullptr;
 };
 
 REGISTER_SHADER(

@@ -51,6 +51,11 @@ bool Window::IsMinimized() const
     return ( GetFlags() & SDL_WINDOW_MINIMIZED );
 }
 
+bool Window::IsInputFocused() const
+{
+    return ( GetFlags() & SDL_WINDOW_INPUT_FOCUS );
+}
+
 void* Window::GetPointer() const
 {
     const auto ptr = SDL_GetPointerProperty( SDL_GetWindowProperties( m_handle ), SDL_PROP_WINDOW_WIN32_HWND_POINTER,

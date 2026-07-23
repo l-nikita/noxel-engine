@@ -3,6 +3,8 @@
 
 #include "dev_menu.hpp"
 #include "renderer/irenderer.hpp"
+#include "renderer/lighting.hpp"
+#include "renderer/render_debug.hpp"
 #include "renderer/rendercamera.hpp"
 
 DevPanel::DevPanel()
@@ -51,6 +53,101 @@ void DevPanel::Draw()
             if ( ImGui::BeginTabItem("Misc") )
             {
                 ImGui::Checkbox("Demo window", &m_demoViewEnabled);
+                ImGui::EndTabItem();
+            }
+
+            if ( ImGui::BeginTabItem("Visual debug") )
+            {
+                static const char* lightingViews[] = {
+                    "Lit",
+                    "Albedo",
+                    "Normals",
+                    "World position",
+                    "Roughness",
+                    "Metalness",
+                    "Ambient occlusion",
+                    "Emission",
+                    "Shadow factor",
+                    "Light attenuation",
+                    "Selected light contribution",
+                    "Direct lighting",
+                    "Ambient lighting",
+                    "Camera distance",
+                    "World grid",
+                };
+
+                ImGui::SeparatorText("Lighting overlay");
+                ImGui::Combo(
+                    "View",
+                    &g_RenderDebugSettings.LightingView,
+                    lightingViews,
+                    IM_ARRAYSIZE(lightingViews)
+                );
+
+                if ( g_RenderDebugSettings.LightingView != LIGHTING_DEBUG_LIT )
+                {
+                    ImGui::SliderFloat(
+                        "Overlay opacity",
+                        &g_RenderDebugSettings.OverlayOpacity,
+                        0.0f,
+                        1.0f,
+                        "%.2f"
+                    );
+                }
+
+                const bool lightView =
+                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_SHADOW_FACTOR ||
+                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_ATTENUATION ||
+                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_SELECTED_LIGHT;
+
+                if ( lightView )
+                {
+                    ImGui::SliderInt(
+                        "Light index",
+                        &g_RenderDebugSettings.SelectedLight,
+                        0,
+                        MAX_LIGHTS - 1
+                    );
+                }
+
+                const bool scaledView =
+                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_WORLD_POSITION ||
+                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_CAMERA_DISTANCE ||
+                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_WORLD_GRID;
+
+                if ( scaledView )
+                {
+                    ImGui::SliderFloat(
+                        "Visualization scale",
+                        &g_RenderDebugSettings.VisualizationScale,
+                        0.001f,
+                        1.0f,
+                        "%.3f",
+                        ImGuiSliderFlags_Logarithmic
+                    );
+                }
+
+                ImGui::SeparatorText("Output");
+                ImGui::SliderFloat(
+                    "Exposure",
+                    &g_RenderDebugSettings.Exposure,
+                    0.0f,
+                    4.0f,
+                    "%.2f"
+                );
+
+                if ( ImGui::Button("Reset visual debug") )
+                    g_RenderDebugSettings = {};
+
+                ImGui::SameLine();
+
+                if ( ImGui::Button("Show final image") )
+                    g_RenderDebugSettings.LightingView = LIGHTING_DEBUG_LIT;
+
+                ImGui::Spacing();
+                ImGui::TextDisabled("Shadow: white = lit, black = occluded");
+                ImGui::TextDisabled("Heatmaps: blue = low, red = high");
+
                 ImGui::EndTabItem();
             }
 

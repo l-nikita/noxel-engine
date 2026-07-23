@@ -10,7 +10,7 @@
 
 constexpr auto MAX_LIGHTS = 6;
 constexpr auto MAX_SHADOWS_MAPS = 4;
-constexpr auto SHADOW_MAP_SIZE = 1024;
+constexpr auto SHADOW_MAP_SIZE = 2048;
 
 enum LightType
 {
@@ -28,7 +28,7 @@ public:
     ShadowMap()
     {
         auto factory = g_Renderer->GetFactory();
-        m_depth = factory->CreateDepthStencil(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, true);
+        m_depth = factory->CreateDepthStencil( SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, true );
     }
 
     ~ShadowMap()
@@ -41,7 +41,7 @@ public:
         auto factory = g_Renderer->GetFactory();
         if ( m_depth )
         {
-            factory->Release(m_depth);
+            factory->Release( m_depth );
             m_depth = nullptr;
         }
     }
@@ -67,9 +67,9 @@ class Light : public Transformable
 {
 public:
     Light( LightType type, bool shadowsEnabled = false )
-        : m_type(type)
+        : m_type( type )
     {
-        if ( shadowsEnabled && IsA(LIGHT_SPOT) )
+        if ( shadowsEnabled && IsA( LIGHT_SPOT ) )
             m_shadowMap = new ShadowMap();
     }
 
@@ -122,6 +122,11 @@ public:
         return m_fov;
     }
 
+    float GetShadowSoftness() const
+    {
+        return m_shadowSoftness;
+    }
+
     glm::vec3 GetColor() const
     {
         return m_color;
@@ -142,6 +147,11 @@ public:
         m_fov = fov;
     }
 
+    void SetShadowSoftness( const float softness )
+    {
+        m_shadowSoftness = glm::max( softness, 0.0f );
+    }
+
     void SetColor( glm::vec3 color )
     {
         m_color = color;
@@ -150,14 +160,14 @@ public:
     glm::mat4 GetViewMatrix() const
     {
         auto& trans = GetTransform();
-        return glm::lookAtLH(trans.Position,
-                             trans.Position + trans.Forward(),
-                             trans.Up());
+        return glm::lookAtLH( trans.Position,
+                              trans.Position + trans.Forward(),
+                              trans.Up() );
     }
 
     glm::mat4 GetProjectionMatrix() const
     {
-        return glm::perspectiveLH_ZO(glm::radians(m_fov), 1.0f, 0.1f, GetRadius());
+        return glm::perspectiveLH_ZO( glm::radians( m_fov ), 1.0f, 0.1f, GetRadius() );
     }
 
 private:
@@ -168,7 +178,8 @@ private:
     bool m_enabled = true;
     float m_radius = 15;
     float m_fov = 75;
-    glm::vec3 m_color = glm::vec3(1);
+    float m_shadowSoftness = 0.02f;
+    glm::vec3 m_color = glm::vec3( 1 );
 };
 
 //-----------------------------------------------------------------------------

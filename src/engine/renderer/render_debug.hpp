@@ -1,0 +1,31 @@
+#pragma once
+
+enum LightingDebugView
+{
+    LIGHTING_DEBUG_LIT = 0,
+    LIGHTING_DEBUG_ALBEDO,
+    LIGHTING_DEBUG_NORMALS,
+    LIGHTING_DEBUG_WORLD_POSITION,
+    LIGHTING_DEBUG_ROUGHNESS,
+    LIGHTING_DEBUG_METALNESS,
+    LIGHTING_DEBUG_AO,
+    LIGHTING_DEBUG_EMISSION,
+    LIGHTING_DEBUG_SHADOW_FACTOR,
+    LIGHTING_DEBUG_ATTENUATION,
+    LIGHTING_DEBUG_SELECTED_LIGHT,
+    LIGHTING_DEBUG_DIRECT_LIGHTING,
+    LIGHTING_DEBUG_AMBIENT_LIGHTING,
+    LIGHTING_DEBUG_CAMERA_DISTANCE,
+    LIGHTING_DEBUG_WORLD_GRID,
+};
+
+struct RenderDebugSettings
+{
+    int LightingView = LIGHTING_DEBUG_LIT;
+    int SelectedLight = 0;
+    float OverlayOpacity = 1.0f;
+    float VisualizationScale = 0.1f;
+    float Exposure = 1.0f;
+};
+
+inline RenderDebugSettings g_RenderDebugSettings;

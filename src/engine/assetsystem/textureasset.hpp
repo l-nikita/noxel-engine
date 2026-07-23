@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <stb_image.h>
+#include "filesystem/ifilesystem.hpp"
 #include "assetsystem.hpp"
 #include "baseasset.hpp"
 #include "dbg/debug.hpp"
@@ -31,7 +32,7 @@ struct TextureData
     {
         if ( Image )
         {
-            stbi_image_free(Image);
+            stbi_image_free( Image );
             Image = nullptr;
             Width = 0;
             Height = 0;
@@ -63,15 +64,17 @@ public:
     {
         if ( m_assetPath.empty() )
         {
-            CMD_ERROR("Asset path is null or empty!!!", CMD::ASSETSYSTEM);
+            CMD_ERROR( "Asset path is null or empty!!!", CMD::ASSETSYSTEM );
             return nullptr;
         }
 
+        auto buffer = g_FileSystem->Read( m_assetPath );
+
         int width, height, channels;
-        unsigned char* image = stbi_load(m_assetPath.string().c_str(), &width, &height, &channels, 4);
+        unsigned char* image = stbi_load_from_memory( buffer.data(), buffer.size(), &width, &height, &channels, 4 );
         if ( !image )
         {
-            CMD_ERROR("Couldn't load texture [" + m_assetPath.string() + "]!", CMD::ASSETSYSTEM);
+            CMD_ERROR( "Couldn't load texture [" + m_assetPath.string() + "]!", CMD::ASSETSYSTEM );
             return nullptr;
         }
 
@@ -87,29 +90,29 @@ public:
 #pragma region CreateNew/Get
     static TextureAsset* CreateNew( const std::string& name, const std::string& assetPath )
     {
-        const auto asset = new TextureAsset(name, assetPath);
-        g_Assets->RegisterAsset(asset);
+        const auto asset = new TextureAsset( name, assetPath );
+        g_Assets->RegisterAsset( asset );
         return asset;
     }
 
     static TextureAsset* CreateOrGet( const std::string& name, const std::string& assetPath )
     {
-        if ( const auto asset = g_Assets->GetAsset(Type, name) )
+        if ( const auto asset = g_Assets->GetAsset( Type, name ) )
             return dynamic_cast<TextureAsset*>(asset);
 
-        const auto texAsset = new TextureAsset(name, assetPath);
-        g_Assets->RegisterAsset(texAsset);
+        const auto texAsset = new TextureAsset( name, assetPath );
+        g_Assets->RegisterAsset( texAsset );
         return texAsset;
     }
 
     static TextureAsset* Get( const std::string& name )
     {
-        auto& assets = g_Assets->GetAssets(Type);
-        const auto it = assets.find(name);
+        auto& assets = g_Assets->GetAssets( Type );
+        const auto it = assets.find( name );
 
         if ( it == assets.end() )
         {
-            CMD_ERROR("Couldn't find texture [" + name + "].", CMD::ASSETSYSTEM);
+            CMD_ERROR( "Couldn't find texture [" + name + "].", CMD::ASSETSYSTEM );
             return GetError();
         }
 
@@ -121,7 +124,7 @@ public:
 
     static TextureAsset* GetError()
     {
-        assert(m_error != nullptr);
+        assert( m_error != nullptr );
         return m_error;
     }
 };

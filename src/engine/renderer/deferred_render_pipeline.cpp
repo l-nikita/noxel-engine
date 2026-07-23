@@ -185,7 +185,7 @@ SysInit DeferredRenderPipeline::Initialize()
     g_TestModel->m_Transform.Scale = glm::vec3( 0.5f );
     m_Models.push_back( g_TestModel );
 
-    g_TestModel2 = new Model( mesh, mat );
+    g_TestModel2 = new Model( mesh, mat2 );
     g_TestModel2->m_Transform.Position = glm::vec3( 0, -5, 0 );
     g_TestModel2->m_Transform.Scale = glm::vec3( 20, 1, 20 );
     g_TestModel2->m_CastShadows = true;

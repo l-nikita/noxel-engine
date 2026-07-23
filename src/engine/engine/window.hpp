@@ -15,6 +15,7 @@ public:
     void SetFullscreen( bool fullscreen ) const;
     bool IsInFullscreen() const;
     bool IsMinimized() const;
+    bool IsInputFocused() const;
 
     void* GetPointer() const;
 

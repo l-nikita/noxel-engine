@@ -7,8 +7,8 @@
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 
-#include "dbg/debug.hpp"
 #include "engine.hpp"
+#include "window.hpp"
 #include "common/transformable.hpp"
 #include "input/iinput.hpp"
 #include "physics/physics.hpp"
@@ -46,7 +46,7 @@ public:
         auto eyePos = pos + glm::vec3( 0, CHARACTER_EYE_HEIGHT, 0 );
 
         const auto delta = g_Input->GetMouseDelta();
-        if ( g_Input->GetRelativeMouseMode() )
+        if ( g_Input->GetRelativeMouseMode() && g_Engine->GetWindow()->IsInputFocused() )
         {
             m_yaw += delta.x * SENSITIVITY * dt;
             m_pitch += delta.y * SENSITIVITY * dt;

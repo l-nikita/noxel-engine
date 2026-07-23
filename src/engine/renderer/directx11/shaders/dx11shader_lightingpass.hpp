@@ -6,6 +6,7 @@
 #include "dx11shader.hpp"
 #include "dbg/debug.hpp"
 #include "renderer/lighting.hpp"
+#include "renderer/render_debug.hpp"
 #include "renderer/rendercamera.hpp"
 #include "renderer/shaderregistry.hpp"
 #include "renderer/directx11/dx11helper.hpp"
@@ -46,6 +47,24 @@ public:
         hr = m_device->CreateSamplerState(&samp2Desc, &m_sampler2State);
         if ( FAILED(hr) )
             FATAL_ERROR("DX11: Failed to create sampler state.", CMD::RENDERING);
+
+        //-----------------------------------------------------------------------------
+        D3D11_SAMPLER_DESC shadowDepthSamplerDesc = {};
+        shadowDepthSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+        shadowDepthSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+        shadowDepthSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+        shadowDepthSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+        shadowDepthSamplerDesc.BorderColor[ 0 ] = 1.0f;
+        shadowDepthSamplerDesc.BorderColor[ 1 ] = 1.0f;
+        shadowDepthSamplerDesc.BorderColor[ 2 ] = 1.0f;
+        shadowDepthSamplerDesc.BorderColor[ 3 ] = 1.0f;
+        shadowDepthSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+        shadowDepthSamplerDesc.MinLOD = 0;
+        shadowDepthSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+        hr = m_device->CreateSamplerState(&shadowDepthSamplerDesc, &m_shadowDepthSamplerState);
+        if ( FAILED(hr) )
+            FATAL_ERROR("DX11: Failed to create shadow depth sampler state.", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
         D3D11_BUFFER_DESC cbd = {};
@@ -109,6 +128,11 @@ public:
 
         CBLightsData data{};
         data.ViewPos = camTransform.Position;
+        data.DebugView = g_RenderDebugSettings.LightingView;
+        data.DebugLightIndex = g_RenderDebugSettings.SelectedLight;
+        data.DebugOverlayOpacity = g_RenderDebugSettings.OverlayOpacity;
+        data.DebugVisualizationScale = g_RenderDebugSettings.VisualizationScale;
+        data.DebugExposure = g_RenderDebugSettings.Exposure;
 
         ID3D11ShaderResourceView* shadowMapSRVs[ MAX_SHADOWS_MAPS ] = {nullptr};
         int shadowCount = 0;
@@ -132,6 +156,7 @@ public:
             dataLight.Radius = light->GetRadius();
             dataLight.Pos = transform.Position;
             dataLight.ShadowMapIndex = -1;
+            dataLight.ShadowSoftness = light->GetShadowSoftness();
 
             if ( dataLight.Type == LIGHT_SPOT )
             {
@@ -173,6 +198,7 @@ public:
 
         m_context->PSSetSamplers(0, 1, &m_samplerState);
         m_context->PSSetSamplers(1, 1, &m_sampler2State);
+        m_context->PSSetSamplers(2, 1, &m_shadowDepthSamplerState);
     }
 
     void Unbind()
@@ -186,8 +212,8 @@ public:
 
         m_context->PSSetConstantBuffers(0, 0, nullptr);
 
-        ID3D11SamplerState* nullSampler[ 2 ] = {nullptr};
-        m_context->PSSetSamplers(0, 2, nullSampler);
+        ID3D11SamplerState* nullSampler[ 3 ] = {nullptr};
+        m_context->PSSetSamplers(0, 3, nullSampler);
     }
 
     void Release()
@@ -204,6 +230,12 @@ public:
             m_sampler2State = nullptr;
         }
 
+        if ( m_shadowDepthSamplerState )
+        {
+            m_shadowDepthSamplerState->Release();
+            m_shadowDepthSamplerState = nullptr;
+        }
+
         if ( m_lightBuffer )
         {
             m_lightBuffer->Release();
@@ -214,6 +246,7 @@ public:
 private:
     ID3D11SamplerState* m_samplerState = nullptr;
     ID3D11SamplerState* m_sampler2State = nullptr;
+    ID3D11SamplerState* m_shadowDepthSamplerState = nullptr;
     ID3D11Buffer* m_lightBuffer = nullptr;
 
     Light* m_light1 = nullptr;

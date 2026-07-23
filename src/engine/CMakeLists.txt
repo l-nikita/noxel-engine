@@ -73,12 +73,12 @@ add_custom_command( TARGET engine POST_BUILD
 target_link_libraries( engine PUBLIC
         proto
         SDL3::SDL3
-        EnTT::EnTT
+        # EnTT::EnTT
         glm::glm
         Jolt::Jolt
         nlohmann_json::nlohmann_json
-        protobuf::libprotobuf
-        GameNetworkingSockets::static
+        # protobuf::libprotobuf
+        # GameNetworkingSockets::static
         imgui::imgui
 
         $<$<PLATFORM_ID:Windows>:

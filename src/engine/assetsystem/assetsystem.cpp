@@ -1,5 +1,6 @@
 #include <filesystem>
 
+#include "filesystem/ifilesystem.hpp"
 #include "assetsystem.hpp"
 #include "materialasset.hpp"
 #include "shaderasset.hpp"
