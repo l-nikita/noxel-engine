@@ -4,12 +4,16 @@
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Character/Character.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/CastResult.h>
 
+#include "dbg/debug.hpp"
 #include "engine.hpp"
 #include "common/transformable.hpp"
 #include "input/iinput.hpp"
 #include "physics/physics.hpp"
 #include "physics/physics_renderer.hpp"
+#include "renderer/gizmos.hpp"
 #include "renderer/rendercamera.hpp"
 
 constexpr auto SENSITIVITY = 10.0f;
@@ -99,6 +103,9 @@ public:
         return CHARACTER_MAX_SPEED;
     }
 
+    glm::vec3 StartPos = {};
+    glm::vec3 HitPos = {};
+
     void UpdateMovement( const float dt )
     {
         m_character->UpdateGroundVelocity();
@@ -126,12 +133,37 @@ public:
         //ray.mOrigin = JPH::Vec3(10, 2, 0);
         //ray.mDirection = JPH::Vec3(0, -2, 0);
 
+        auto characterPos = Utils::GLM_Vec3_JPH( m_character->GetPosition() );
+        StartPos = m_Camera->GetPosition();
+
+        JPH::RayCastResult hit;
+        JPH::RRayCast ray(
+            Utils::JPH_Vec3_GLM( StartPos ),
+            Utils::JPH_Vec3_GLM( m_Camera->Forward() ) * 5
+        );
+
+        Raycast( GetPhysics()->GetSystem(), ray, hit );
+
+        JPH::RVec3 hitPosition = ray.GetPointOnRay( hit.mFraction );
+        JPH::BodyID bodyID = hit.mBodyID;
+        HitPos = Utils::GLM_Vec3_JPH( hitPosition );
+
         vel += m_wishVelocity;
         vel += g_Physics->GetGravity() * dt * 2.0f;
 
         //std::cout << m_wishVelocity.x << " " << m_wishVelocity.y << " " << m_wishVelocity.z << std::endl;
 
         m_character->SetLinearVelocity( Utils::JPH_Vec3_GLM( vel ) );
+    }
+
+    bool Raycast(
+        const JPH::PhysicsSystem* physicsSystem,
+        const JPH::RRayCast& ray,
+        JPH::RayCastResult& hit
+    )
+    {
+        return physicsSystem->GetNarrowPhaseQuery()
+                .CastRay( ray, hit );
     }
 
     void Update()
@@ -164,6 +196,9 @@ public:
             m_character->GetShape()->Draw( JPH::DebugRenderer::sInstance, com, JPH::Vec3::sOne(), JPH::Color::sGreen,
                                            false, true );
         }
+
+        Gizmos::Box( HitPos, glm::quat(), glm::vec3( 0.0f, 0.0f, 0.0f ), glm::vec3( 0.1f, 0.1f, 0.1f ) );
+        Gizmos::Line( StartPos, HitPos );
     }
 
     RenderCamera* m_Camera = nullptr;

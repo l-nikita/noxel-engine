@@ -84,7 +84,7 @@ namespace Debug
     ::Debug::Log((msg), CMD::DEFAULT, category)
 
 #define CMD_DMSG(msg) \
-    ::Debug::Log((msg), CMD::DEFAULT, CMD::NONE)
+    ::Debug::Log((msg), CMD::NONE, CMD::DEFAULT)
 
 #define CMD_INFO(msg, category) \
     ::Debug::Log((msg), category, CMD::INFO)
