@@ -1,3 +1,5 @@
+#include <unordered_set>
+
 #include "engine.hpp"
 #include "assetsystem/assetsystem.hpp"
 #include "dbg/debug.hpp"
@@ -57,11 +59,25 @@ void Engine::InitializeSystems()
         m_gui
     } );
 
+    std::unordered_set<SysId> initialized;
+
     for ( auto system: m_systems )
     {
+        const auto& [ Id, Name, Dependencies ] = system->GetMetadata();
+
+        for ( auto dep: Dependencies )
+        {
+            if ( !initialized.contains( dep ) )
+                FATAL_ERROR( "Dependency is not initialized for system: " + std::string(Name), CMD::ENGINE );
+        }
+
         const auto result = system->Initialize();
-        if ( !result.has_value() )
+        if ( !result )
             FATAL_ERROR( "Failed to initialize: " + result.error(), CMD::ENGINE );
+
+        CMD_INFO( std::string(Name) + " initialized", CMD::ENGINE );
+
+        initialized.insert( Id );
     }
 
     Gizmos::Init();

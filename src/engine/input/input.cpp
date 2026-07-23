@@ -8,7 +8,6 @@
 //-----------------------------------------------------------------------------
 SysInit Input::Initialize()
 {
-    CMD_INFO( "Input initialized", CMD::INPUT );
     return {};
 }
 

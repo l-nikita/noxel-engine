@@ -10,10 +10,8 @@
 //-----------------------------------------------------------------------------
 class AssetSystem : public IAssetSystem
 {
-    std::unordered_map<AssetType, AssetsMap> m_assets;
-    std::filesystem::path m_rootPath;
-    std::filesystem::path m_binPath;
-    std::filesystem::path m_assetsPath;
+public:
+    SYSTEM_METADATA( ASSET_SYSTEM, "AssetSystem", SysId::FILESYSTEM );
 
 public:
     SysInit Initialize() override;
@@ -63,4 +61,10 @@ public:
 
         return nullptr;
     }
+
+private:
+    std::unordered_map<AssetType, AssetsMap> m_assets;
+    std::filesystem::path m_rootPath;
+    std::filesystem::path m_binPath;
+    std::filesystem::path m_assetsPath;
 };

@@ -38,7 +38,6 @@ SysInit AssetSystem::Initialize()
     MaterialAsset::CreateNew( "metal1", ( m_assetsPath / "materials" / "metal1.nmt" ).string() );
     MaterialAsset::CreateNew( "skybox", ( m_assetsPath / "materials" / "skybox.nmt" ).string() );
 
-    CMD_INFO( "Asset system initialized", CMD::ASSETSYSTEM );
     return {};
 }
 

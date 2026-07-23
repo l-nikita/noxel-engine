@@ -8,6 +8,9 @@
 class FileSystem : public IFileSystem
 {
 public:
+    SYSTEM_METADATA( FILESYSTEM, "FileSystem" );
+
+public:
     SysInit Initialize() override;
     void Shutdown() override;
 

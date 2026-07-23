@@ -47,6 +47,9 @@ struct GBuffer
 class DeferredRenderPipeline final : public IRenderPipeline
 {
 public:
+    SYSTEM_METADATA( RENDER_PIPELINE, "DeferredRenderPipeline" );
+
+public:
     DeferredRenderPipeline() = default;
 
     SysInit Initialize() override;

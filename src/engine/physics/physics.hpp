@@ -17,6 +17,9 @@ class PhysicsDebugRenderer;
 class JoltPhysics final : public IPhysics
 {
 public:
+    SYSTEM_METADATA( PHYSICS, "Physics" );
+
+public:
     SysInit Initialize() override;
     void Shutdown() override;
     void Update() override;

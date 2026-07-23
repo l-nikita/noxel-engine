@@ -141,8 +141,6 @@ SysInit JoltPhysics::Initialize()
     m_system->OptimizeBroadPhase();
     m_isRunning = true;
 
-    CMD_INFO( "Physics initialized", CMD::PHYSICS );
-
     return {};
 }
 

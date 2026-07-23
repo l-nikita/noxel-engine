@@ -211,8 +211,6 @@ SysInit DeferredRenderPipeline::Initialize()
     m_shadowsShader = factory->CreateShaderProgram( ShaderAsset::Get( "shadowspass" ) );
     m_lightingShader = factory->CreateShaderProgram( ShaderAsset::Get( "lightingpass" ) );
 
-    CMD_INFO( "RenderPipeline initialized", CMD::RENDERING );
-
     return {};
 }
 

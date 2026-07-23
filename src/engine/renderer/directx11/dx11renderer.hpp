@@ -13,6 +13,9 @@
 class DX11Renderer final : public IRenderer
 {
 public:
+    SYSTEM_METADATA( RENDERER, "DX11Renderer" );
+
+public:
     SysInit Initialize() override;
     void Shutdown() override;
 

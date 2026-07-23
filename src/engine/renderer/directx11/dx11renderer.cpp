@@ -60,8 +60,6 @@ SysInit DX11Renderer::Initialize()
     int width, height;
     g_Engine->GetWindow()->GetSize( &width, &height );
 
-    CMD_INFO( "DX11: Renderer initialized", CMD::RENDERING );
-
     return {};
 }
 
@@ -125,6 +123,20 @@ void DX11Renderer::OnWindowResize( int width, int height )
         FATAL_ERROR( "DX11: Failed to get back buffer.", CMD::RENDERING );
 
     m_backBuffer = new DX11RenderTexture( m_device, m_context, backBufferTex, true, TextureFormat::RGBA32F );
+}
+
+void DX11Renderer::SetVSync( const bool value )
+{
+    if ( m_vsyncEnabled == value )
+        return;
+
+    m_vsyncEnabled = value;
+
+    if ( m_swapChain )
+    {
+        const UINT maximumFrameLatency = m_vsyncEnabled ? 1 : cSwapChainBufferCount;
+        m_swapChain->SetMaximumFrameLatency( maximumFrameLatency );
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -234,20 +246,6 @@ void DX11Renderer::WaitForFrame()
 {
     if ( m_vsyncEnabled && m_frameLatencyWaitableObject )
         WaitForSingleObjectEx( m_frameLatencyWaitableObject, 1000, TRUE );
-}
-
-void DX11Renderer::SetVSync( const bool value )
-{
-    if ( m_vsyncEnabled == value )
-        return;
-
-    m_vsyncEnabled = value;
-
-    if ( m_swapChain )
-    {
-        const UINT maximumFrameLatency = m_vsyncEnabled ? 1 : cSwapChainBufferCount;
-        m_swapChain->SetMaximumFrameLatency( maximumFrameLatency );
-    }
 }
 
 void DX11Renderer::Swap()

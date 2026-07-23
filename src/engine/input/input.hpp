@@ -9,6 +9,9 @@
 class Input : public IInput
 {
 public:
+    SYSTEM_METADATA( INPUT, "Input" );
+
+public:
     SysInit Initialize() override;
     void Shutdown() override;
 

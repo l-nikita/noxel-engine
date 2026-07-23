@@ -71,7 +71,7 @@ void Engine::Shutdown()
         delete m_window, m_window = nullptr;
 
     SDL_Quit();
-    CMD_INFO( "Engine stopped.", CMD::ENGINE );
+    CMD_INFO( "Engine stopped", CMD::ENGINE );
 }
 
 bool Engine::IsRunning()
