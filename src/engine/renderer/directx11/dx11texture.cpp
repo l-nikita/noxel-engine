@@ -1,9 +1,9 @@
+#include <cassert>
 #include <stdexcept>
 #include <string>
 #include <d3d11.h>
 #include "dx11texture.hpp"
 #include "dx11helper.hpp"
-#include "assetsystem/textureasset.hpp"
 
 //-----------------------------------------------------------------------------
 //

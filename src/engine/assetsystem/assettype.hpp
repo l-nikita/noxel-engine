@@ -1,12 +1,17 @@
 #pragma once
 
-enum AssetType
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+enum class AssetType
 {
     INVALID = 0,
     MATERIAL,
     TEXTURE,
     SHADER,
+    MESH,
+    MODEL,
     FONT,
     SOUND,
-    MODEL,
+    SOUND_EVENT,
 };

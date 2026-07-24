@@ -1,0 +1,5 @@
+{
+	"name": "skyboxpass",
+	"pixelshader": "skyboxpass_ps.hlsl",
+	"vertexshader": "skyboxpass_vs.hlsl"
+}

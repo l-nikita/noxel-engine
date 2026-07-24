@@ -10,9 +10,7 @@
 
 #include "meshdata.hpp"
 
-class ShaderAsset;
-class TextureAsset;
-class MaterialAsset;
+struct Asset;
 
 //-----------------------------------------------------------------------------
 // Кто Create... Тот делает Release...
@@ -22,15 +20,15 @@ class IRenderFactory
 public:
     virtual ~IRenderFactory() = default;
 
-    virtual ITexture* CreateTexture( TextureAsset* asset ) = 0;
+    virtual ITexture* CreateTexture( const Asset* asset ) = 0;
     virtual ITexture* CreateTexture( const TextureDesc& desc ) = 0;
-    virtual ITexture* CreateCubemap( MaterialAsset* asset ) = 0;
+    virtual ITexture* CreateCubemap( const Asset* asset ) = 0;
 
-    virtual IMaterial* CreateMaterial( MaterialAsset* asset ) = 0;
+    virtual IMaterial* CreateMaterial( const Asset* asset ) = 0;
     virtual IMaterial* CreateMaterial( std::string assetName ) = 0;
 
     virtual IMesh* CreateMesh( const MeshData& data ) = 0;
-    virtual IShaderProgram* CreateShaderProgram( ShaderAsset* asset ) = 0;
+    virtual IShaderProgram* CreateShaderProgram( const Asset* asset ) = 0;
 
     virtual IRenderTexture* CreateRenderTexture( int width, int height, bool depth,
                                                  TextureFormat format = TextureFormat::RGBA32F ) = 0;

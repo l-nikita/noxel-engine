@@ -1,14 +1,23 @@
 #pragma once
 
-#include <unordered_map>
-#include "assettype.hpp"
-#include "baseasset.hpp"
 #include "iassetsystem.hpp"
+#include "loaders/materialloader.hpp"
+#include "loaders/shaderloader.hpp"
+#include "loaders/textureloader.hpp"
+
+//-----------------------------------------------------------------------------
+
+static const std::string SUPPORTED_IMAGE_FORMATS[ ] = {
+    ".jpg", ".png"
+};
+
+constexpr auto MATERIAL_EXTENSION = ".nmt";
+constexpr auto SHADER_EXTENSION = ".nshader";
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class AssetSystem : public IAssetSystem
+class AssetSystem final : public IAssetSystem
 {
 public:
     SYSTEM_METADATA( ASSET_SYSTEM, "AssetSystem", SysId::FILESYSTEM );
@@ -17,54 +26,22 @@ public:
     SysInit Initialize() override;
     void Shutdown() override;
 
-    std::filesystem::path GetRootPath() override
-    {
-        return m_rootPath;
-    }
+    const Assets& GetAssets() const override;
+    const Asset* GetAsset( const FPath& path, AssetType type ) const override;
 
-    std::filesystem::path GetBinPath() override
-    {
-        return m_binPath;
-    }
+    void RegisterAsset( const FPath& path, AssetType type ) override;
 
-    std::filesystem::path GetAssetsPath() override
-    {
-        return m_assetsPath;
-    }
-
-    std::filesystem::path GetMaterialsPath() override
-    {
-        return GetAssetsPath() / "materials";
-    }
-
-    void RegisterAsset( BaseAsset* asset ) override;
-
-    const AssetsMap& GetAssets( const AssetType type ) override
-    {
-        const auto it = m_assets.find( type );
-        if ( it == m_assets.end() )
-            return m_assets[ type ];
-
-        return it->second;
-    }
-
-    BaseAsset* GetAsset( const AssetType type, const std::string& name ) override
-    {
-        const auto typeIt = m_assets.find( type );
-        if ( typeIt == m_assets.end() )
-            return nullptr;
-
-        const auto& assetsMap = typeIt->second;
-
-        if ( const auto assetIt = assetsMap.find( name ); assetIt != assetsMap.end() )
-            return assetIt->second;
-
-        return nullptr;
-    }
+protected:
+    void* LoadAssetImpl( const Asset* asset ) override;
 
 private:
-    std::unordered_map<AssetType, AssetsMap> m_assets;
-    std::filesystem::path m_rootPath;
-    std::filesystem::path m_binPath;
-    std::filesystem::path m_assetsPath;
+    void SearchAssets();
+    void DetectAndRegisterAsset( const FPath& file );
+
+private:
+    Assets m_assets = {};
+
+    MaterialLoader m_materialLoader;
+    ShaderLoader m_shaderLoader;
+    TextureLoader m_textureLoader;
 };

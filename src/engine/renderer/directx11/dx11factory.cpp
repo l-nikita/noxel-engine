@@ -1,5 +1,3 @@
-#pragma once
-
 #include "dx11factory.hpp"
 #include "dx11depthstencil.hpp"
 #include "dx11material.hpp"
@@ -8,18 +6,23 @@
 #include "dx11shaderprogram.hpp"
 #include "dx11texture.hpp"
 #include "dx11viewport.hpp"
-#include "assetsystem/materialasset.hpp"
+#include "assetsystem/iassetsystem.hpp"
+#include "assetsystem/materialdata.hpp"
+#include "assetsystem/texturedata.hpp"
+#include "dbg/debug.hpp"
 
 DX11Factory::DX11Factory( ID3D11Device* device, ID3D11DeviceContext* context )
     : m_device( device ), m_context( context )
 {
 }
 
-ITexture* DX11Factory::CreateTexture( TextureAsset* asset )
+ITexture* DX11Factory::CreateTexture( const Asset* asset )
 {
     assert( asset );
 
-    TextureData* data = asset->Load();
+    std::unique_ptr<TextureData> data( g_Assets->LoadAsset<TextureData>( asset ) );
+    if ( !data || !data->Image )
+        return nullptr;
 
     TextureDesc desc = {};
     desc.Width = data->Width;
@@ -30,8 +33,6 @@ ITexture* DX11Factory::CreateTexture( TextureAsset* asset )
     desc.MipLevels = 1;
 
     auto tex = CreateTexture( desc );
-    delete data;
-
     return tex;
 }
 
@@ -42,14 +43,18 @@ ITexture* DX11Factory::CreateTexture( const TextureDesc& desc )
     return tex;
 }
 
-ITexture* DX11Factory::CreateCubemap( MaterialAsset* asset )
+ITexture* DX11Factory::CreateCubemap( const Asset* asset )
 {
     assert( asset );
 
-    if ( !asset->IsCubemap() )
+    std::unique_ptr<MaterialData> materialData( g_Assets->LoadAsset<MaterialData>( asset ) );
+    if ( !materialData )
+        return nullptr;
+
+    if ( !materialData->IsCubemap )
     {
         CMD_ERROR(
-            "DX11 Factory: Failed to create cubemap because material [" + asset->GetName() + "] isn't a cubemap.",
+            "DX11 Factory: Failed to create cubemap because material [" + asset->Name + "] isn't a cubemap.",
             CMD::RENDERING );
         return nullptr;
     }
@@ -61,15 +66,15 @@ ITexture* DX11Factory::CreateCubemap( MaterialAsset* asset )
 
     for ( const auto& faceName: CUBEMAP_FACES_ORDER )
     {
-        TextureAsset* faceAsset = nullptr;
-
-        for ( const auto& [ paramName, texAsset ]: asset->GetTexturesAssets() )
+        const Asset* faceAsset = nullptr;
+        if ( const auto parameter = materialData->Parameters.find( faceName );
+            parameter != materialData->Parameters.end() && parameter->is_string() )
         {
-            if ( paramName == faceName )
-            {
-                faceAsset = texAsset;
-                break;
-            }
+            const auto textureReference = parameter->get<std::string>();
+            const auto facePath = asset->Path.parent_path() / textureReference;
+            faceAsset = g_Assets->GetAsset( facePath, AssetType::TEXTURE );
+            if ( !faceAsset )
+                faceAsset = g_Assets->GetAsset( textureReference, AssetType::TEXTURE );
         }
 
         if ( !faceAsset )
@@ -78,7 +83,7 @@ ITexture* DX11Factory::CreateCubemap( MaterialAsset* asset )
             return nullptr;
         }
 
-        std::unique_ptr<TextureData> data( faceAsset->Load() );
+        std::unique_ptr<TextureData> data( g_Assets->LoadAsset<TextureData>( faceAsset ) );
         if ( !data || !data->Image )
         {
             CMD_ERROR( "Failed to load cubemap face: " + faceName, CMD::RENDERING );
@@ -109,7 +114,7 @@ ITexture* DX11Factory::CreateCubemap( MaterialAsset* asset )
     return tex;
 }
 
-IMaterial* DX11Factory::CreateMaterial( MaterialAsset* asset )
+IMaterial* DX11Factory::CreateMaterial( const Asset* asset )
 {
     assert( asset );
 
@@ -122,7 +127,14 @@ IMaterial* DX11Factory::CreateMaterial( std::string assetName )
 {
     assert( !assetName.empty() );
 
-    auto mat = new DX11Material( m_device, m_context, MaterialAsset::Get( assetName ) );
+    const auto asset = g_Assets->GetAsset( assetName, AssetType::MATERIAL );
+    if ( !asset )
+    {
+        CMD_ERROR( "Material asset not found: " + assetName, CMD::RENDERING );
+        return nullptr;
+    }
+
+    auto mat = new DX11Material( m_device, m_context, asset );
     m_resources.push_back( mat );
     return mat;
 }
@@ -139,7 +151,7 @@ IMesh* DX11Factory::CreateMesh( const MeshData& data )
     return mesh;
 }
 
-IShaderProgram* DX11Factory::CreateShaderProgram( ShaderAsset* asset )
+IShaderProgram* DX11Factory::CreateShaderProgram( const Asset* asset )
 {
     assert( asset );
 

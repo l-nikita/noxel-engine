@@ -11,7 +11,7 @@
 #include "rendercamera.hpp"
 #include "gui/igui.hpp"
 
-#include "assetsystem/materialasset.hpp"
+#include "assetsystem/iassetsystem.hpp"
 #include "engine/iengine.hpp"
 #include "engine/window.hpp"
 
@@ -78,8 +78,10 @@ SysInit DeferredRenderPipeline::Initialize()
     const auto factory = g_Renderer->GetFactory();
 
     //----------------------------------------------------
-    g_ErrorTexture = factory->CreateTexture( TextureAsset::GetError() );
-    g_ErrorMaterial = factory->CreateMaterial( MaterialAsset::GetError() );
+    g_ErrorTexture = factory->CreateTexture(
+        g_Assets->GetAsset( "error", AssetType::TEXTURE ) );
+    g_ErrorMaterial = factory->CreateMaterial(
+        g_Assets->GetAsset( "error", AssetType::MATERIAL ) );
 
     TextureDesc desc = {};
     desc.Width = 1;
@@ -210,8 +212,10 @@ SysInit DeferredRenderPipeline::Initialize()
     SetupShadows();
     SetupSkybox();
 
-    m_shadowsShader = factory->CreateShaderProgram( ShaderAsset::Get( "shadowspass" ) );
-    m_lightingShader = factory->CreateShaderProgram( ShaderAsset::Get( "lightingpass" ) );
+    m_shadowsShader = factory->CreateShaderProgram(
+        g_Assets->GetAsset( "shadowspass", AssetType::SHADER ) );
+    m_lightingShader = factory->CreateShaderProgram(
+        g_Assets->GetAsset( "lightingpass", AssetType::SHADER ) );
 
     return {};
 }
@@ -358,7 +362,7 @@ void DeferredRenderPipeline::DoShadowPass() const
 
         m_shadowsShader->SetVSVar( "lightview", light->GetViewMatrix() );
         m_shadowsShader->SetVSVar( "lightproj", light->GetProjectionMatrix() );
-        m_shadowsShader->SetVSVar( "directional", light->IsA(LIGHT_DIRECTIONAL) );
+        m_shadowsShader->SetVSVar( "directional", light->IsA( LIGHT_DIRECTIONAL ) );
 
         // draw scene
         for ( const auto model: m_Models )

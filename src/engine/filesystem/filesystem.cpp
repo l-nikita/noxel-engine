@@ -3,21 +3,33 @@
 #include <fstream>
 #include "dbg/debug.hpp"
 
+namespace fs = std::filesystem;
+
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 SysInit FileSystem::Initialize()
 {
+    m_rootPath = fs::current_path();
+    m_rootPath = m_rootPath / m_rootPath.parent_path();
+
+    SearchFiles();
     return {};
 }
 
 void FileSystem::Shutdown()
 {
+    m_files.clear();
 }
 
 bool FileSystem::Exists( const FPath& path ) const
 {
-    return std::filesystem::exists( path );
+    return fs::exists( path );
+}
+
+bool FileSystem::IsDirectory( const FPath& path ) const
+{
+    return fs::is_directory( path );
 }
 
 FByteBuffer FileSystem::Read( const FPath& path ) const
@@ -61,7 +73,7 @@ std::string FileSystem::ReadText( const FPath& path ) const
 
 bool FileSystem::Write( const FPath& path, const FByteBuffer& data ) const
 {
-    std::filesystem::create_directories( path.parent_path() );
+    fs::create_directories( path.parent_path() );
     std::ofstream file( path, std::ios::binary | std::ios::trunc );
 
     if ( !file )
@@ -76,7 +88,7 @@ bool FileSystem::Write( const FPath& path, const FByteBuffer& data ) const
 
 bool FileSystem::WriteText( const FPath& path, std::string_view text ) const
 {
-    std::filesystem::create_directories( path.parent_path() );
+    fs::create_directories( path.parent_path() );
     std::ofstream file( path, std::ios::trunc );
 
     if ( !file )
@@ -85,4 +97,28 @@ bool FileSystem::WriteText( const FPath& path, std::string_view text ) const
     file.write( text.data(), static_cast<std::streamsize>(text.size()) );
 
     return file.good();
+}
+
+void FileSystem::SearchFiles()
+{
+    m_files.clear();
+
+    constexpr auto options = fs::directory_options::skip_permission_denied;
+    for ( const auto& entry: fs::recursive_directory_iterator( GetRootPath(), options ) )
+    {
+        if ( !entry.is_regular_file() )
+            continue;
+
+        m_files.push_back( entry.path() );
+    }
+}
+
+const FFiles& FileSystem::GetAllFiles() const
+{
+    return m_files;
+}
+
+FPath FileSystem::GetRootPath() const
+{
+    return m_rootPath;
 }

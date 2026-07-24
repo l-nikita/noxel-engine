@@ -1,11 +1,10 @@
 #pragma once
 
 #include <d3d11.h>
-#include <glm/gtc/type_ptr.hpp>
-#include <map>
+#include "filesystem/ifilesystem.hpp"
 #include "renderer/ishaderprogram.hpp"
 
-class ShaderAsset;
+struct Asset;
 
 //-----------------------------------------------------------------------------
 //
@@ -16,7 +15,7 @@ public:
     DX11ShaderProgram(
         ID3D11Device* device,
         ID3D11DeviceContext* context,
-        ShaderAsset* asset );
+        const Asset* asset );
 
     ~DX11ShaderProgram()
     {
@@ -52,16 +51,16 @@ public:
 
     void SetPSVar( const std::string& name, const ShaderVar& var ) override
     {
-        GetPSShader()->SetVar(name, var);
+        GetPSShader()->SetVar( name, var );
     }
 
     void SetVSVar( const std::string& name, const ShaderVar& var ) override
     {
-        GetVSShader()->SetVar(name, var);
+        GetVSShader()->SetVar( name, var );
     }
 
 private:
-    void Compile( ShaderAsset* asset, ShaderType type );
+    void Compile( const FPath& path, ShaderType type, const std::string& shaderName );
 
 private:
     IShader* m_pShader;

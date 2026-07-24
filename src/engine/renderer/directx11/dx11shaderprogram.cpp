@@ -2,20 +2,30 @@
 #include <d3dcompiler.h>
 #include <string>
 
+#include "dbg/debug.hpp"
 #include "dx11shaderprogram.hpp"
 #include "renderer/vertex.hpp"
 #include "renderer/shaderregistry.hpp"
-#include "assetsystem/shaderasset.hpp"
+#include "assetsystem/asset.hpp"
+#include "assetsystem/iassetsystem.hpp"
+#include "assetsystem/shaderdata.hpp"
 
-DX11ShaderProgram::DX11ShaderProgram( ID3D11Device* device, ID3D11DeviceContext* context, ShaderAsset* asset )
+DX11ShaderProgram::DX11ShaderProgram(
+    ID3D11Device* device, ID3D11DeviceContext* context, const Asset* asset )
     : m_device( device ), m_context( context ), m_vs( nullptr ), m_ps( nullptr ), m_vsBlob( nullptr ),
       m_psBlob( nullptr )
 {
-    if ( !ShaderRegistry::IsShaderExist( asset->GetName() ) )
-        FATAL_ERROR( "Shader [" + asset->GetName() + "] not found in registry.", CMD::RENDERING );
+    assert( asset );
 
-    Compile( asset, VERTEX );
-    Compile( asset, PIXEL );
+    std::unique_ptr<ShaderData> data( g_Assets->LoadAsset<ShaderData>( asset ) );
+    if ( !data )
+        FATAL_ERROR( "Failed to load shader asset [" + asset->Name + "]", CMD::RENDERING );
+
+    if ( !ShaderRegistry::IsShaderExist( data->Name ) )
+        FATAL_ERROR( "Shader [" + data->Name + "] not found in registry.", CMD::RENDERING );
+
+    Compile( data->VertexShaderPath, VERTEX, data->Name );
+    Compile( data->PixelShaderPath, PIXEL, data->Name );
 
     HRESULT hr = m_device->CreateVertexShader(
         m_vsBlob->GetBufferPointer(), m_vsBlob->GetBufferSize(),
@@ -31,19 +41,20 @@ DX11ShaderProgram::DX11ShaderProgram( ID3D11Device* device, ID3D11DeviceContext*
     if ( FAILED( hr ) )
         FATAL_ERROR( "DX11: Failed to create pixel dx11 shader", CMD::RENDERING );
 
-    m_vShader = ShaderRegistry::Create( asset->GetName() + "VS", this );
+    m_vShader = ShaderRegistry::Create( data->Name + "VS", this );
     if ( !m_vShader )
         FATAL_ERROR( "DX11: Failed to create pixel shader", CMD::RENDERING );
 
-    m_pShader = ShaderRegistry::Create( asset->GetName() + "PS", this );
+    m_pShader = ShaderRegistry::Create( data->Name + "PS", this );
     if ( !m_pShader )
         FATAL_ERROR( "DX11: Failed to create pixel shader", CMD::RENDERING );
 }
 
-void DX11ShaderProgram::Compile( ShaderAsset* asset, ShaderType type )
+void DX11ShaderProgram::Compile(
+    const std::filesystem::path& path, ShaderType type, const std::string& shaderName )
 {
     ID3D10Blob* errorBlob = nullptr;
-    HRESULT hr;
+    HRESULT hr = E_FAIL;
 
     uint32_t compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
     ID3DInclude* includeHandler = D3D_COMPILE_STANDARD_FILE_INCLUDE;
@@ -51,11 +62,8 @@ void DX11ShaderProgram::Compile( ShaderAsset* asset, ShaderType type )
     compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-    std::filesystem::path path = asset->GetAssetPath();
     if ( type == VERTEX )
     {
-        path += L"_vs.hlsl";
-
         hr = D3DCompileFromFile(
             path.c_str(),
             nullptr, // defines
@@ -69,8 +77,6 @@ void DX11ShaderProgram::Compile( ShaderAsset* asset, ShaderType type )
         );
     } else if ( type == PIXEL )
     {
-        path += L"_ps.hlsl";
-
         hr = D3DCompileFromFile(
             path.c_str(),
             nullptr,
@@ -91,15 +97,15 @@ void DX11ShaderProgram::Compile( ShaderAsset* asset, ShaderType type )
         {
             OutputDebugStringA( static_cast<char*>(errorBlob->GetBufferPointer()) );
             CMD_ERROR(
-                "DX11: Shader compilation error: " + std::string(static_cast<char*>(errorBlob->GetBufferPointer())),
+                "DX11: Shader compilation error: " + std::string( static_cast<char*>(errorBlob->GetBufferPointer()) ),
                 CMD::RENDERING );
             errorBlob->Release();
         }
 
         if ( type == VERTEX )
-            FATAL_ERROR( "DX11: Failed to compile vertex shader! [" + asset->GetName() + "]", CMD::RENDERING );
+            FATAL_ERROR( "DX11: Failed to compile vertex shader! [" + shaderName + "]", CMD::RENDERING );
         else if ( type == PIXEL )
-            FATAL_ERROR( "DX11: Failed to compile pixel shader! [" + asset->GetName() + "]", CMD::RENDERING );
+            FATAL_ERROR( "DX11: Failed to compile pixel shader! [" + shaderName + "]", CMD::RENDERING );
     }
 }
 

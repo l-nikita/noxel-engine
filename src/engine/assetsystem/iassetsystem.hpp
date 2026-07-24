@@ -1,25 +1,31 @@
 #pragma once
 
-#include <filesystem>
-#include <unordered_map>
+#include "asset.hpp"
 #include "common.hpp"
-#include "baseasset.hpp"
 
-typedef std::unordered_map<std::string, BaseAsset*> AssetsMap;
+//-----------------------------------------------------------------------------
 
+using Assets = std::vector<Asset>;
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 class IAssetSystem : public ISystem
 {
 public:
-    virtual std::filesystem::path GetRootPath() = 0;
-    virtual std::filesystem::path GetBinPath() = 0;
-    virtual std::filesystem::path GetAssetsPath() = 0;
+    virtual const Assets& GetAssets() const = 0;
+    virtual const Asset* GetAsset( const FPath& path, AssetType type ) const = 0;
 
-    virtual std::filesystem::path GetMaterialsPath() = 0;
+    virtual void RegisterAsset( const FPath& path, AssetType type ) = 0;
 
-    virtual void RegisterAsset( BaseAsset* asset ) = 0;
+    template<typename T>
+    T* LoadAsset( const Asset* asset )
+    {
+        return static_cast<T*>(LoadAssetImpl( asset ));
+    }
 
-    virtual const AssetsMap& GetAssets( AssetType type ) = 0;
-    virtual BaseAsset* GetAsset( AssetType type, const std::string& name ) = 0;
+protected:
+    virtual void* LoadAssetImpl( const Asset* asset ) = 0;
 };
 
 extern IAssetSystem* g_Assets;

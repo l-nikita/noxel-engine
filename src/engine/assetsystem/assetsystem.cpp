@@ -1,52 +1,168 @@
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
 
-#include "filesystem/ifilesystem.hpp"
+#include "dbg/debug.hpp"
 #include "assetsystem.hpp"
-#include "materialasset.hpp"
-#include "shaderasset.hpp"
-#include "textureasset.hpp"
+#include "filesystem/ifilesystem.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-TextureAsset* TextureAsset::m_error = nullptr;
-MaterialAsset* MaterialAsset::m_error = nullptr;
-
 SysInit AssetSystem::Initialize()
 {
-    m_rootPath = std::filesystem::current_path();
-    m_binPath = m_rootPath / "bin";
-    m_assetsPath = m_rootPath / "assets";
-
-    if ( !std::filesystem::exists( m_assetsPath ) )
-        m_assetsPath = std::filesystem::current_path().parent_path() / "assets";
-
-    //TODO: Automatic assets searing
-    ShaderAsset::CreateNew( "geometrypass", ( m_assetsPath / "shaders" / "geometrypass" ).string() );
-    ShaderAsset::CreateNew( "lightingpass", ( m_assetsPath / "shaders" / "lightingpass" ).string() );
-    ShaderAsset::CreateNew( "skyboxpass", ( m_assetsPath / "shaders" / "skyboxpass" ).string() );
-    ShaderAsset::CreateNew( "shadowspass", ( m_assetsPath / "shaders" / "shadowspass" ).string() );
-
-    TextureAsset::m_error = TextureAsset::CreateNew(
-        "error", ( m_assetsPath / "materials" / "engine" / "error.png" ).string() );
-    MaterialAsset::m_error = MaterialAsset::CreateNew(
-        "error", ( m_assetsPath / "materials" / "engine" / "error.nmt" ).string() );
-    //TODO: Make fallback shader
-    //ShaderAsset::m_error = ;
-
-    MaterialAsset::CreateNew( "gizmos", ( m_assetsPath / "materials" / "engine" / "gizmos.nmt" ).string() );
-    MaterialAsset::CreateNew( "dirt1", ( m_assetsPath / "materials" / "dirt1.nmt" ).string() );
-    MaterialAsset::CreateNew( "metal1", ( m_assetsPath / "materials" / "metal1.nmt" ).string() );
-    MaterialAsset::CreateNew( "skybox", ( m_assetsPath / "materials" / "skybox.nmt" ).string() );
-
+    SearchAssets();
     return {};
 }
 
 void AssetSystem::Shutdown()
 {
+    m_assets.clear();
 }
 
-void AssetSystem::RegisterAsset( BaseAsset* asset )
+const Assets& AssetSystem::GetAssets() const
 {
-    m_assets[ asset->GetType() ][ asset->GetName() ] = asset;
+    return m_assets;
+}
+
+const Asset* AssetSystem::GetAsset( const FPath& path, AssetType type ) const
+{
+    if ( path.empty() )
+        return nullptr;
+
+    const auto query = path.lexically_normal();
+    const auto absoluteQuery = query.is_absolute()
+                                   ? query
+                                   : ( g_FileSystem->GetRootPath() / query ).lexically_normal();
+    const auto queryName = query.filename().string();
+    const auto queryStem = query.stem().string();
+
+    for ( const auto& asset: m_assets )
+    {
+        if ( type == asset.Type && asset.Path == absoluteQuery )
+            return &asset;
+    }
+
+    if ( query.has_parent_path() )
+    {
+        const auto queryPath = query.generic_string();
+        for ( const auto& asset: m_assets )
+            if ( type == asset.Type && asset.Path.generic_string().ends_with( queryPath ) )
+                return &asset;
+    } else
+    {
+        for ( const auto& asset: m_assets )
+            if ( type == asset.Type && ( asset.Name == queryName || asset.Name == queryStem ) )
+                return &asset;
+    }
+
+    return nullptr;
+}
+
+void AssetSystem::RegisterAsset( const FPath& path, AssetType type )
+{
+    const auto absolutePath = path.is_absolute()
+                                  ? path.lexically_normal()
+                                  : ( g_FileSystem->GetRootPath() / path ).lexically_normal();
+
+    if ( !g_FileSystem->Exists( absolutePath ) )
+    {
+        CMD_ERROR( "File not found: " + absolutePath.string(), CMD::ASSETSYSTEM );
+        return;
+    }
+
+    for ( const auto& asset: m_assets )
+    {
+        if ( asset.Path == absolutePath && asset.Type == type )
+        {
+            CMD_ERROR( "Asset with the same path and type is already registered", CMD::ASSETSYSTEM );
+            return;
+        }
+    }
+
+    m_assets.push_back( Asset{absolutePath.stem().string(), absolutePath, type} );
+}
+
+void* AssetSystem::LoadAssetImpl( const Asset* asset )
+{
+    if ( !asset )
+    {
+        CMD_ERROR( "Cannot load a null asset", CMD::ASSETSYSTEM );
+        return nullptr;
+    }
+
+    std::expected<void*, std::string> result = std::unexpected( "Unsupported asset type" );
+
+    switch ( asset->Type )
+    {
+        case AssetType::MATERIAL:
+        {
+            auto loaded = m_materialLoader.Load( g_FileSystem, asset );
+            if ( loaded )
+                result = loaded.value();
+            else
+                result = std::unexpected( loaded.error() );
+            break;
+        }
+        case AssetType::SHADER:
+        {
+            auto loaded = m_shaderLoader.Load( g_FileSystem, asset );
+            if ( loaded )
+                result = loaded.value();
+            else
+                result = std::unexpected( loaded.error() );
+            break;
+        }
+        case AssetType::TEXTURE:
+        {
+            auto loaded = m_textureLoader.Load( g_FileSystem, asset );
+            if ( loaded )
+                result = loaded.value();
+            else
+                result = std::unexpected( loaded.error() );
+            break;
+        }
+        default:
+            break;
+    }
+
+    if ( !result )
+    {
+        CMD_ERROR( "Failed to load asset [" + asset->Name + "]: " + result.error(), CMD::ASSETSYSTEM );
+        return nullptr;
+    }
+
+    return result.value();
+}
+
+void AssetSystem::SearchAssets()
+{
+    m_assets.clear();
+
+    const auto files = g_FileSystem->GetAllFiles();
+    for ( const auto& file: files )
+        DetectAndRegisterAsset( file );
+}
+
+void AssetSystem::DetectAndRegisterAsset( const FPath& file )
+{
+    auto ext = file.extension().string();
+    std::ranges::transform( ext, ext.begin(), []( unsigned char c )
+    {
+        return std::tolower( c );
+    } );
+
+    if ( ext == MATERIAL_EXTENSION )
+        RegisterAsset( file, AssetType::MATERIAL );
+    else if ( ext == SHADER_EXTENSION )
+        RegisterAsset( file, AssetType::SHADER );
+    else
+    {
+        for ( const auto& imageExt: SUPPORTED_IMAGE_FORMATS )
+            if ( ext == imageExt )
+            {
+                RegisterAsset( file, AssetType::TEXTURE );
+                return;
+            }
+    }
 }

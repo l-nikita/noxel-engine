@@ -1,14 +1,12 @@
 #pragma once
 
-#include <cstdint>
 #include <unordered_map>
 #include <string>
 #include <d3d11.h>
 #include "renderer/imaterial.hpp"
-#include "renderer/ishader.hpp"
 #include "renderer/itexture.hpp"
 
-class MaterialAsset;
+struct Asset;
 
 //-----------------------------------------------------------------------------
 //
@@ -16,7 +14,7 @@ class MaterialAsset;
 class DX11Material : public IMaterial
 {
 public:
-    DX11Material( ID3D11Device* device, ID3D11DeviceContext* context, MaterialAsset* asset );
+    DX11Material( ID3D11Device* device, ID3D11DeviceContext* context, const Asset* asset );
 
     ~DX11Material()
     {
@@ -34,8 +32,6 @@ public:
     ITexture* GetTexture( std::string paramName ) override;
 
 private:
-    MaterialAsset* m_asset;
-
     IShaderProgram* m_shader = nullptr;
     std::unordered_map<std::string, ITexture*> m_textures;
 

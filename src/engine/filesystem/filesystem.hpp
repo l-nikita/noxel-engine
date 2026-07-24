@@ -15,10 +15,20 @@ public:
     void Shutdown() override;
 
     bool Exists( const FPath& path ) const override;
+    bool IsDirectory( const FPath& path ) const override;
 
     FByteBuffer Read( const FPath& path ) const override;
     std::string ReadText( const FPath& path ) const override;
 
     bool Write( const FPath& path, const FByteBuffer& data ) const override;
     bool WriteText( const FPath& path, std::string_view text ) const override;
+
+    void SearchFiles() override;
+    const FFiles& GetAllFiles() const override;
+
+    FPath GetRootPath() const override;
+
+private:
+    FFiles m_files;
+    FPath m_rootPath;
 };
