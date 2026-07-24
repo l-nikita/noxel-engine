@@ -1,4 +1,6 @@
 #include <iostream>
+#include <mimalloc.h>
+#include <mimalloc-new-delete.h>
 #include "engine.hpp"
 
 #ifdef _WIN32
@@ -17,6 +19,8 @@ BOOL WINAPI ConsoleHandler( DWORD signal )
 
 int main()
 {
+    (void)mi_version();
+
 #ifdef _WIN32
     if ( !SetConsoleCtrlHandler( ConsoleHandler, TRUE ) )
     {

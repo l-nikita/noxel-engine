@@ -1,9 +1,13 @@
 add_executable( launcher main.cpp )
 
 # --- libs ---- #
-target_link_libraries( launcher PRIVATE engine )
+target_link_libraries( launcher PRIVATE
+        mimalloc
+        engine
+)
 
 set_target_properties( launcher PROPERTIES
+        OUTPUT_NAME "noxel-engine"
         BUILD_RPATH "${CMAKE_BINARY_DIR}/src/engine"
         INSTALL_RPATH "${CMAKE_BINARY_DIR}/src/engine"
 )
