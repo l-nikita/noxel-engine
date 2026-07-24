@@ -68,12 +68,10 @@ void DevPanel::Draw()
                     "Ambient occlusion",
                     "Emission",
                     "Shadow factor",
-                    "Light attenuation",
                     "Selected light contribution",
                     "Direct lighting",
                     "Ambient lighting",
-                    "Camera distance",
-                    "World grid",
+                    "Depth (linear)",
                 };
 
                 ImGui::SeparatorText("Lighting overlay");
@@ -95,36 +93,35 @@ void DevPanel::Draw()
                     );
                 }
 
-                const bool lightView =
-                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_SHADOW_FACTOR ||
-                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_ATTENUATION ||
-                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_SELECTED_LIGHT;
+                ImGui::SeparatorText("Shadow tuning");
+                ImGui::SliderInt(
+                    "Light index",
+                    &g_RenderDebugSettings.SelectedLight,
+                    0,
+                    MAX_LIGHTS - 1
+                );
 
-                if ( lightView )
+                auto& lights = LightManager::GetInstance().GetLights();
+                const auto selectedLight = lights[ g_RenderDebugSettings.SelectedLight ];
+
+                if ( selectedLight &&
+                     selectedLight->IsA(LIGHT_SPOT) &&
+                     selectedLight->IsShadowsEnabled() )
                 {
-                    ImGui::SliderInt(
-                        "Light index",
-                        &g_RenderDebugSettings.SelectedLight,
-                        0,
-                        MAX_LIGHTS - 1
-                    );
-                }
-
-                const bool scaledView =
-                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_WORLD_POSITION ||
-                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_CAMERA_DISTANCE ||
-                    g_RenderDebugSettings.LightingView == LIGHTING_DEBUG_WORLD_GRID;
-
-                if ( scaledView )
+                    float softness = selectedLight->GetShadowSoftness();
+                    if ( ImGui::SliderFloat(
+                        "PCSS softness",
+                        &softness,
+                        0.0f,
+                        0.1f,
+                        "%.3f"
+                    ) )
+                    {
+                        selectedLight->SetShadowSoftness(softness);
+                    }
+                } else
                 {
-                    ImGui::SliderFloat(
-                        "Visualization scale",
-                        &g_RenderDebugSettings.VisualizationScale,
-                        0.001f,
-                        1.0f,
-                        "%.3f",
-                        ImGuiSliderFlags_Logarithmic
-                    );
+                    ImGui::TextDisabled("Selected light does not use PCSS");
                 }
 
                 ImGui::SeparatorText("Output");
@@ -135,6 +132,7 @@ void DevPanel::Draw()
                     4.0f,
                     "%.2f"
                 );
+                ImGui::Checkbox("Enable IBL", &g_RenderDebugSettings.IBLEnabled);
 
                 if ( ImGui::Button("Reset visual debug") )
                     g_RenderDebugSettings = {};

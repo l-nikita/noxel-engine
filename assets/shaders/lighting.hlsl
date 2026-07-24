@@ -30,29 +30,10 @@ struct Light
 };
 
 //----------------------------------------
-static const int PCSS_BLOCKER_SAMPLES = 16;
-static const int PCSS_FILTER_SAMPLES = 16;
+static const int PCSS_BLOCKER_SAMPLES = 24;
+static const int PCSS_FILTER_SAMPLES = 48;
 static const float SHADOW_NEAR_PLANE = 0.1;
-
-static const float2 PCSS_DISK[16] =
-{
-    float2(-0.94201624, -0.39906216),
-    float2( 0.94558609, -0.76890725),
-    float2(-0.09418410, -0.92938870),
-    float2( 0.34495938,  0.29387760),
-    float2(-0.91588581,  0.45771432),
-    float2(-0.81544232, -0.87912464),
-    float2(-0.38277543,  0.27676845),
-    float2( 0.97484398,  0.75648379),
-    float2( 0.44323325, -0.97511554),
-    float2( 0.53742981, -0.47373420),
-    float2(-0.26496911, -0.41893023),
-    float2( 0.79197514,  0.19090188),
-    float2(-0.24188840,  0.99706507),
-    float2(-0.81409955,  0.91437590),
-    float2( 0.19984126,  0.78641367),
-    float2( 0.14383161, -0.14100790)
-};
+static const float GOLDEN_ANGLE = 2.39996323;
 
 float LinearizeShadowDepth(float depth, float farPlane)
 {
@@ -60,26 +41,27 @@ float LinearizeShadowDepth(float depth, float farPlane)
         max(farPlane - depth * (farPlane - SHADOW_NEAR_PLANE), EPSILON);
 }
 
-float2 RotateDiskSample(float2 sampleOffset, float2x2 rotation)
+float ShadowInterleavedNoise(float2 pixelPosition)
 {
-    return mul(sampleOffset, rotation);
+    float2 pixel = floor(pixelPosition);
+    return frac(52.9829189 * frac(dot(pixel, float2(0.06711056, 0.00583715))));
 }
 
-float2x2 CalcShadowKernelRotation(float2 pixelPosition)
+float2 VogelDiskSample(int sampleIndex, int sampleCount, float rotationAngle)
 {
-    float noise = frac(52.9829189 * frac(dot(pixelPosition, float2(0.06711056, 0.00583715))));
-    float angle = noise * 2.0 * PI;
+    float radius = sqrt((sampleIndex + 0.5) / sampleCount);
+    float angle = sampleIndex * GOLDEN_ANGLE + rotationAngle;
     float sine = 0.0;
     float cosine = 1.0;
     sincos(angle, sine, cosine);
-
-    return float2x2(cosine, -sine, sine, cosine);
+    return float2(cosine, sine) * radius;
 }
 
 float CalcSpotShadows(
     float3 worldPos,
     float3 normal,
     float3 toLight,
+    float2 pixelPosition,
     float lightRadius,
     float shadowSoftness,
     matrix lightView,
@@ -109,7 +91,7 @@ float CalcSpotShadows(
         // Increase the bias on grazing surfaces, where shadow acne is most visible,
         // while keeping front-facing surfaces close to the caster.
         float NdotL = saturate(dot(normalize(normal), normalize(toLight)));
-        float bias = lerp(0.0001, 0.001, 1.0 - NdotL);
+        float bias = lerp(0.00002, 0.00025, 1.0 - NdotL);
         uint shadowWidth = 1;
         uint shadowHeight = 1;
         shadowMap.GetDimensions(shadowWidth, shadowHeight);
@@ -120,8 +102,8 @@ float CalcSpotShadows(
             shadowSoftness * saturate((receiverDepth - SHADOW_NEAR_PLANE) / receiverDepth),
             max(texelSize.x, texelSize.y)
         );
-        float2x2 kernelRotation = CalcShadowKernelRotation(shadowUV * float2(shadowWidth, shadowHeight));
-
+        float shadowNoise = ShadowInterleavedNoise(pixelPosition);
+        float kernelRotation = shadowNoise * 2.0 * PI;
         // Step 1: find occluders around the receiver.
         float blockerDepthSum = 0.0;
         int blockerCount = 0;
@@ -129,7 +111,11 @@ float CalcSpotShadows(
         [unroll]
         for (int blockerIndex = 0; blockerIndex < PCSS_BLOCKER_SAMPLES; ++blockerIndex)
         {
-            float2 diskOffset = RotateDiskSample(PCSS_DISK[blockerIndex], kernelRotation);
+            float2 diskOffset = VogelDiskSample(
+                blockerIndex,
+                PCSS_BLOCKER_SAMPLES,
+                kernelRotation
+            );
             float2 sampleUV = saturate(shadowUV + diskOffset * searchRadius);
             float sampledDepth = shadowMap.SampleLevel(shadowDepthSampler, sampleUV, 0).r;
 
@@ -159,7 +145,11 @@ float CalcSpotShadows(
         [unroll]
         for (int filterIndex = 0; filterIndex < PCSS_FILTER_SAMPLES; ++filterIndex)
         {
-            float2 diskOffset = RotateDiskSample(PCSS_DISK[filterIndex], kernelRotation);
+            float2 diskOffset = VogelDiskSample(
+                filterIndex,
+                PCSS_FILTER_SAMPLES,
+                kernelRotation
+            );
             float2 sampleUV = saturate(shadowUV + diskOffset * filterRadius);
             shadowSum += shadowMap.SampleCmpLevelZero(
                 shadowSampler,
@@ -168,13 +158,67 @@ float CalcSpotShadows(
             );
         }
 
-    return shadowSum / PCSS_FILTER_SAMPLES;
+    float filteredShadow = shadowSum / PCSS_FILTER_SAMPLES;
+    float quantizationDither = (shadowNoise - 0.5) / PCSS_FILTER_SAMPLES;
+    return saturate(filteredShadow + quantizationDither);
+}
+
+float CalcDirectionalShadows(
+    float3 worldPos,
+    float3 normal,
+    float3 toLight,
+    matrix lightView,
+    matrix lightProjection,
+    Texture2D shadowMap,
+    SamplerComparisonState shadowSampler
+)
+{
+    float4 lightSpacePos = mul(float4(worldPos, 1.0), lightView);
+    lightSpacePos = mul(lightSpacePos, lightProjection);
+    lightSpacePos.xyz /= max(lightSpacePos.w, EPSILON);
+
+    float2 shadowUV = float2(
+        lightSpacePos.x * 0.5 + 0.5,
+        -lightSpacePos.y * 0.5 + 0.5
+    );
+    float shadowDepth = lightSpacePos.z;
+
+    if (shadowUV.x < 0.0 || shadowUV.x > 1.0 ||
+        shadowUV.y < 0.0 || shadowUV.y > 1.0 ||
+        shadowDepth < 0.0 || shadowDepth > 1.0)
+        return 1.0;
+
+    float NdotL = saturate(dot(normalize(normal), normalize(toLight)));
+    float bias = lerp(0.00005, 0.0004, 1.0 - NdotL);
+
+    uint shadowWidth = 1;
+    uint shadowHeight = 1;
+    shadowMap.GetDimensions(shadowWidth, shadowHeight);
+    float2 texelSize = 1.0 / float2(shadowWidth, shadowHeight);
+
+    float shadowSum = 0.0;
+
+    [unroll]
+    for (int x = -1; x <= 1; ++x)
+    {
+        [unroll]
+        for (int y = -1; y <= 1; ++y)
+        {
+            shadowSum += shadowMap.SampleCmpLevelZero(
+                shadowSampler,
+                shadowUV + float2(x, y) * texelSize,
+                shadowDepth - bias
+            );
+        }
+    }
+
+    return shadowSum / 9.0;
 }
 
 //----------------------------------------
 float CalcSimpleAmbient()
 {
-    return 0.05;
+    return 0.08;
 }
 
 float3 CalcSimpleLightDiffuse(
@@ -207,6 +251,22 @@ float3 CalcSimpleLightSpecular(
 float3 FresnelSchlick(float cosTheta, float3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+{
+    return F0 +
+        (max((1.0 - roughness).xxx, F0) - F0) *
+        pow(1.0 - cosTheta, 5.0);
+}
+
+float2 EnvBRDFApprox(float roughness, float NdotV)
+{
+    const float4 c0 = float4(-1.0, -0.0275, -0.572, 0.022);
+    const float4 c1 = float4(1.0, 0.0425, 1.04, -0.04);
+    float4 r = roughness * c0 + c1;
+    float a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
+    return float2(-1.04, 1.04) * a004 + r.zw;
 }
 
 float DistributionGGX(float3 N, float3 H, float roughness)
@@ -265,17 +325,30 @@ float3 CalcIBL(
 {
     float3 N = normalize(normal);
     float3 V = normalize(toView);
-    float NdotV = max(dot(N, V), 0.0);
+    float NdotV = saturate(dot(N, V));
+    roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
 
     float3 F0 = lerp(float3(0.04, 0.04, 0.04), color, metalness);
     float3 R = reflect(-V, N);
 
-    float3 envColor = cubemap.Sample(samp, R).rgb;
-    envColor = lerp(envColor, dot(envColor, float3(0.333, 0.333, 0.333)).xxx, roughness);
-    
-    float3 F = FresnelSchlick(NdotV, F0);
-    float3 specularIBL = envColor * F;
-    float3 ambientIBL = color * 0.2 * (1.0 - metalness);
+    uint environmentWidth = 1;
+    uint environmentHeight = 1;
+    uint environmentMipLevels = 1;
+    cubemap.GetDimensions(0, environmentWidth, environmentHeight, environmentMipLevels);
+    float maxMipLevel = max((float)environmentMipLevels - 1.0, 0.0);
 
-    return (ambientIBL + specularIBL) * ao;
+    // The last mip provides a cheap diffuse irradiance approximation. The
+    // reflection mip selected by roughness acts as a prefiltered environment.
+    float3 irradiance = cubemap.SampleLevel(samp, N, maxMipLevel).rgb;
+    float3 prefilteredColor = cubemap.SampleLevel(samp, R, roughness * maxMipLevel).rgb;
+
+    float3 F = FresnelSchlickRoughness(NdotV, F0, roughness);
+    float3 kS = F;
+    float3 kD = (1.0 - kS) * (1.0 - metalness);
+    float3 diffuseIBL = irradiance * color;
+
+    float2 envBRDF = EnvBRDFApprox(roughness, NdotV);
+    float3 specularIBL = prefilteredColor * (F0 * envBRDF.x + envBRDF.y);
+
+    return (kD * diffuseIBL + specularIBL) * ao;
 }

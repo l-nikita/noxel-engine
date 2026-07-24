@@ -13,7 +13,32 @@ DX11Texture::DX11Texture( ID3D11Device* device, ID3D11DeviceContext* context, co
 {
     D3D11_TEXTURE2D_DESC texDesc = DX11Helper::CreateTexture2DDesc(desc);
 
-    if ( desc.Data.size() > 0 )
+    const bool generateMips = desc.IsCubemap && desc.MipLevels == 0 && !desc.Data.empty();
+
+    if ( generateMips )
+    {
+        DX11Helper::CreateTexture2D(device, &texDesc, nullptr, &m_texture);
+
+        D3D11_TEXTURE2D_DESC createdDesc = {};
+        m_texture->GetDesc(&createdDesc);
+
+        for ( std::size_t face = 0; face < desc.Data.size(); ++face )
+        {
+            const auto subresource = D3D11CalcSubresource(
+                0,
+                static_cast<UINT>(face),
+                createdDesc.MipLevels
+            );
+            m_context->UpdateSubresource(
+                m_texture,
+                subresource,
+                nullptr,
+                desc.Data[ face ],
+                desc.Width * 4,
+                0
+            );
+        }
+    } else if ( desc.Data.size() > 0 )
     {
         std::vector<D3D11_SUBRESOURCE_DATA> res(desc.Data.size());
         for ( size_t i = 0; i < desc.Data.size(); i++ )
@@ -33,6 +58,9 @@ DX11Texture::DX11Texture( ID3D11Device* device, ID3D11DeviceContext* context, co
 
     DX11Helper::CreateShaderResourceViewForTexture2D(device, m_texture, &m_srv,
                                                      DX11Helper::ToDXGIFormat(desc.ShaderFormat), srvDimension);
+
+    if ( generateMips )
+        m_context->GenerateMips(m_srv);
 
     m_width = desc.Width;
     m_height = desc.Height;

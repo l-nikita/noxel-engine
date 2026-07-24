@@ -38,11 +38,21 @@ struct CBLightsData
 {
     CBLight Lights[ MAX_LIGHTS ];
     glm::vec3 ViewPos;
+    float _pad0;
+};
+
+struct alignas(16) CBDebugData
+{
     int DebugView;
     int DebugLightIndex;
     float DebugOverlayOpacity;
-    float DebugVisualizationScale;
     float DebugExposure;
+    glm::vec3 CameraForward;
+    float CameraNear;
+    float CameraFar;
+    int IBLEnabled;
+    float _pad0;
+    float _pad1;
 };
 
 struct CBViewData

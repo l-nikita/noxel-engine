@@ -171,24 +171,26 @@ SysInit DeferredRenderPipeline::Initialize()
 
     const auto model = new Model( mesh, mat );
     model->m_Transform.Position = glm::vec3( 0, 0, 5 ) + glm::vec3( 0, -3, -10 );
+    model->m_Transform.Scale = glm::vec3( 1, 5, 1 );
     m_Models.push_back( model );
 
     const auto model2 = new Model( mesh, mat2 );
     model2->m_Transform.Position = glm::vec3( 0, 0, 8 ) + glm::vec3( 0, -3, 7 );
+    model->m_Transform.Scale = glm::vec3( 1, 5, 1 );
     m_Models.push_back( model2 );
 
     const auto model3 = new Model( mesh, mat );
     model3->m_Transform.Position = glm::vec3( -5, 0, 8 ) + glm::vec3( 0, -3, -10 );
+    model->m_Transform.Scale = glm::vec3( 1, 5, 1 );
     m_Models.push_back( model3 );
 
     g_TestModel = new Model( mesh, mat );
     g_TestModel->m_Transform.Scale = glm::vec3( 0.5f );
     m_Models.push_back( g_TestModel );
 
-    g_TestModel2 = new Model( mesh, mat2 );
+    g_TestModel2 = new Model( mesh, mat );
     g_TestModel2->m_Transform.Position = glm::vec3( 0, -5, 0 );
     g_TestModel2->m_Transform.Scale = glm::vec3( 20, 1, 20 );
-    g_TestModel2->m_CastShadows = true;
     m_Models.push_back( g_TestModel2 );
 
     //----------------------------------------------------
@@ -260,7 +262,7 @@ void DeferredRenderPipeline::Render()
     g_Renderer->SetViewport( m_backBufferVP );
     g_Renderer->SetRenderTextures( &backBuffer, 1, nullptr );
     DoLightingPass();
-    //DoSkyboxPass();
+    DoSkyboxPass();
 
     g_Gui->Render();
 
@@ -326,9 +328,9 @@ void DeferredRenderPipeline::DoGeometryPass() const
     totalTime += g_Engine->DeltaTime();
 
     g_TestModel->SetPosition( glm::vec3(
-        sin( totalTime ) * 5.0f,
+        sin( totalTime ) * 1.0f,
         -3.0f,
-        cos( totalTime ) * 5.0f
+        cos( totalTime ) * 1.0f
     ) );
 
     glm::quat rot = glm::angleAxis( totalTime * 3.0f, glm::normalize( glm::vec3( 0.0f, 1.0f, 0.0f ) ) );
@@ -356,6 +358,7 @@ void DeferredRenderPipeline::DoShadowPass() const
 
         m_shadowsShader->SetVSVar( "lightview", light->GetViewMatrix() );
         m_shadowsShader->SetVSVar( "lightproj", light->GetProjectionMatrix() );
+        m_shadowsShader->SetVSVar( "directional", light->IsA(LIGHT_DIRECTIONAL) );
 
         // draw scene
         for ( const auto model: m_Models )
@@ -389,7 +392,7 @@ void DeferredRenderPipeline::DoLightingPass() const
     // move to lighting shader
     g_Renderer->BindRenderTextures( rts, 4 );
 
-    //m_lightingShader->SetPSVar("cubemap", m_skyboxMat->GetTexture("cubemap"));
+    m_lightingShader->SetPSVar( "cubemap", m_skyboxMat->GetTexture( "cubemap" ) );
     m_lightingShader->Bind();
     g_Renderer->DrawFullScreenTriangle();
     m_lightingShader->Unbind();

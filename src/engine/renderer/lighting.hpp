@@ -25,10 +25,11 @@ enum LightType
 class ShadowMap
 {
 public:
-    ShadowMap()
+    ShadowMap( std::uint32_t shadowMapSize = SHADOW_MAP_SIZE )
+        : m_shadowMapSize( shadowMapSize )
     {
         auto factory = g_Renderer->GetFactory();
-        m_depth = factory->CreateDepthStencil( SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, true );
+        m_depth = factory->CreateDepthStencil( GetSize(), GetSize(), true );
     }
 
     ~ShadowMap()
@@ -51,12 +52,13 @@ public:
         return m_depth;
     }
 
-    static int GetSize()
+    int GetSize()
     {
-        return SHADOW_MAP_SIZE;
+        return m_shadowMapSize;
     }
 
 private:
+    std::uint32_t m_shadowMapSize = SHADOW_MAP_SIZE;
     IDepthStencil* m_depth = nullptr;
 };
 
@@ -66,11 +68,11 @@ private:
 class Light : public Transformable
 {
 public:
-    Light( LightType type, bool shadowsEnabled = false )
+    explicit Light( LightType type, bool shadowsEnabled = false, std::uint32_t shadowMapSize = SHADOW_MAP_SIZE )
         : m_type( type )
     {
-        if ( shadowsEnabled && IsA( LIGHT_SPOT ) )
-            m_shadowMap = new ShadowMap();
+        if ( shadowsEnabled && ( IsA( LIGHT_SPOT ) || IsA( LIGHT_DIRECTIONAL ) ) )
+            m_shadowMap = new ShadowMap( shadowMapSize );
     }
 
     ~Light()
@@ -81,10 +83,7 @@ public:
     void Release()
     {
         if ( m_shadowMap )
-        {
-            delete m_shadowMap;
-            m_shadowMap = nullptr;
-        }
+            delete m_shadowMap, m_shadowMap = nullptr;
     }
 
     bool IsA( LightType type ) const
@@ -167,6 +166,19 @@ public:
 
     glm::mat4 GetProjectionMatrix() const
     {
+        if ( IsA( LIGHT_DIRECTIONAL ) )
+        {
+            const float halfExtent = m_radius * 0.5f;
+            return glm::orthoLH_ZO(
+                -halfExtent,
+                halfExtent,
+                -halfExtent,
+                halfExtent,
+                0.1f,
+                m_radius * 2.0f
+            );
+        }
+
         return glm::perspectiveLH_ZO( glm::radians( m_fov ), 1.0f, 0.1f, GetRadius() );
     }
 
@@ -178,7 +190,7 @@ private:
     bool m_enabled = true;
     float m_radius = 15;
     float m_fov = 75;
-    float m_shadowSoftness = 0.02f;
+    float m_shadowSoftness = 0.01f;
     glm::vec3 m_color = glm::vec3( 1 );
 };
 

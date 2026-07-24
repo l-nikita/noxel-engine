@@ -26,6 +26,7 @@ SysInit Gui::Initialize()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
+    ImGui::GetIO().FontGlobalScale = 1.5f;
 
     auto api = g_Engine->GetGraphicsAPI();
     if ( api == GraphicsAPI::VULKAN )

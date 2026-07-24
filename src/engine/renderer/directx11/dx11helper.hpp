@@ -44,11 +44,16 @@ namespace DX11Helper
         texDesc.Width = desc.Width;
         texDesc.Height = desc.Height;
         texDesc.MipLevels = desc.MipLevels;
-        texDesc.ArraySize = std::max<std::uint32_t>(1, desc.Data.size());
+        texDesc.ArraySize = std::max<std::uint32_t>(
+            1,
+            static_cast<std::uint32_t>(desc.Data.size())
+        );
         texDesc.Format = ToDXGIFormat(desc.Format);
         texDesc.SampleDesc.Count = 1;
         texDesc.SampleDesc.Quality = 0;
         texDesc.MiscFlags = desc.IsCubemap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
+        if ( desc.MipLevels == 0 && ( desc.BindFlags & TextureBindFlags::RENDER_TARGET ) )
+            texDesc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
         texDesc.BindFlags = 0;
         texDesc.CPUAccessFlags = 0;
 
@@ -106,7 +111,16 @@ namespace DX11Helper
             D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
             srvDesc.Format = format;
             srvDesc.ViewDimension = srvDimension;
-            srvDesc.Texture2D.MipLevels = desc.MipLevels;
+
+            if ( srvDimension == D3D11_SRV_DIMENSION_TEXTURECUBE )
+            {
+                srvDesc.TextureCube.MostDetailedMip = 0;
+                srvDesc.TextureCube.MipLevels = desc.MipLevels;
+            } else
+            {
+                srvDesc.Texture2D.MostDetailedMip = 0;
+                srvDesc.Texture2D.MipLevels = desc.MipLevels;
+            }
 
             HRESULT hr = device->CreateShaderResourceView(texture, &srvDesc, srv);
             if ( FAILED(hr) )

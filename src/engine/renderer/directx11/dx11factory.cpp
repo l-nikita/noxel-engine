@@ -100,10 +100,10 @@ ITexture* DX11Factory::CreateCubemap( MaterialAsset* asset )
     desc.Width = width;
     desc.Height = height;
     desc.Format = TextureFormat::RGBA8;
-    desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
+    desc.BindFlags = TextureBindFlags::SHADER_RESOURCE | TextureBindFlags::RENDER_TARGET;
     desc.Data = images;
     desc.IsCubemap = true;
-    desc.MipLevels = 1;
+    desc.MipLevels = 0;
 
     auto tex = CreateTexture( desc );
     return tex;

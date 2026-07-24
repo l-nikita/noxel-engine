@@ -11,21 +11,19 @@ enum LightingDebugView
     LIGHTING_DEBUG_AO,
     LIGHTING_DEBUG_EMISSION,
     LIGHTING_DEBUG_SHADOW_FACTOR,
-    LIGHTING_DEBUG_ATTENUATION,
     LIGHTING_DEBUG_SELECTED_LIGHT,
     LIGHTING_DEBUG_DIRECT_LIGHTING,
     LIGHTING_DEBUG_AMBIENT_LIGHTING,
-    LIGHTING_DEBUG_CAMERA_DISTANCE,
-    LIGHTING_DEBUG_WORLD_GRID,
+    LIGHTING_DEBUG_DEPTH,
 };
 
 struct RenderDebugSettings
 {
     int LightingView = LIGHTING_DEBUG_LIT;
-    int SelectedLight = 0;
+    int SelectedLight = 1;
     float OverlayOpacity = 1.0f;
-    float VisualizationScale = 0.1f;
-    float Exposure = 1.0f;
+    float Exposure = 1.35f;
+    bool IBLEnabled = true;
 };
 
 inline RenderDebugSettings g_RenderDebugSettings;

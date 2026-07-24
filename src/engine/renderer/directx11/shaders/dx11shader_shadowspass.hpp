@@ -96,19 +96,28 @@ public:
         rasterDesc.FillMode = D3D11_FILL_SOLID;
         rasterDesc.CullMode = D3D11_CULL_BACK;
         rasterDesc.FrontCounterClockwise = FALSE;
-        rasterDesc.DepthBias = 1000;
-        rasterDesc.DepthBiasClamp = 0.01f;
-        rasterDesc.SlopeScaledDepthBias = 2.0f;
+        rasterDesc.DepthBias = 250;
+        rasterDesc.DepthBiasClamp = 0.002f;
+        rasterDesc.SlopeScaledDepthBias = 1.0f;
         rasterDesc.DepthClipEnable = TRUE;
 
-        hr = m_device->CreateRasterizerState(&rasterDesc, &m_shadowRasterState);
+        hr = m_device->CreateRasterizerState(&rasterDesc, &m_spotShadowRasterState);
         if ( FAILED(hr) )
-            FATAL_ERROR("DX11: Failed to create shadow rasterizer state.", CMD::RENDERING);
+            FATAL_ERROR("DX11: Failed to create spot shadow rasterizer state.", CMD::RENDERING);
+
+        rasterDesc.DepthBias = 700;
+        rasterDesc.DepthBiasClamp = 0.004f;
+        rasterDesc.SlopeScaledDepthBias = 2.0f;
+
+        hr = m_device->CreateRasterizerState(&rasterDesc, &m_directionalShadowRasterState);
+        if ( FAILED(hr) )
+            FATAL_ERROR("DX11: Failed to create directional shadow rasterizer state.", CMD::RENDERING);
 
         //-----------------------------------------------------------------------------
         m_vars[ "model" ] = glm::mat4(1.0f);
         m_vars[ "lightview" ] = glm::mat4(1.0f);
         m_vars[ "lightproj" ] = glm::mat4(1.0f);
+        m_vars[ "directional" ] = false;
     }
 
     ~ShadowsPassVS()
@@ -124,7 +133,16 @@ public:
     void Bind()
     {
         m_context->IASetInputLayout(m_inputLayout);
-        m_context->RSSetState(m_shadowRasterState);
+
+        bool directional = false;
+        ShaderVar& varDirectional = GetVar("directional");
+        if ( auto boolPtr = std::get_if<bool>(&varDirectional) )
+            directional = *boolPtr;
+
+        auto rasterState = directional
+            ? m_directionalShadowRasterState
+            : m_spotShadowRasterState;
+        m_context->RSSetState(rasterState);
 
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 lightView = glm::mat4(1.0f);
@@ -176,17 +194,24 @@ public:
             m_cbTransform = nullptr;
         }
 
-        if ( m_shadowRasterState )
+        if ( m_spotShadowRasterState )
         {
-            m_shadowRasterState->Release();
-            m_shadowRasterState = nullptr;
+            m_spotShadowRasterState->Release();
+            m_spotShadowRasterState = nullptr;
+        }
+
+        if ( m_directionalShadowRasterState )
+        {
+            m_directionalShadowRasterState->Release();
+            m_directionalShadowRasterState = nullptr;
         }
     }
 
 private:
     ID3D11InputLayout* m_inputLayout = nullptr;
     ID3D11Buffer* m_cbTransform = nullptr;
-    ID3D11RasterizerState* m_shadowRasterState = nullptr;
+    ID3D11RasterizerState* m_spotShadowRasterState = nullptr;
+    ID3D11RasterizerState* m_directionalShadowRasterState = nullptr;
 };
 
 REGISTER_SHADER(
