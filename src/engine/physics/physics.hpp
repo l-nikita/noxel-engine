@@ -22,7 +22,7 @@ public:
 public:
     SysInit Initialize() override;
     void Shutdown() override;
-    void Update() override;
+    void Update( float dt ) override;
     void Render() override;
 
     bool IsRunning() override
@@ -55,7 +55,8 @@ public:
         const JPH::Quat& quatOffset,
         const JPH::BoxShapeSettings* settings,
         JPH::EActivation activation = JPH::EActivation::Activate,
-        JPH::EMotionType motionType = JPH::EMotionType::Dynamic );
+        JPH::EMotionType motionType = JPH::EMotionType::Dynamic,
+        JPH::ObjectLayer layer = Layers::MOVING );
 
     static JPH::BodyID CreateShapeSphere(
         const JPH::RVec3& pos,
@@ -64,7 +65,8 @@ public:
         const JPH::Quat& quatOffset,
         const JPH::SphereShapeSettings* settings,
         JPH::EActivation activation = JPH::EActivation::Activate,
-        JPH::EMotionType motionType = JPH::EMotionType::Dynamic );
+        JPH::EMotionType motionType = JPH::EMotionType::Dynamic,
+        JPH::ObjectLayer layer = Layers::MOVING );
 
     std::vector<JPH::BodyID> GetBodiesIDs()
     {

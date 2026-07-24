@@ -1,5 +1,6 @@
 #include <SDL3/SDL.h>
 
+#include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -104,6 +105,12 @@ std::chrono::duration<float> Engine::DeltaDuration() const
 float Engine::DeltaTime()
 {
     return m_deltaTime.count();
+}
+
+float Engine::FixedAlpha()
+{
+    constexpr float cFixedDeltaTime = 1.0f / 60.0f;
+    return std::clamp( m_accumulator / cFixedDeltaTime, 0.0f, 1.0f );
 }
 
 std::chrono::duration<float> Engine::ElapsedDuration() const

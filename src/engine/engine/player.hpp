@@ -1,11 +1,14 @@
 ﻿#pragma once
 
 #include <algorithm>
+#include <limits>
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Character/Character.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 
 #include "engine.hpp"
 #include "window.hpp"
@@ -16,11 +19,18 @@
 #include "renderer/gizmos.hpp"
 #include "renderer/rendercamera.hpp"
 
-constexpr auto SENSITIVITY = 10.0f;
-constexpr auto CHARACTER_RADIUS = 0.5f;
+constexpr auto SENSITIVITY = 0.15f;
+constexpr auto CHARACTER_RADIUS = 0.3f;
 constexpr auto CHARACTER_HEIGHT = 1.7f;
 constexpr auto CHARACTER_EYE_HEIGHT = 1.65f;
 constexpr auto CHARACTER_MAX_SPEED = 7.0f;
+constexpr auto CHARACTER_GROUND_ACCELERATION = 45.0f;
+constexpr auto CHARACTER_GROUND_DECELERATION = 35.0f;
+constexpr auto CHARACTER_AIR_ACCELERATION = 8.0f;
+constexpr auto CHARACTER_JUMP_SPEED = 8.0f;
+constexpr auto CHARACTER_GRAVITY_SCALE = 2.0f;
+constexpr auto CHARACTER_JUMP_BUFFER_TIME = 0.12f;
+constexpr auto CHARACTER_COYOTE_TIME = 0.1f;
 
 class Player
 {
@@ -28,43 +38,37 @@ public:
     explicit Player( RenderCamera* camera )
         : m_Camera( camera )
     {
+        static_assert( CHARACTER_HEIGHT > 2.0f * CHARACTER_RADIUS );
+
         const JPH::Ref settings = new JPH::CharacterVirtualSettings();
-        settings->mShape = new JPH::BoxShape( JPH::Vec3( CHARACTER_RADIUS, 0.5f * CHARACTER_HEIGHT + CHARACTER_RADIUS,
-                                                         CHARACTER_RADIUS ) );
+        settings->mShape = JPH::RotatedTranslatedShapeSettings(
+            JPH::Vec3( 0.0f, 0.5f * CHARACTER_HEIGHT, 0.0f ),
+            JPH::Quat::sIdentity(),
+            new JPH::CapsuleShape( 0.5f * ( CHARACTER_HEIGHT - 2.0f * CHARACTER_RADIUS ),
+                                   CHARACTER_RADIUS )
+        ).Create().Get();
+        settings->mSupportingVolume = JPH::Plane( JPH::Vec3::sAxisY(), -CHARACTER_RADIUS );
 
         m_character = new JPH::CharacterVirtual( settings, JPH::RVec3( 0.0f, 1.0f, 0.0f ), JPH::Quat::sIdentity(),
                                                  GetPhysics()->GetSystem() );
         m_character->SetUp( JPH::Vec3( 0, 1, 0 ) );
+
+        m_previousCharacterPosition = Utils::GLM_Vec3_JPH( m_character->GetPosition() );
+        m_currentCharacterPosition = m_previousCharacterPosition;
     }
 
-    ~Player() = default;
-
-    void UpdateCamera( const float dt )
+    void UpdateCamera()
     {
-        const auto pos = Utils::GLM_Vec3_JPH( m_character->GetPosition() ) -
-                         glm::vec3( 0, ( CHARACTER_HEIGHT / 2 ), 0 );
-        auto eyePos = pos + glm::vec3( 0, CHARACTER_EYE_HEIGHT, 0 );
-
-        const auto delta = g_Input->GetMouseDelta();
-        if ( g_Input->GetRelativeMouseMode() && g_Engine->GetWindow()->IsInputFocused() )
-        {
-            m_yaw += delta.x * SENSITIVITY * dt;
-            m_pitch += delta.y * SENSITIVITY * dt;
-            m_pitch = std::clamp( m_pitch, -85.0f, 85.0f );
-
-            glm::quat qPitch = glm::angleAxis( glm::radians( m_pitch ), glm::vec3( 1, 0, 0 ) );
-            glm::quat qYaw = glm::angleAxis( glm::radians( m_yaw ), glm::vec3( 0, 1, 0 ) );
-            m_Camera->SetRotation( qYaw * qPitch );
-        }
-
-        if ( g_Input->IsKeyPressed( SDL_SCANCODE_C ) )
-            m_thirdPerson = !m_thirdPerson;
+        const auto feetPos = glm::mix( m_previousCharacterPosition, m_currentCharacterPosition,
+                                       g_Engine->FixedAlpha() );
+        auto eyePos = feetPos + glm::vec3( 0, CHARACTER_EYE_HEIGHT, 0 );
 
         auto eyeForward = m_Camera->Forward();
         if ( m_thirdPerson )
             eyePos += eyeForward * -3.0f;
 
         m_Camera->SetPosition( eyePos );
+        UpdateAimRay();
     }
 
     glm::vec3 GetMovementDir() const
@@ -90,70 +94,76 @@ public:
         return m_character->GetGroundState() == JPH::CharacterVirtual::EGroundState::OnGround;
     }
 
-    float GetFriction() const
+    static glm::vec3 MoveTowards( const glm::vec3& current, const glm::vec3& target, const float maxDelta )
     {
-        if ( !IsOnGround() )
-            return 1.2f;
+        const auto delta = target - current;
+        const auto distance = glm::length( delta );
 
-        return 8.0f;
+        if ( distance <= maxDelta || distance <= std::numeric_limits<float>::epsilon() )
+            return target;
+
+        return current + delta * ( maxDelta / distance );
     }
 
-    static float GetWishSpeed()
+    glm::vec3 GetWishVelocity() const
     {
-        return CHARACTER_MAX_SPEED;
+        return m_moveInput * CHARACTER_MAX_SPEED;
     }
 
     glm::vec3 StartPos = {};
     glm::vec3 HitPos = {};
 
-    void UpdateMovement( const float dt )
+    void UpdateMovement( float dt )
     {
         m_character->UpdateGroundVelocity();
 
         const auto up = Utils::GLM_Vec3_JPH( m_character->GetUp() );
-        auto currentVelocity = Utils::GLM_Vec3_JPH( m_character->GetLinearVelocity() );
-        const auto currentVerticalVelocity = Utils::GLM_Vec3_JPH(
-            m_character->GetLinearVelocity().Dot( m_character->GetUp() ) * m_character->GetUp() );
+        const auto currentVelocity = Utils::GLM_Vec3_JPH( m_character->GetLinearVelocity() );
+        const auto currentVerticalVelocity = glm::dot( currentVelocity, up ) * up;
+        const auto currentHorizontalVelocity = currentVelocity - currentVerticalVelocity;
         const auto groundVelocity = Utils::GLM_Vec3_JPH( m_character->GetGroundVelocity() );
-        glm::vec3 vel;
+        const auto groundVerticalVelocity = glm::dot( groundVelocity, up ) * up;
+        const auto groundHorizontalVelocity = groundVelocity - groundVerticalVelocity;
+        const auto movingTowardsGround = glm::dot( currentVerticalVelocity - groundVerticalVelocity, up ) < 0.1f;
+        const auto grounded = IsOnGround() && movingTowardsGround;
 
-        m_wishVelocity = GetMovementDir();
-        m_wishVelocity *= GetWishSpeed();
+        if ( grounded )
+            m_coyoteTimeRemaining = CHARACTER_COYOTE_TIME;
+        else
+            m_coyoteTimeRemaining = std::max( 0.0f, m_coyoteTimeRemaining - dt );
 
-        if ( IsOnGround() )
+        m_jumpBufferRemaining = std::max( 0.0f, m_jumpBufferRemaining - dt );
+
+        const auto wishVelocity = GetWishVelocity();
+        const auto jumpRequested = m_jumpBufferRemaining > 0.0f && m_coyoteTimeRemaining > 0.0f;
+        glm::vec3 velocity;
+
+        if ( grounded )
         {
-            vel = groundVelocity;
-
-            if ( g_Input->IsKeyPressed( SDL_SCANCODE_SPACE ) )
-                vel += 8.0f * up;
+            const auto relativeHorizontalVelocity = currentHorizontalVelocity - groundHorizontalVelocity;
+            const auto acceleration = glm::dot( m_moveInput, m_moveInput ) > 0.0f
+                                          ? CHARACTER_GROUND_ACCELERATION
+                                          : CHARACTER_GROUND_DECELERATION;
+            velocity = groundVelocity + MoveTowards( relativeHorizontalVelocity, wishVelocity, acceleration * dt );
         } else
-            vel = currentVerticalVelocity;
+        {
+            auto horizontalVelocity = currentHorizontalVelocity;
+            if ( glm::dot( m_moveInput, m_moveInput ) > 0.0f )
+                horizontalVelocity = MoveTowards( horizontalVelocity, wishVelocity,
+                                                  CHARACTER_AIR_ACCELERATION * dt );
 
-        //JPH::RayCast ray;
-        //ray.mOrigin = JPH::Vec3(10, 2, 0);
-        //ray.mDirection = JPH::Vec3(0, -2, 0);
+            velocity = currentVerticalVelocity + horizontalVelocity;
+        }
 
-        auto characterPos = Utils::GLM_Vec3_JPH( m_character->GetPosition() );
-        StartPos = m_Camera->GetPosition();
+        if ( jumpRequested )
+        {
+            velocity += CHARACTER_JUMP_SPEED * up;
+            m_jumpBufferRemaining = 0.0f;
+            m_coyoteTimeRemaining = 0.0f;
+        }
 
-        JPH::RayCastResult hit;
-        JPH::RRayCast ray(
-            Utils::JPH_Vec3_GLM( StartPos ),
-            Utils::JPH_Vec3_GLM( m_Camera->Forward() ) * 5
-        );
-
-        Raycast( GetPhysics()->GetSystem(), ray, hit );
-
-        JPH::RVec3 hitPosition = ray.GetPointOnRay( hit.mFraction );
-        JPH::BodyID bodyID = hit.mBodyID;
-        HitPos = Utils::GLM_Vec3_JPH( hitPosition );
-
-        vel += m_wishVelocity;
-        vel += g_Physics->GetGravity() * dt * 2.0f;
-
-        //std::cout << m_wishVelocity.x << " " << m_wishVelocity.y << " " << m_wishVelocity.z << std::endl;
-
-        m_character->SetLinearVelocity( Utils::JPH_Vec3_GLM( vel ) );
+        velocity += g_Physics->GetGravity() * CHARACTER_GRAVITY_SCALE * dt;
+        m_character->SetLinearVelocity( Utils::JPH_Vec3_GLM( velocity ) );
     }
 
     bool Raycast(
@@ -166,20 +176,64 @@ public:
                 .CastRay( ray, hit );
     }
 
-    void Update()
+    void UpdateAimRay()
     {
-        const float dt = g_Engine->DeltaTime();
+        StartPos = m_Camera->GetPosition();
 
-        UpdateCamera( dt );
-        UpdateMovement( dt );
-        UpdatePhysics( dt );
+        JPH::RayCastResult hit;
+        const JPH::RRayCast ray(
+            Utils::JPH_Vec3_GLM( StartPos ),
+            Utils::JPH_Vec3_GLM( m_Camera->Forward() ) * 5
+        );
+
+        if ( Raycast( GetPhysics()->GetSystem(), ray, hit ) )
+            HitPos = Utils::GLM_Vec3_JPH( ray.GetPointOnRay( hit.mFraction ) );
+        else
+            HitPos = StartPos + m_Camera->Forward() * 5.0f;
     }
 
-    void UpdatePhysics( const float dt ) const
+    void Update()
+    {
+        UpdateCamera();
+    }
+
+    void HandleInput()
+    {
+        if ( g_Input->GetRelativeMouseMode() && g_Engine->GetWindow()->IsInputFocused() )
+        {
+            const auto delta = g_Input->GetMouseDelta();
+            m_yaw += delta.x * SENSITIVITY;
+            m_pitch += delta.y * SENSITIVITY;
+            m_pitch = std::clamp( m_pitch, -85.0f, 85.0f );
+
+            const auto qPitch = glm::angleAxis( glm::radians( m_pitch ), glm::vec3( 1, 0, 0 ) );
+            const auto qYaw = glm::angleAxis( glm::radians( m_yaw ), glm::vec3( 0, 1, 0 ) );
+            m_Camera->SetRotation( qYaw * qPitch );
+        }
+
+        if ( g_Input->IsKeyPressed( SDL_SCANCODE_C ) )
+            m_thirdPerson = !m_thirdPerson;
+
+        m_moveInput = GetMovementDir();
+
+        if ( g_Input->IsKeyPressed( SDL_SCANCODE_SPACE ) )
+            m_jumpBufferRemaining = CHARACTER_JUMP_BUFFER_TIME;
+    }
+
+    void FixedUpdate( float dt )
+    {
+        m_previousCharacterPosition = m_currentCharacterPosition;
+        UpdateMovement( dt );
+        UpdatePhysics( dt );
+        m_currentCharacterPosition = Utils::GLM_Vec3_JPH( m_character->GetPosition() );
+    }
+
+    void UpdatePhysics( float dt ) const
     {
         const JPH::CharacterVirtual::ExtendedUpdateSettings updateSettings;
         m_character->ExtendedUpdate( dt,
-                                     g_Physics->GetGravity().length() * -m_character->GetUp(),
+                                     CHARACTER_GRAVITY_SCALE * g_Physics->GetGravity().length() *
+                                     -m_character->GetUp(),
                                      updateSettings,
                                      GetPhysics()->GetSystem()->GetDefaultBroadPhaseLayerFilter( Layers::MOVING ),
                                      GetPhysics()->GetSystem()->GetDefaultLayerFilter( Layers::MOVING ),
@@ -209,10 +263,14 @@ private:
 
     bool m_thirdPerson = false;
 
-    JPH::Shape* m_standingShape = nullptr;
-    JPH::CharacterVirtual* m_character = nullptr;
+    JPH::Ref<JPH::CharacterVirtual> m_character;
 
-    glm::vec3 m_wishVelocity;
+    float m_jumpBufferRemaining = 0.0f;
+    float m_coyoteTimeRemaining = 0.0f;
+
+    glm::vec3 m_moveInput = {};
+    glm::vec3 m_previousCharacterPosition = {};
+    glm::vec3 m_currentCharacterPosition = {};
 };
 
 extern Player* g_Player;

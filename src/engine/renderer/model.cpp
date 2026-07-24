@@ -40,14 +40,6 @@ void Model::SetMaterial( IMaterial* material, size_t index )
     assert( material );
     assert( index < m_materials.size() );
 
-    if ( m_materials[ index ] )
-    {
-        const auto factory = g_Renderer->GetFactory();
-        factory->Release( m_materials[ index ] );
-
-        m_materials[ index ] = nullptr;
-    }
-
     m_materials[ index ] = material;
 }
 

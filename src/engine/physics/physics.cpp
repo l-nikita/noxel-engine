@@ -72,8 +72,11 @@ SysInit JoltPhysics::Initialize()
 
     m_debugRenderer = new PhysicsDebugRenderer();
 
+    const auto hardwareThreads = std::thread::hardware_concurrency();
+    const auto workerThreads = hardwareThreads > 1 ? hardwareThreads - 1 : 1;
+
     m_tempAllocator = new TempAllocatorImpl( 10 * 1024 * 1024 );
-    m_jobSystem = new JobSystemThreadPool( cMaxPhysicsJobs, cMaxPhysicsBarriers, thread::hardware_concurrency() - 1 );
+    m_jobSystem = new JobSystemThreadPool( cMaxPhysicsJobs, cMaxPhysicsBarriers, workerThreads );
 
     constexpr uint cMaxBodies = 1024;
     constexpr uint cNumBodyMutexes = 0;
@@ -110,32 +113,32 @@ SysInit JoltPhysics::Initialize()
         RVec3( 5.0f, -3.0f, 10.0f ), Quat::sIdentity(),
         RVec3( 0.0f, 0.0f, 0.0f ), Quat::sIdentity(),
         new JPH::BoxShapeSettings( JPH::RVec3( 3.0f, 1.0f, 3.0f ) ),
-        EActivation::Activate, EMotionType::Static );
+        EActivation::Activate, EMotionType::Static, Layers::NON_MOVING );
 
     //---------------------------------------------------------------------
     JoltPhysics::CreateShapeBox(
         RVec3( 0, -3, -5 ), Quat::sIdentity(),
         RVec3( 0.0f, 0.0f, 0.0f ), Quat::sIdentity(),
         new JPH::BoxShapeSettings( JPH::RVec3( 1.0f, 1.0f, 1.0f ) ),
-        EActivation::Activate, EMotionType::Static );
+        EActivation::Activate, EMotionType::Static, Layers::NON_MOVING );
 
     JoltPhysics::CreateShapeBox(
         RVec3( 0, -3, 15 ), Quat::sIdentity(),
         RVec3( 0.0f, 0.0f, 0.0f ), Quat::sIdentity(),
         new JPH::BoxShapeSettings( JPH::RVec3( 1.0f, 1.0f, 1.0f ) ),
-        EActivation::Activate, EMotionType::Static );
+        EActivation::Activate, EMotionType::Static, Layers::NON_MOVING );
 
     JoltPhysics::CreateShapeBox(
         RVec3( -5, -3, -2 ), Quat::sIdentity(),
         RVec3( 0.0f, 0.0f, 0.0f ), Quat::sIdentity(),
         new JPH::BoxShapeSettings( JPH::RVec3( 1.0f, 1.0f, 1.0f ) ),
-        EActivation::Activate, EMotionType::Static );
+        EActivation::Activate, EMotionType::Static, Layers::NON_MOVING );
 
     g_BodyId = JoltPhysics::CreateShapeBox(
         RVec3( 0, 0, 0 ), Quat::sIdentity(),
         RVec3( 0.0f, 0.0f, 0.0f ), Quat::sIdentity(),
         new JPH::BoxShapeSettings( JPH::RVec3( 0.5f, 0.5f, 0.5f ) ),
-        EActivation::Activate, EMotionType::Static );
+        EActivation::Activate, EMotionType::Static, Layers::MOVING );
 
     //---------------------------------------------------------------------
     m_system->OptimizeBroadPhase();
@@ -180,13 +183,12 @@ void JoltPhysics::Shutdown()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void JoltPhysics::Update()
+void JoltPhysics::Update( const float dt )
 {
     if ( !IsRunning() ) return;
 
     PROF_START( "Physics::Update", "Physics" );
 
-    constexpr float cDeltaTime = 1.0f / 60.0f;
     constexpr auto cCollisionSteps = 1;
 
     auto& iBody = m_system->GetBodyInterface();
@@ -204,7 +206,7 @@ void JoltPhysics::Update()
     iBody.SetRotation( g_BodyId, Utils::JPH_Quat_GLM( rot ), JPH::EActivation::Activate );
 
     // Step the world
-    m_system->Update( cDeltaTime, cCollisionSteps, m_tempAllocator, m_jobSystem );
+    m_system->Update( dt, cCollisionSteps, m_tempAllocator, m_jobSystem );
     FlushPendingDestructions();
 
     PROF_END( "Physics::Update" );

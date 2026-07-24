@@ -16,16 +16,17 @@ BodyID JoltPhysics::CreateShapeBox(
     const Quat& quatOffset,
     const BoxShapeSettings* settings,
     const EActivation activation,
-    const EMotionType motionType )
+    const EMotionType motionType,
+    ObjectLayer layer )
 {
-    const RotatedTranslatedShapeSettings offsetShapeSettings(offset, quat, settings);
+    const RotatedTranslatedShapeSettings offsetShapeSettings( offset, quat, settings );
     const auto result = offsetShapeSettings.Create();
 
     auto& body_interface = GetPhysics()->GetSystem()->GetBodyInterface();
-    const BodyCreationSettings bodySettings(result.Get(), pos, quatOffset, motionType, Layers::MOVING);
+    const BodyCreationSettings bodySettings( result.Get(), pos, quatOffset, motionType, layer );
 
-    const auto bodyID = body_interface.CreateAndAddBody(bodySettings, activation);
-    GetPhysics()->m_bodiesIDs.push_back(bodyID);
+    const auto bodyID = body_interface.CreateAndAddBody( bodySettings, activation );
+    GetPhysics()->m_bodiesIDs.push_back( bodyID );
     return bodyID;
 }
 
@@ -36,15 +37,16 @@ BodyID JoltPhysics::CreateShapeSphere(
     const Quat& quatOffset,
     const SphereShapeSettings* settings,
     const EActivation activation,
-    const EMotionType motionType )
+    const EMotionType motionType,
+    ObjectLayer layer )
 {
-    const RotatedTranslatedShapeSettings offsetShapeSettings(offset, quat, settings);
+    const RotatedTranslatedShapeSettings offsetShapeSettings( offset, quat, settings );
     const auto result = offsetShapeSettings.Create();
 
     auto& body_interface = GetPhysics()->GetSystem()->GetBodyInterface();
-    const BodyCreationSettings bodySettings(result.Get(), pos, quatOffset, motionType, Layers::MOVING);
+    const BodyCreationSettings bodySettings( result.Get(), pos, quatOffset, motionType, layer );
 
-    const auto bodyID = body_interface.CreateAndAddBody(bodySettings, activation);
-    GetPhysics()->m_bodiesIDs.push_back(bodyID);
+    const auto bodyID = body_interface.CreateAndAddBody( bodySettings, activation );
+    GetPhysics()->m_bodiesIDs.push_back( bodyID );
     return bodyID;
 }

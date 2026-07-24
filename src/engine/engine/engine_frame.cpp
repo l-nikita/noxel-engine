@@ -30,6 +30,15 @@ void Engine::Run()
         lastTime = currentTime;
         m_elapsedTime = duration<float>( currentTime - startTime );
 
+        HandleEvents();
+
+        if ( g_Player )
+            g_Player->HandleInput();
+
+        PROF_START( "Engine::FixedUpdate", "Engine" );
+        FixedUpdate();
+        PROF_END( "Engine::FixedUpdate" );
+
         PROF_START( "Engine::Update", "Engine" );
         Update();
         PROF_END( "Engine::Update" );
@@ -52,12 +61,8 @@ void Engine::Stop()
 //-----------------------------------------------------------------------------
 void Engine::Update()
 {
-    HandleEvents();
-
     if ( g_Player )
         g_Player->Update();
-
-    g_Physics->Update();
 
     const bool isGrave = g_Input->IsKeyPressed( SDL_SCANCODE_GRAVE );
     const bool isF3 = g_Input->IsKeyPressed( SDL_SCANCODE_F3 );
@@ -72,6 +77,27 @@ void Engine::Update()
         GetWindow()->ToggleFullscreen();
 
     g_Input->Reset();
+}
+
+void Engine::FixedUpdate()
+{
+    constexpr float cDeltaTime = 1.0f / 60.0f;
+    constexpr int cMaxSteps = 5;
+
+    m_accumulator += std::min( DeltaTime(), 0.25f );
+    m_accumulator = std::min( m_accumulator, cDeltaTime * cMaxSteps );
+
+    int steps = 0;
+    while ( m_accumulator >= cDeltaTime && steps < cMaxSteps )
+    {
+        if ( g_Player )
+            g_Player->FixedUpdate( cDeltaTime );
+
+        g_Physics->Update( cDeltaTime );
+
+        m_accumulator -= cDeltaTime;
+        ++steps;
+    }
 }
 
 void Engine::Render()

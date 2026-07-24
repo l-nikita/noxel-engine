@@ -28,6 +28,7 @@ public:
     bool IsRunning() override;
 
     void Update() override;
+    void FixedUpdate() override;
     void Render() override;
     void DrawPlayer() override; // REMOVE
 
@@ -41,6 +42,7 @@ public:
 
     std::chrono::duration<float> DeltaDuration() const;
     float DeltaTime() override;
+    float FixedAlpha() override;
 
     std::chrono::duration<float> ElapsedDuration() const;
     float ElapsedTime() override;
@@ -83,6 +85,7 @@ public:
 private:
     Window* m_window = nullptr;
     bool m_isRunning = false;
+    float m_accumulator = 0.0f;
 
     std::chrono::duration<float> m_deltaTime = {};
     std::chrono::duration<float> m_elapsedTime = {};
