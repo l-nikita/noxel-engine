@@ -13,6 +13,7 @@
 #include "engine.hpp"
 #include "window.hpp"
 #include "common/transformable.hpp"
+#include "dbg/debug.hpp"
 #include "input/iinput.hpp"
 #include "physics/physics.hpp"
 #include "physics/physics_renderer.hpp"
@@ -59,13 +60,34 @@ public:
 
     void UpdateCamera()
     {
+        JPH::RayCastResult hit;
+        const JPH::RRayCast ray(
+            Utils::JPH_Vec3_GLM( m_Camera->GetPosition() ),
+            Utils::JPH_Vec3_GLM( m_Camera->Backward() ) * 15
+        );
+
+        Raycast( GetPhysics()->GetSystem(), ray, hit );
+
         const auto feetPos = glm::mix( m_previousCharacterPosition, m_currentCharacterPosition,
                                        g_Engine->FixedAlpha() );
         auto eyePos = feetPos + glm::vec3( 0, CHARACTER_EYE_HEIGHT, 0 );
 
-        auto eyeForward = m_Camera->Forward();
         if ( m_thirdPerson )
-            eyePos += eyeForward * -3.0f;
+        {
+            constexpr auto targetDistance = 3.0f;
+            const glm::vec3 rayDir = m_Camera->Backward();
+
+            JPH::RayCastResult hit;
+            const JPH::RRayCast ray(
+                Utils::JPH_Vec3_GLM( eyePos ),
+                Utils::JPH_Vec3_GLM( rayDir * targetDistance * ( targetDistance / 2 ) )
+            );
+
+            if ( Raycast( GetPhysics()->GetSystem(), ray, hit ) )
+                eyePos += rayDir * ( targetDistance * ( hit.mFraction ) );
+            else
+                eyePos += rayDir * targetDistance;
+        }
 
         m_Camera->SetPosition( eyePos );
         UpdateAimRay();
@@ -256,9 +278,9 @@ public:
     {
         if ( m_thirdPerson )
         {
-            const auto com = m_character->GetCenterOfMassTransform();
-            m_character->GetShape()->Draw( JPH::DebugRenderer::sInstance, com, JPH::Vec3::sOne(), JPH::Color::sGreen,
-                                           false, true );
+            //const auto com = m_character->GetCenterOfMassTransform();
+            //m_character->GetShape()->Draw( JPH::DebugRenderer::sInstance, com, JPH::Vec3::sOne(), JPH::Color::sGreen,
+            //                               false, true );
         }
 
         Gizmos::Box( HitPos, glm::quat(), glm::vec3( 0.0f, 0.0f, 0.0f ), glm::vec3( 0.1f, 0.1f, 0.1f ) );

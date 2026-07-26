@@ -29,6 +29,7 @@ namespace CMD
             case CONSOLE: return "CONSOLE";
             case RENDERING: return "RENDERING";
             case ASSETSYSTEM: return "ASSETSYSTEM";
+            case FILESYSTEM: return "FILESYSTEM";
             case NETWORKING: return "NETWORKING";
             case INPUT: return "INPUT";
         }

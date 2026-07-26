@@ -201,7 +201,7 @@ SysInit DeferredRenderPipeline::Initialize()
     m_backBufferVP = factory->CreateViewport( 0, 0, wW, wH );
     m_mainCamera = new RenderCamera( wW, wH );
     m_mainCamera->SetFOV( 95.0f );
-    m_mainCamera->SetNear( 0.1f );
+    m_mainCamera->SetNear( 0.01f );
     m_mainCamera->SetFar( 100.0f );
 
     g_Renderer->SetCamera( m_mainCamera );
