@@ -1,11 +1,16 @@
+#include <algorithm>
 #include <format>
+#include <ranges>
+#include <string>
+#include <vector>
 #include <imgui.h>
+
 #include "console_panel.hpp"
 #include "dbg/debug.hpp"
 
 void ConsolePanel::Draw()
 {
-    if ( ImGui::Begin( "Console", NULL, ( ImGuiWindowFlags_MenuBar ) ) )
+    if ( ImGui::Begin( "Console", nullptr, ( ImGuiWindowFlags_MenuBar ) ) )
     {
         DrawMenuBar();
         DrawLogWindow();
@@ -40,7 +45,7 @@ void ConsolePanel::DrawLogWindow()
 
         ImGui::PushTextWrapPos();
 
-        auto& logs = CMD::CMD::GetInstance().GetLogs();
+        auto& logs = CMD::CMD::Get().GetLogs();
         for ( auto log = logs.begin(); log != logs.end(); ++log )
         {
             ImGui::PushTextWrapPos( ImGui::GetColumnWidth() - timestampWidth );
@@ -62,7 +67,7 @@ void ConsolePanel::DrawLogWindow()
 
             std::string formated;
             if ( log->Category != CMD::CONSOLE )
-                formated = std::format( "[{:12}] {}\n", CMD::LogCategoryToString( log->Category ), log->Text );
+                formated = std::format( "[{}] {}\n", CMD::LogCategoryToString( log->Category ), log->Text );
             else
                 formated = log->Text;
 
@@ -79,7 +84,7 @@ void ConsolePanel::DrawLogWindow()
                 std::strftime( timeBuffer, sizeof( timeBuffer ), "%H:%M:%S", timeInfo );
 
                 ImGui::PushStyleColor( ImGuiCol_Text, color );
-                ImGui::Text( timeBuffer );
+                ImGui::Text( "%s", timeBuffer );
                 ImGui::PopStyleColor();
             }
         }
@@ -99,38 +104,165 @@ void ConsolePanel::DrawLogWindow()
 void ConsolePanel::DrawInput()
 {
     if ( ImGui::Button( "Clear" ) )
-        CMD::CMD::GetInstance().Execute( "clear" );
+        CMD::CMD::Get().Execute( "clear" );
 
     ImGui::SameLine();
 
     bool reclaimFocus = false;
+    bool suggestionAccepted = false;
 
-    ImGui::PushItemWidth( -ImGui::GetStyle().ItemSpacing.x * 1 );
+    ImGui::PushItemWidth( -1.0f );
 
-    if ( ImGui::InputText( "##", m_input, INPUT_SIZE, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    const bool inputSubmitted =
+            ImGui::InputText(
+                "##Input",
+                m_buffer,
+                INPUT_SIZE,
+                ImGuiInputTextFlags_EnterReturnsTrue
+            );
+
+    const bool inputIsActive = ImGui::IsItemActive();
+    const bool inputEdited = ImGui::IsItemEdited();
+    const ImVec2 inputMin = ImGui::GetItemRectMin();
+    const ImVec2 inputMax = ImGui::GetItemRectMax();
+
+    m_input.assign( m_buffer );
+
+    if ( inputEdited )
+        m_selectedSuggestion = -1;
+
+    std::vector<std::string> matches = FindMatches( m_input );
+
+    if ( m_selectedSuggestion >= static_cast<int>(matches.size()) )
+        m_selectedSuggestion = -1;
+
+    bool selectionMoved = false;
+
+    if ( inputIsActive && !matches.empty() )
+    {
+        if ( ImGui::IsKeyPressed( ImGuiKey_DownArrow ) )
+        {
+            m_selectedSuggestion =
+                    ( m_selectedSuggestion + 1 ) % static_cast<int>(matches.size());
+
+            selectionMoved = true;
+        } else if ( ImGui::IsKeyPressed( ImGuiKey_UpArrow ) )
+        {
+            m_selectedSuggestion =
+                    m_selectedSuggestion <= 0
+                        ? static_cast<int>(matches.size()) - 1
+                        : m_selectedSuggestion - 1;
+
+            selectionMoved = true;
+        }
+
+        ImGui::OpenPopup( "##SuggestionsPopup" );
+    }
+
+    if ( inputSubmitted && m_selectedSuggestion >= 0 )
+    {
+        m_input = matches[ static_cast<std::size_t>(m_selectedSuggestion) ];
+
+        std::snprintf( m_buffer, INPUT_SIZE, "%s", m_input.c_str() );
+
+        m_selectedSuggestion = -1;
+        suggestionAccepted = true;
+        reclaimFocus = true;
+    }
+
+    ImGui::SetNextWindowPos( ImVec2( inputMin.x, inputMax.y ) );
+    ImGui::SetNextWindowSize(
+        ImVec2( inputMax.x - inputMin.x, 0.0f )
+    );
+
+    constexpr ImGuiWindowFlags popupFlags =
+            ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoSavedSettings |
+            ImGuiWindowFlags_NoFocusOnAppearing;
+
+    if ( ImGui::BeginPopup( "##SuggestionsPopup", popupFlags ) )
+    {
+        if ( matches.empty() || suggestionAccepted )
+            ImGui::CloseCurrentPopup();
+        else
+        {
+            for ( std::size_t i = 0; i < matches.size(); ++i )
+            {
+                const bool selected =
+                        static_cast<int>(i) == m_selectedSuggestion;
+
+                if ( ImGui::Selectable( matches[ i ].c_str(), selected ) )
+                {
+                    m_input = matches[ i ];
+
+                    std::snprintf(
+                        m_buffer,
+                        INPUT_SIZE,
+                        "%s",
+                        m_input.c_str()
+                    );
+
+                    m_selectedSuggestion = -1;
+                    suggestionAccepted = true;
+                    reclaimFocus = true;
+
+                    ImGui::CloseCurrentPopup();
+                }
+
+                if ( selectionMoved && selected )
+                    ImGui::SetScrollHereY();
+            }
+        }
+
+        ImGui::EndPopup();
+    }
+
+    if ( inputSubmitted && !suggestionAccepted )
     {
         reclaimFocus = true;
-        ExecuteCommand( m_input );
+
+        if ( !m_input.empty() )
+        {
+            if ( m_autoScroll )
+                m_scrollToBottom = true;
+
+            CMD::Execute( m_input );
+        }
+
+        m_input.clear();
+        m_buffer[ 0 ] = '\0';
+        m_selectedSuggestion = -1;
+
+        ImGui::CloseCurrentPopup();
     }
 
     ImGui::PopItemWidth();
 
-    ImGui::SetItemDefaultFocus();
     if ( reclaimFocus )
         ImGui::SetKeyboardFocusHere( -1 );
 }
 
-void ConsolePanel::ExecuteCommand( char* input )
+std::vector<std::string> ConsolePanel::FindMatches( const std::string& input )
 {
-    if ( input == nullptr ) return;
+    std::vector<std::string> matches;
+    if ( input.empty() )
+        return matches;
 
-    std::string str = input;
-    if ( str.empty() ) return;
+    const auto addMatch = [&matches, input]( const std::string& name )
+    {
+        if ( name != input && name.contains( input ) )
+            matches.push_back( name );
+    };
 
-    if ( m_autoScroll )
-        m_scrollToBottom = true;
+    for ( const auto& name: CMD::CMD::Get().GetCommands() | std::views::keys )
+        addMatch( name );
 
-    CMD::Execute( str );
+    for ( const auto& name: CMD::CMD::Get().GetVars() | std::views::keys )
+        addMatch( name );
 
-    memset( input, 0, INPUT_SIZE );
+    std::ranges::sort( matches );
+    matches.erase( std::ranges::unique( matches ).begin(), matches.end() );
+
+    return matches;
 }

@@ -41,8 +41,7 @@ namespace CMD
 
     bool CMD::IsCommandExist( const std::string& name )
     {
-        auto iterator = m_commands.find( name );
-        if ( iterator != m_commands.end() )
+        if ( auto it = m_commands.find( name ); it != m_commands.end() )
             return true;
 
         return false;
@@ -99,8 +98,7 @@ namespace CMD
 
     bool CMD::IsVarExist( const std::string& name )
     {
-        auto it = m_vars.find( name );
-        if ( it != m_vars.end() )
+        if ( auto it = m_vars.find( name ); it != m_vars.end() )
             return true;
 
         return false;
@@ -154,10 +152,8 @@ namespace CMD
         bool inQuotes = false;
         std::string current;
 
-        for ( size_t i = 0; i < input.size(); ++i )
+        for ( char c: input )
         {
-            char c = input[ i ];
-
             if ( c == '"' )
             {
                 inQuotes = !inQuotes;
@@ -188,7 +184,7 @@ namespace CMD
         trimmed.erase( trimmed.find_last_not_of( " \t\n\r" ) + 1 );
 
         std::string lower = trimmed;
-        std::transform( lower.begin(), lower.end(), lower.begin(), ::tolower );
+        std::ranges::transform( lower, lower.begin(), ::tolower );
 
         // Bool check
         if ( lower == "true" )
@@ -270,17 +266,17 @@ namespace CMD
 
     void RegisterCommand( const std::string& name, const std::string& desc, const std::function<void()>& func )
     {
-        CMD::GetInstance().RegisterCommand( name, desc, func );
+        CMD::Get().RegisterCommand( name, desc, func );
     }
 
     void RegisterVar( const std::string& name, const std::string& desc, const VarValue& defValue,
                       const VarCallback& callback )
     {
-        CMD::GetInstance().RegisterVar( name, desc, defValue, callback );
+        CMD::Get().RegisterVar( name, desc, defValue, callback );
     }
 
     void Execute( const std::string& name )
     {
-        CMD::GetInstance().Execute( name );
+        CMD::Get().Execute( name );
     }
 }

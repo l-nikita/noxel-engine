@@ -48,7 +48,12 @@ void Engine::Initialize()
 
     InitializeSystems();
 
-    CMD::CMD::GetInstance().Setup();
+    CMD::CMD::Get().Setup();
+
+    CMD::RegisterCommand( "quit", "", []
+    {
+        g_Engine->Quit();
+    } );
 
     if ( g_Renderer )
         g_Player = new Player( g_Renderer->GetCamera() );
@@ -61,7 +66,7 @@ void Engine::Initialize()
 //-----------------------------------------------------------------------------
 void Engine::Shutdown()
 {
-    Stop();
+    Quit();
 
     if ( g_Player )
         delete g_Player, g_Player = nullptr;
@@ -90,11 +95,10 @@ Window* Engine::GetWindow()
 
 void Engine::OnWindowResize()
 {
-    int width, height;
-    GetWindow()->GetSize( &width, &height );
+    auto [ wW, wH ] = GetWindow()->GetSize();
 
     if ( g_RenderPipeline )
-        g_RenderPipeline->OnWindowResize( width, height );
+        g_RenderPipeline->OnWindowResize( wW, wH );
 }
 
 std::chrono::duration<float> Engine::DeltaDuration() const

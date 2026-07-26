@@ -196,11 +196,10 @@ SysInit DeferredRenderPipeline::Initialize()
     m_Models.push_back( g_TestModel2 );
 
     //----------------------------------------------------
-    int width, height;
-    g_Engine->GetWindow()->GetSize( &width, &height );
+    auto [ wW, wH ] = g_Engine->GetWindow()->GetSize();
 
-    m_backBufferVP = factory->CreateViewport( 0, 0, width, height );
-    m_mainCamera = new RenderCamera( width, height );
+    m_backBufferVP = factory->CreateViewport( 0, 0, wW, wH );
+    m_mainCamera = new RenderCamera( wW, wH );
     m_mainCamera->SetFOV( 95.0f );
     m_mainCamera->SetNear( 0.1f );
     m_mainCamera->SetFar( 100.0f );
@@ -208,7 +207,7 @@ SysInit DeferredRenderPipeline::Initialize()
     g_Renderer->SetCamera( m_mainCamera );
     g_Renderer->SetViewport( m_backBufferVP );
 
-    SetupGBuffer( width, height );
+    SetupGBuffer( wW, wH );
     SetupShadows();
     SetupSkybox();
 
@@ -222,7 +221,7 @@ SysInit DeferredRenderPipeline::Initialize()
 
 void DeferredRenderPipeline::Shutdown()
 {
-    LightManager::GetInstance().Release();
+    LightManager::Get().Release();
 
     for ( const auto model: m_Models )
         delete model;
@@ -279,7 +278,7 @@ void DeferredRenderPipeline::Render()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void DeferredRenderPipeline::OnWindowResize( const int width, const int height )
+void DeferredRenderPipeline::OnWindowResize( int width, int height )
 {
     m_GBuffer.Release();
 
@@ -344,7 +343,7 @@ void DeferredRenderPipeline::DoGeometryPass() const
 //-----------------------------------------------------------------------------
 void DeferredRenderPipeline::DoShadowPass() const
 {
-    auto& lights = LightManager::GetInstance().GetLights();
+    auto& lights = LightManager::Get().GetLights();
     for ( auto light: lights )
     {
         if ( !light || ( light && !light->IsShadowsEnabled() ) )

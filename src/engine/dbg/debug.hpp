@@ -28,7 +28,7 @@ namespace Debug
         CMD::LogCategory category,
         CMD::LogType type )
     {
-        CMD::CMD::GetInstance().LogMsg(
+        CMD::CMD::Get().LogMsg(
             std::string( msg ),
             type,
             category
@@ -53,7 +53,7 @@ namespace Debug
         formatedMsg += "\n";
         formatedMsg += GetSystemDebugInfo();
 
-        CMD::CMD::GetInstance().LogMsg(
+        CMD::CMD::Get().LogMsg(
             formatedMsg,
             CMD::FATAL_ERROR,
             category,
@@ -81,7 +81,7 @@ namespace Debug
     ::Debug::Log((msg), type, category)
 
 #define CMD_MSG(msg, category) \
-    ::Debug::Log((msg), CMD::DEFAULT, category)
+    ::Debug::Log((msg), category, CMD::DEFAULT)
 
 #define CMD_DMSG(msg) \
     ::Debug::Log((msg), CMD::NONE, CMD::DEFAULT)

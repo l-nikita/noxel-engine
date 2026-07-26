@@ -51,7 +51,7 @@ void Engine::Run()
     Shutdown();
 }
 
-void Engine::Stop()
+void Engine::Quit()
 {
     m_isRunning = false;
 }

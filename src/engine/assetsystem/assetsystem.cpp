@@ -12,6 +12,13 @@
 SysInit AssetSystem::Initialize()
 {
     SearchAssets();
+
+    CMD::RegisterCommand( "as_print_assets", "Prints assets", [this]
+    {
+        for ( const auto& asset: m_assets )
+            CMD_MSG( asset.Path.string(), CMD::ASSETSYSTEM );
+    } );
+
     return {};
 }
 
@@ -97,29 +104,29 @@ void* AssetSystem::LoadAssetImpl( const Asset* asset )
     {
         case AssetType::MATERIAL:
         {
-            auto loaded = m_materialLoader.Load( g_FileSystem, asset );
-            if ( loaded )
+            if ( auto loaded = m_materialLoader.Load( g_FileSystem, asset ) )
                 result = loaded.value();
             else
                 result = std::unexpected( loaded.error() );
+
             break;
         }
         case AssetType::SHADER:
         {
-            auto loaded = m_shaderLoader.Load( g_FileSystem, asset );
-            if ( loaded )
+            if ( auto loaded = m_shaderLoader.Load( g_FileSystem, asset ) )
                 result = loaded.value();
             else
                 result = std::unexpected( loaded.error() );
+
             break;
         }
         case AssetType::TEXTURE:
         {
-            auto loaded = m_textureLoader.Load( g_FileSystem, asset );
-            if ( loaded )
+            if ( auto loaded = m_textureLoader.Load( g_FileSystem, asset ) )
                 result = loaded.value();
             else
                 result = std::unexpected( loaded.error() );
+
             break;
         }
         default:
@@ -147,15 +154,14 @@ void AssetSystem::SearchAssets()
 void AssetSystem::DetectAndRegisterAsset( const FPath& file )
 {
     auto ext = file.extension().string();
-    std::ranges::transform( ext, ext.begin(), []( unsigned char c )
-    {
-        return std::tolower( c );
-    } );
+    std::ranges::transform( ext, ext.begin(), ::tolower );
 
     if ( ext == MATERIAL_EXTENSION )
         RegisterAsset( file, AssetType::MATERIAL );
     else if ( ext == SHADER_EXTENSION )
         RegisterAsset( file, AssetType::SHADER );
+    else if ( ext == MODEL_EXTENSION )
+        RegisterAsset( file, AssetType::MODEL );
     else
     {
         for ( const auto& imageExt: SUPPORTED_IMAGE_FORMATS )

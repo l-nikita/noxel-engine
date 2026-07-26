@@ -26,9 +26,12 @@ Window::~Window()
     SDL_DestroyWindow( m_handle );
 }
 
-void Window::GetSize( int* width, int* height ) const
+std::tuple<int, int> Window::GetSize() const
 {
-    SDL_GetWindowSizeInPixels( m_handle, width, height );
+    int width, height = 0;
+    SDL_GetWindowSizeInPixels( m_handle, &width, &height );
+
+    return {width, height};
 }
 
 void Window::ToggleFullscreen()

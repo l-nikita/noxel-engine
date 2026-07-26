@@ -22,7 +22,7 @@ public:
     void Initialize() override;
 
     void Run() override;
-    void Stop() override;
+    void Quit() override;
     void Shutdown() override;
 
     bool IsRunning() override;

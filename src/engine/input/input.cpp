@@ -82,14 +82,14 @@ glm::vec2 Input::GetMousePos()
 {
     float x, y;
     SDL_GetMouseState( &x, &y );
-    return glm::vec2( x, y );
+    return {x, y};
 }
 
 glm::vec2 Input::GetMouseDelta()
 {
     float dx, dy;
     SDL_GetRelativeMouseState( &dx, &dy );
-    return glm::vec2( dx, dy );
+    return {dx, dy};
 }
 
 glm::vec2 Input::GetMouseScroll()

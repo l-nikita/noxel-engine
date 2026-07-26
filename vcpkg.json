@@ -6,9 +6,6 @@
       "name": "sdl3"
     },
     {
-      "name": "vulkan"
-    },
-    {
       "name": "entt"
     },
     {
@@ -37,13 +34,10 @@
       "name": "nlohmann-json"
     },
     {
-      "name": "protobuf"
-    },
-    {
-      "name": "gamenetworkingsockets"
-    },
-    {
       "name": "stb"
+    },
+    {
+      "name": "tinygltf"
     },
     {
       "name": "mimalloc",

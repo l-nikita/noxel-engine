@@ -29,12 +29,10 @@ find_package( EnTT REQUIRED CONFIG )
 find_package( glm REQUIRED CONFIG )
 find_package( Jolt REQUIRED CONFIG )
 find_package( nlohmann_json REQUIRED CONFIG )
-find_package( Protobuf REQUIRED CONFIG )
-find_package( GameNetworkingSockets REQUIRED CONFIG )
 find_package( imgui REQUIRED CONFIG )
 find_package( mimalloc REQUIRED CONFIG )
 find_package( Stb REQUIRED )
-find_package( Vulkan REQUIRED )
+find_path( TINYGLTF_INCLUDE_DIRS "tiny_gltf.h" )
 #find_package(Tracy CONFIG REQUIRED)
 
 # ------------------ Settings ------------------
@@ -44,7 +42,6 @@ set( JSON_BuildTests OFF CACHE INTERNAL "" )
 
 # ------------------ Subdirectories --------------------
 
-add_subdirectory( src/proto )
 add_subdirectory( src/engine )
 add_subdirectory( src/launcher )
 

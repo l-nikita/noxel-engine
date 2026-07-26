@@ -37,24 +37,24 @@ void DebugMenu::Draw()
 {
     if ( ImGui::BeginMainMenuBar() )
     {
-        if ( ImGui::BeginMenu("Engine") )
+        if ( ImGui::BeginMenu( "Engine" ) )
         {
-            if ( ImGui::MenuItem("Toggle Fullscreen") )
+            if ( ImGui::MenuItem( "Toggle Fullscreen" ) )
                 g_Engine->GetWindow()->ToggleFullscreen();
 
             ImGui::Separator();
 
-            if ( ImGui::MenuItem("Exit") )
-                g_Engine->Stop();
+            if ( ImGui::MenuItem( "Quit" ) )
+                g_Engine->Quit();
 
             ImGui::EndMenu();
         }
 
-        if ( ImGui::BeginMenu("View") )
+        if ( ImGui::BeginMenu( "View" ) )
         {
-            ImGui::Checkbox("Console", &m_ConsoleEnabled);
-            ImGui::Checkbox("Budget", &m_BudgetEnabled);
-            ImGui::Checkbox("DevMenu", &m_DevPanelEnabled);
+            ImGui::Checkbox( "Console", &m_ConsoleEnabled );
+            ImGui::Checkbox( "Budget", &m_BudgetEnabled );
+            ImGui::Checkbox( "DevMenu", &m_DevPanelEnabled );
 
             ImGui::EndMenu();
         }

@@ -22,7 +22,7 @@ public:
     virtual void Initialize() = 0;
 
     virtual void Run() = 0;
-    virtual void Stop() = 0;
+    virtual void Quit() = 0;
     virtual void Shutdown() = 0;
     virtual bool IsRunning() = 0;
 

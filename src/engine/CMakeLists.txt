@@ -71,7 +71,6 @@ add_custom_command( TARGET engine POST_BUILD
 
 # ----------------------------------------------
 target_link_libraries( engine PUBLIC
-        proto
         SDL3::SDL3
         # EnTT::EnTT
         glm::glm
@@ -91,4 +90,4 @@ target_link_libraries( engine PUBLIC
         # Vulkan::Vulkan
 )
 
-target_include_directories( engine PUBLIC ${Stb_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} )
+target_include_directories( engine PUBLIC ${Stb_INCLUDE_DIR} ${TINYGLTF_INCLUDE_DIRS} )

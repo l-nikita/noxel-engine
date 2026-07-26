@@ -115,11 +115,11 @@ public:
         );
         m_directionalLight->SetRadius( 60.0f );
 
-        LightManager::GetInstance().AddLight( m_light1 );
-        LightManager::GetInstance().AddLight( m_light2 );
-        LightManager::GetInstance().AddLight( light3 );
-        LightManager::GetInstance().AddLight( m_light4 );
-        LightManager::GetInstance().AddLight( m_directionalLight );
+        LightManager::Get().AddLight( m_light1 );
+        LightManager::Get().AddLight( m_light2 );
+        LightManager::Get().AddLight( light3 );
+        LightManager::Get().AddLight( m_light4 );
+        LightManager::Get().AddLight( m_directionalLight );
 
         //-----------------------------------------------------------------------------
         m_vars[ "cubemap" ] = g_BlackTexture;
@@ -159,7 +159,7 @@ public:
         ID3D11ShaderResourceView* shadowMapSRVs[ MAX_SHADOWS_MAPS ] = {nullptr};
         int shadowCount = 0;
 
-        auto& lights = LightManager::GetInstance().GetLights();
+        auto& lights = LightManager::Get().GetLights();
         for ( int i = 0; i < lights.size(); i++ )
         {
             if ( i >= MAX_LIGHTS ) continue;

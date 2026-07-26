@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <tuple>
 #include "SDL3/SDL.h"
 
 class Window
@@ -9,7 +10,7 @@ public:
     Window( const std::string& title, int width, int height );
     ~Window();
 
-    void GetSize( int* width, int* height ) const;
+    std::tuple<int, int> GetSize() const;
 
     void ToggleFullscreen();
     void SetFullscreen( bool fullscreen ) const;

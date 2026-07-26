@@ -13,6 +13,7 @@ static const std::string SUPPORTED_IMAGE_FORMATS[ ] = {
 
 constexpr auto MATERIAL_EXTENSION = ".nmt";
 constexpr auto SHADER_EXTENSION = ".nshader";
+constexpr auto MODEL_EXTENSION = ".nmdl";
 
 //-----------------------------------------------------------------------------
 //

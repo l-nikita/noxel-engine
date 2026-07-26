@@ -12,7 +12,8 @@ public:
     void DrawLogWindow();
     void DrawInput();
 
-    void ExecuteCommand( char* input );
+private:
+    static std::vector<std::string> FindMatches( const std::string& input );
 
 private:
     bool m_timeStamp = false;
@@ -20,5 +21,7 @@ private:
 
     bool m_scrollToBottom = true;
 
-    char m_input[ INPUT_SIZE ] = {};
+    char m_buffer[ INPUT_SIZE ] = {};
+    std::string m_input;
+    int m_selectedSuggestion = -1;
 };

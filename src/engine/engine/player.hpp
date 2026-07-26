@@ -197,19 +197,29 @@ public:
         UpdateCamera();
     }
 
+    static bool CanControl()
+    {
+        return g_Input->GetRelativeMouseMode() && g_Engine->GetWindow()->IsInputFocused();
+    }
+
     void HandleInput()
     {
-        if ( g_Input->GetRelativeMouseMode() && g_Engine->GetWindow()->IsInputFocused() )
-        {
-            const auto delta = g_Input->GetMouseDelta();
-            m_yaw += delta.x * SENSITIVITY;
-            m_pitch += delta.y * SENSITIVITY;
-            m_pitch = std::clamp( m_pitch, -85.0f, 85.0f );
+        const auto delta = g_Input->GetMouseDelta();
 
-            const auto qPitch = glm::angleAxis( glm::radians( m_pitch ), glm::vec3( 1, 0, 0 ) );
-            const auto qYaw = glm::angleAxis( glm::radians( m_yaw ), glm::vec3( 0, 1, 0 ) );
-            m_Camera->SetRotation( qYaw * qPitch );
+        if ( !CanControl() )
+        {
+            m_moveInput = {};
+            m_jumpBufferRemaining = 0.0f;
+            return;
         }
+
+        m_yaw += delta.x * SENSITIVITY;
+        m_pitch += delta.y * SENSITIVITY;
+        m_pitch = std::clamp( m_pitch, -85.0f, 85.0f );
+
+        const auto qPitch = glm::angleAxis( glm::radians( m_pitch ), glm::vec3( 1, 0, 0 ) );
+        const auto qYaw = glm::angleAxis( glm::radians( m_yaw ), glm::vec3( 0, 1, 0 ) );
+        m_Camera->SetRotation( qYaw * qPitch );
 
         if ( g_Input->IsKeyPressed( SDL_SCANCODE_C ) )
             m_thirdPerson = !m_thirdPerson;

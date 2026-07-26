@@ -23,7 +23,7 @@ void Engine::OnEvent( const SDL_Event& event )
     switch ( event.type )
     {
         case SDL_EVENT_QUIT:
-            g_Engine->Stop();
+            g_Engine->Quit();
             break;
         case SDL_EVENT_WINDOW_RESIZED:
             g_Engine->OnWindowResize();

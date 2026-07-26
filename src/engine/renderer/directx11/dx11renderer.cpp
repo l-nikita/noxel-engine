@@ -1,34 +1,30 @@
-#include <SDL3/SDL.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <SDL3/SDL.h>
 
 #include "dx11renderer.hpp"
-#include "dx11material.hpp"
-#include "dx11mesh.hpp"
-#include "dx11texture.hpp"
-#include "dx11rendertexture.hpp"
 #include "dx11factory.hpp"
+#include "dx11material.hpp"
+#include "dx11rendertexture.hpp"
+#include "dx11texture.hpp"
 #include "dx11viewport.hpp"
 
 #include "iengine.hpp"
 #include "window.hpp"
-#include "renderer/imaterial.hpp"
-#include "renderer/rendercamera.hpp"
-#include "renderer/vertex.hpp"
-#include "gui/igui.hpp"
 #include "dbg/cmd/cmd.hpp"
+#include "renderer/rendercamera.hpp"
 
 // Shaders should be included here (somewhere). Compiler issue.
 //#include "shaders/dx11shader_default.hpp"
 //include "shaders/dx11shader_gizmos.hpp"
 #include "shaders/dx11shader_geometrypass.hpp"
 #include "shaders/dx11shader_lightingpass.hpp"
-#include "shaders/dx11shader_skyboxpass.hpp"
 #include "shaders/dx11shader_shadowspass.hpp"
+#include "shaders/dx11shader_skyboxpass.hpp"
 
 #define INITGUID
 #include <d3d11.h>
-#include <dxgidebug.h>
 #include <dxgi1_5.h>
+#include <dxgidebug.h>
 
 namespace
 {
@@ -56,9 +52,6 @@ SysInit DX11Renderer::Initialize()
 
     // TODO: make from factory
     m_backBuffer = new DX11RenderTexture( m_device, m_context, backBufferTex, false, TextureFormat::RGBA32F );
-
-    int width, height;
-    g_Engine->GetWindow()->GetSize( &width, &height );
 
     return {};
 }
@@ -184,8 +177,7 @@ void DX11Renderer::CreateSwapChain()
     auto window = g_Engine->GetWindow();
     HWND hwnd = (HWND)window->GetPointer();
 
-    int width, height;
-    window->GetSize( &width, &height );
+    auto [ wW, wH ] = window->GetSize();
 
     IDXGIDevice* dxgiDevice = nullptr;
     IDXGIAdapter* dxgiAdapter = nullptr;
@@ -195,8 +187,8 @@ void DX11Renderer::CreateSwapChain()
     dxgiAdapter->GetParent( __uuidof(IDXGIFactory2), (void**)&dxgiFactory );
 
     DXGI_SWAP_CHAIN_DESC1 scDesc = {};
-    scDesc.Width = width;
-    scDesc.Height = height;
+    scDesc.Width = wW;
+    scDesc.Height = wH;
     scDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     scDesc.Stereo = FALSE;
     scDesc.SampleDesc.Count = 1;

@@ -101,7 +101,7 @@ void DevPanel::Draw()
                     MAX_LIGHTS - 1
                 );
 
-                auto& lights = LightManager::GetInstance().GetLights();
+                auto& lights = LightManager::Get().GetLights();
                 const auto selectedLight = lights[ g_RenderDebugSettings.SelectedLight ];
 
                 if ( selectedLight &&

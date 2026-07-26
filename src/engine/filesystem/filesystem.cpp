@@ -14,6 +14,13 @@ SysInit FileSystem::Initialize()
     m_rootPath = m_rootPath / m_rootPath.parent_path();
 
     SearchFiles();
+
+    CMD::RegisterCommand( "fs_print_files", "Prints files", [this]
+    {
+        for ( const auto& file: m_files )
+            CMD_MSG( file.string(), CMD::FILESYSTEM );
+    } );
+
     return {};
 }
 
