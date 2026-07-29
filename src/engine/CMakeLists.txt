@@ -79,15 +79,17 @@ target_link_libraries( engine PUBLIC
         # protobuf::libprotobuf
         # GameNetworkingSockets::static
         imgui::imgui
-
-        $<$<PLATFORM_ID:Windows>:
-        d3d11
-        dxgi
-        d3dcompiler
-        dxguid
-        >
-
+        Boost::uuid
         # Vulkan::Vulkan
 )
+
+if ( WIN32 )
+    target_link_libraries( engine PUBLIC
+            d3d11
+            dxgi
+            d3dcompiler
+            dxguid
+    )
+endif ()
 
 target_include_directories( engine PUBLIC ${Stb_INCLUDE_DIR} ${TINYGLTF_INCLUDE_DIRS} )

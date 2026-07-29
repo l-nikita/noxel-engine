@@ -33,6 +33,7 @@ find_package( imgui REQUIRED CONFIG )
 find_package( mimalloc REQUIRED CONFIG )
 find_package( Stb REQUIRED )
 find_path( TINYGLTF_INCLUDE_DIRS "tiny_gltf.h" )
+find_package( boost_uuid REQUIRED CONFIG )
 #find_package(Tracy CONFIG REQUIRED)
 
 # ------------------ Settings ------------------

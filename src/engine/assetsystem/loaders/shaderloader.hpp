@@ -5,7 +5,6 @@
 #include "assetsystem/asset.hpp"
 #include "assetsystem/iassetloader.hpp"
 #include "assetsystem/shaderdata.hpp"
-#include "dbg/debug.hpp"
 
 //-----------------------------------------------------------------------------
 inline void from_json( const nlohmann::json& json, ShaderData& data )
@@ -46,9 +45,9 @@ public:
 
             const auto shaderDir = asset->Path.parent_path();
             if ( !data->PixelShaderPath.empty() )
-                data->PixelShaderPath = ( shaderDir / data->PixelShaderPath ).lexically_normal().string();
+                data->PixelShaderPath = ( shaderDir / data->PixelShaderPath ).lexically_normal();
             if ( !data->VertexShaderPath.empty() )
-                data->VertexShaderPath = ( shaderDir / data->VertexShaderPath ).lexically_normal().string();
+                data->VertexShaderPath = ( shaderDir / data->VertexShaderPath ).lexically_normal();
 
             if ( data->PixelShaderPath.empty() || data->VertexShaderPath.empty() )
             {
@@ -59,7 +58,8 @@ public:
             return data;
         } catch ( const nlohmann::json::exception& e )
         {
-            return std::unexpected( "JSON parse error: " + std::string( e.what() ) );
+            return std::unexpected(
+                "JSON parse error: " + std::string( e.what() ) + "; File: " + asset->Path.string() );
         }
     }
 };

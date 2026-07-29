@@ -44,7 +44,8 @@ public:
             return data;
         } catch ( const nlohmann::json::exception& e )
         {
-            return std::unexpected( "JSON parse error: " + std::string( e.what() ) );
+            return std::unexpected(
+                "JSON parse error: " + std::string( e.what() ) + "; File: " + asset->Path.string() );
         }
     }
 };

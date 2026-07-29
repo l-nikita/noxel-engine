@@ -17,6 +17,11 @@ public:
     bool Exists( const FPath& path ) const override;
     bool IsDirectory( const FPath& path ) const override;
 
+    FPath Relative( const FPath& path, const FPath& basePath ) const override;
+    FPath Relative( const FPath& path ) const override;
+
+    FPath Absolute( const FPath& path ) const override;
+
     FByteBuffer Read( const FPath& path ) const override;
     std::string ReadText( const FPath& path ) const override;
 
@@ -26,7 +31,7 @@ public:
     void SearchFiles() override;
     const FFiles& GetAllFiles() const override;
 
-    FPath GetRootPath() const override;
+    FPath RootPath() const override;
 
 private:
     FFiles m_files;

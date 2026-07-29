@@ -7,6 +7,8 @@
 
 //-----------------------------------------------------------------------------
 
+constexpr auto META_EXTENSION = ".meta";
+
 static const std::string SUPPORTED_IMAGE_FORMATS[ ] = {
     ".jpg", ".png"
 };
@@ -29,6 +31,7 @@ public:
 
     const Assets& GetAssets() const override;
     const Asset* GetAsset( const FPath& path, AssetType type ) const override;
+    const Asset* GetAsset( const AssetId& assetId ) const override;
 
     void RegisterAsset( const FPath& path, AssetType type ) override;
 

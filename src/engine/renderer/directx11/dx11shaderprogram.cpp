@@ -24,8 +24,8 @@ DX11ShaderProgram::DX11ShaderProgram(
     if ( !ShaderRegistry::IsShaderExist( data->Name ) )
         FATAL_ERROR( "Shader [" + data->Name + "] not found in registry.", CMD::RENDERING );
 
-    Compile( data->VertexShaderPath, VERTEX, data->Name );
-    Compile( data->PixelShaderPath, PIXEL, data->Name );
+    Compile( g_FileSystem->Absolute( data->VertexShaderPath ), VERTEX, data->Name );
+    Compile( g_FileSystem->Absolute( data->PixelShaderPath ), PIXEL, data->Name );
 
     HRESULT hr = m_device->CreateVertexShader(
         m_vsBlob->GetBufferPointer(), m_vsBlob->GetBufferSize(),
@@ -50,8 +50,7 @@ DX11ShaderProgram::DX11ShaderProgram(
         FATAL_ERROR( "DX11: Failed to create pixel shader", CMD::RENDERING );
 }
 
-void DX11ShaderProgram::Compile(
-    const std::filesystem::path& path, ShaderType type, const std::string& shaderName )
+void DX11ShaderProgram::Compile( const FPath& path, ShaderType type, const std::string& shaderName )
 {
     ID3D10Blob* errorBlob = nullptr;
     HRESULT hr = E_FAIL;

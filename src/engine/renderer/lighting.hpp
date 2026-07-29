@@ -249,5 +249,5 @@ public:
     }
 
 private:
-    Lights m_lights;
+    Lights m_lights = {};
 };

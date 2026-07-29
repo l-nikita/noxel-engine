@@ -83,7 +83,7 @@ ITexture* DX11Factory::CreateCubemap( const Asset* asset )
             return nullptr;
         }
 
-        std::unique_ptr<TextureData> data( g_Assets->LoadAsset<TextureData>( faceAsset ) );
+        std::unique_ptr<TextureData> data{g_Assets->LoadAsset<TextureData>( faceAsset )};
         if ( !data || !data->Image )
         {
             CMD_ERROR( "Failed to load cubemap face: " + faceName, CMD::RENDERING );

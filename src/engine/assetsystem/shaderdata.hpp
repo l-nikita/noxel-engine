@@ -2,12 +2,14 @@
 
 #include <string>
 
+#include "filesystem/ifilesystem.hpp"
+
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
 struct ShaderData
 {
     std::string Name;
-    std::string PixelShaderPath;
-    std::string VertexShaderPath;
+    FPath PixelShaderPath;
+    FPath VertexShaderPath;
 };

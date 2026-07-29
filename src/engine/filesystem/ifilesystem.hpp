@@ -19,6 +19,11 @@ public:
     virtual bool Exists( const FPath& path ) const = 0;
     virtual bool IsDirectory( const FPath& path ) const = 0;
 
+    virtual FPath Relative( const FPath& path, const FPath& basePath ) const = 0;
+    virtual FPath Relative( const FPath& path ) const = 0;
+
+    virtual FPath Absolute( const FPath& path ) const = 0;
+
     virtual FByteBuffer Read( const FPath& path ) const = 0;
     virtual std::string ReadText( const FPath& path ) const = 0;
 
@@ -28,7 +33,7 @@ public:
     virtual void SearchFiles() = 0;
     virtual const FFiles& GetAllFiles() const = 0;
 
-    virtual FPath GetRootPath() const = 0;
+    virtual FPath RootPath() const = 0;
 };
 
 extern IFileSystem* g_FileSystem;
