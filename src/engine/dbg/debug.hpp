@@ -41,7 +41,7 @@ namespace Debug
         const auto now = std::chrono::system_clock::now();
         auto localTime = std::chrono::current_zone()->to_local( now );
 
-        auto formatedMsg = "Error: " + message + "\n";
+        auto formatedMsg = message + "\n";
 
         formatedMsg += "\nSource: [" + std::string( location.file_name() ) + ":" + std::to_string( location.line() ) +
                 "]";

@@ -9,7 +9,7 @@ using AssetId = boost::uuids::uuid;
 
 struct Asset
 {
-    AssetId UUID;
+    AssetId Id;
     std::string Name;
     FPath Path;
     AssetType Type;

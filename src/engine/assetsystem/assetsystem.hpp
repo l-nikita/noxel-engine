@@ -13,6 +13,10 @@ static const std::string SUPPORTED_IMAGE_FORMATS[ ] = {
     ".jpg", ".png"
 };
 
+static const std::string SUPPORTED_MESH_FORMATS[ ] = {
+    ".glb", ".gltf"
+};
+
 constexpr auto MATERIAL_EXTENSION = ".nmt";
 constexpr auto SHADER_EXTENSION = ".nshader";
 constexpr auto MODEL_EXTENSION = ".nmdl";
@@ -30,7 +34,7 @@ public:
     void Shutdown() override;
 
     const Assets& GetAssets() const override;
-    const Asset* GetAsset( const FPath& path, AssetType type ) const override;
+    std::optional<AssetId> GetAsset( const FPath& path, AssetType type ) const override;
     const Asset* GetAsset( const AssetId& assetId ) const override;
 
     void RegisterAsset( const FPath& path, AssetType type ) override;

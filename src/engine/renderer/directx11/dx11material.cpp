@@ -8,48 +8,34 @@
 #include "assetsystem/materialdata.hpp"
 #include "dbg/debug.hpp"
 
-DX11Material::DX11Material( ID3D11Device* device, ID3D11DeviceContext* context, const Asset* asset )
-    : m_device( device ), m_context( context )
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+DX11Material::DX11Material( ID3D11Device* device, ID3D11DeviceContext* context, MaterialData* data )
+    : m_context( context ), m_device( device )
 {
-    assert( asset );
+    assert( data );
 
     auto factory = g_Renderer->GetFactory();
-    std::unique_ptr<MaterialData> data( g_Assets->LoadAsset<MaterialData>( asset ) );
-    if ( !data )
-        return;
-
-    const auto shaderAsset = g_Assets->GetAsset( data->Shader, AssetType::SHADER );
-    if ( shaderAsset )
-        m_shader = factory->CreateShaderProgram( shaderAsset );
-    else
-        CMD_ERROR( "Shader asset not found: " + data->Shader, CMD::RENDERING );
+    m_shader = factory->CreateShaderProgram( data->Shader );
 
     if ( data->IsCubemap )
-        m_textures[ "cubemap" ] = factory->CreateCubemap( asset );
-    else
     {
-        for ( const auto& [ paramName, parameter ]: data->Parameters.items() )
+        m_textures[ "cubemap" ] = factory->CreateCubemap( data->Id );
+    } else
+    {
+        for ( const auto& [ paramName, paramVal ]: data->Parameters )
         {
-            if ( !parameter.is_string() )
-                continue;
-
-            const auto textureReference = parameter.get<std::string>();
-            const auto texturePath = asset->Path.parent_path() / textureReference;
-
-            auto texAsset = g_Assets->GetAsset( texturePath, AssetType::TEXTURE );
-            if ( !texAsset )
-                texAsset = g_Assets->GetAsset( textureReference, AssetType::TEXTURE );
-
-            if ( !texAsset )
+            if ( const auto* id = std::get_if<AssetId>( &paramVal ) )
             {
-                CMD_ERROR( "Texture asset not found: " + texturePath.string(), CMD::RENDERING );
-                texAsset = g_Assets->GetAsset( "error", AssetType::TEXTURE );
+                const auto ass = g_Assets->GetAsset( *id );
+                if ( ass->Type == AssetType::TEXTURE )
+                    m_textures[ paramName ] = factory->CreateTexture( ass->Id );
             }
-
-            if ( texAsset )
-                m_textures[ paramName ] = factory->CreateTexture( texAsset );
         }
     }
+
+    assert( m_shader );
 }
 
 void DX11Material::Bind()
@@ -101,7 +87,7 @@ void DX11Material::SetTexture( std::string paramName, ITexture* texture )
 
 IShaderProgram* DX11Material::GetShader() const
 {
-    assert( m_shader != nullptr );
+    assert( m_shader );
     return m_shader;
 }
 

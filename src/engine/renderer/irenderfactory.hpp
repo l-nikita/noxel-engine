@@ -1,16 +1,13 @@
 #pragma once
 
-#include "imesh.hpp"
-#include "imaterial.hpp"
-#include "irendertexture.hpp"
 #include "idepthstencil.hpp"
-#include "ishader.hpp"
-#include "iviewport.hpp"
+#include "imaterial.hpp"
+#include "imesh.hpp"
 #include "irenderresource.hpp"
-
+#include "irendertexture.hpp"
+#include "iviewport.hpp"
 #include "meshdata.hpp"
-
-struct Asset;
+#include "assetsystem/asset.hpp"
 
 //-----------------------------------------------------------------------------
 // Кто Create... Тот делает Release...
@@ -20,15 +17,15 @@ class IRenderFactory
 public:
     virtual ~IRenderFactory() = default;
 
-    virtual ITexture* CreateTexture( const Asset* asset ) = 0;
+    virtual ITexture* CreateTexture( const AssetId& assetId ) = 0;
     virtual ITexture* CreateTexture( const TextureDesc& desc ) = 0;
-    virtual ITexture* CreateCubemap( const Asset* asset ) = 0;
+    virtual ITexture* CreateCubemap( const AssetId& assetId ) = 0;
 
-    virtual IMaterial* CreateMaterial( const Asset* asset ) = 0;
+    virtual IMaterial* CreateMaterial( const AssetId& assetId ) = 0;
     virtual IMaterial* CreateMaterial( std::string assetName ) = 0;
 
     virtual IMesh* CreateMesh( const MeshData& data ) = 0;
-    virtual IShaderProgram* CreateShaderProgram( const Asset* asset ) = 0;
+    virtual IShaderProgram* CreateShaderProgram( const AssetId& assetId ) = 0;
 
     virtual IRenderTexture* CreateRenderTexture( int width, int height, bool depth,
                                                  TextureFormat format = TextureFormat::RGBA32F ) = 0;

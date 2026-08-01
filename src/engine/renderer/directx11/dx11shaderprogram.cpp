@@ -7,19 +7,13 @@
 #include "renderer/vertex.hpp"
 #include "renderer/shaderregistry.hpp"
 #include "assetsystem/asset.hpp"
-#include "assetsystem/iassetsystem.hpp"
 #include "assetsystem/shaderdata.hpp"
 
 DX11ShaderProgram::DX11ShaderProgram(
-    ID3D11Device* device, ID3D11DeviceContext* context, const Asset* asset )
-    : m_device( device ), m_context( context ), m_vs( nullptr ), m_ps( nullptr ), m_vsBlob( nullptr ),
-      m_psBlob( nullptr )
+    ID3D11Device* device, ID3D11DeviceContext* context, ShaderData* data )
+    : m_device( device ), m_context( context )
 {
-    assert( asset );
-
-    std::unique_ptr<ShaderData> data( g_Assets->LoadAsset<ShaderData>( asset ) );
-    if ( !data )
-        FATAL_ERROR( "Failed to load shader asset [" + asset->Name + "]", CMD::RENDERING );
+    assert( data );
 
     if ( !ShaderRegistry::IsShaderExist( data->Name ) )
         FATAL_ERROR( "Shader [" + data->Name + "] not found in registry.", CMD::RENDERING );

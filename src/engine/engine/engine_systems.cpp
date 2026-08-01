@@ -12,6 +12,7 @@
 #include "renderer/directx11/dx11renderer.hpp"
 
 IFileSystem* g_FileSystem = nullptr;
+
 IAssetSystem* g_Assets = nullptr;
 IInput* g_Input = nullptr;
 IPhysics* g_Physics = nullptr;

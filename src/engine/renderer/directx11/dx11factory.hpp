@@ -17,15 +17,15 @@ public:
         Shutdown();
     }
 
-    ITexture* CreateTexture( const Asset* asset ) override;
+    ITexture* CreateTexture( const AssetId& assetId ) override;
     ITexture* CreateTexture( const TextureDesc& desc ) override;
-    ITexture* CreateCubemap( const Asset* asset ) override;
+    ITexture* CreateCubemap( const AssetId& assetId ) override;
 
-    IMaterial* CreateMaterial( const Asset* asset ) override;
+    IMaterial* CreateMaterial( const AssetId& assetId ) override;
     IMaterial* CreateMaterial( std::string assetName ) override;
 
     IMesh* CreateMesh( const MeshData& data ) override;
-    IShaderProgram* CreateShaderProgram( const Asset* asset ) override;
+    IShaderProgram* CreateShaderProgram( const AssetId& assetId ) override;
 
     IRenderTexture* CreateRenderTexture( int width, int height, bool depth, TextureFormat format ) override;
     IDepthStencil* CreateDepthStencil( int width, int height, bool bindable ) override;

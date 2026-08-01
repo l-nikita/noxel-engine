@@ -51,11 +51,8 @@ const Assets& AssetSystem::GetAssets() const
     return m_assets;
 }
 
-const Asset* AssetSystem::GetAsset( const FPath& path, AssetType type ) const
+std::optional<AssetId> AssetSystem::GetAsset( const FPath& path, AssetType type ) const
 {
-    if ( path.empty() )
-        return nullptr;
-
     const auto query = path.lexically_normal();
     const auto absoluteQuery = query.is_absolute()
                                    ? query
@@ -66,7 +63,7 @@ const Asset* AssetSystem::GetAsset( const FPath& path, AssetType type ) const
     for ( const auto& asset: m_assets | std::views::values )
     {
         if ( type == asset->Type && asset->Path == absoluteQuery )
-            return asset;
+            return asset->Id;
     }
 
     if ( query.has_parent_path() )
@@ -74,15 +71,15 @@ const Asset* AssetSystem::GetAsset( const FPath& path, AssetType type ) const
         const auto queryPath = query.generic_string();
         for ( const auto& asset: m_assets | std::views::values )
             if ( type == asset->Type && asset->Path.generic_string().ends_with( queryPath ) )
-                return asset;
+                return asset->Id;
     } else
     {
         for ( const auto& asset: m_assets | std::views::values )
             if ( type == asset->Type && ( asset->Name == queryName || asset->Name == queryStem ) )
-                return asset;
+                return asset->Id;
     }
 
-    return nullptr;
+    return std::nullopt;
 }
 
 const Asset* AssetSystem::GetAsset( const AssetId& assetId ) const
@@ -172,44 +169,28 @@ void* AssetSystem::LoadAssetImpl( const Asset* asset )
         return nullptr;
     }
 
-    std::expected<void*, std::string> result = std::unexpected( "Unsupported asset type" );
-
-    switch ( asset->Type )
+    const auto load = [&]() -> std::expected<void*, std::string>
     {
-        case AssetType::MATERIAL:
+        switch ( asset->Type )
         {
-            if ( auto loaded = m_materialLoader.Load( g_FileSystem, asset ) )
-                result = loaded.value();
-            else
-                result = std::unexpected( loaded.error() );
+            case AssetType::MATERIAL:
+                return m_materialLoader.Load( g_FileSystem, asset );
 
-            break;
+            case AssetType::SHADER:
+                return m_shaderLoader.Load( g_FileSystem, asset );
+
+            case AssetType::TEXTURE:
+                return m_textureLoader.Load( g_FileSystem, asset );
+
+            default:
+                return std::unexpected( "Unsupported asset type" );
         }
-        case AssetType::SHADER:
-        {
-            if ( auto loaded = m_shaderLoader.Load( g_FileSystem, asset ) )
-                result = loaded.value();
-            else
-                result = std::unexpected( loaded.error() );
+    };
 
-            break;
-        }
-        case AssetType::TEXTURE:
-        {
-            if ( auto loaded = m_textureLoader.Load( g_FileSystem, asset ) )
-                result = loaded.value();
-            else
-                result = std::unexpected( loaded.error() );
-
-            break;
-        }
-        default:
-            break;
-    }
-
+    auto result = load();
     if ( !result )
     {
-        CMD_ERROR( "Failed to load asset [" + asset->Name + "]: " + result.error(), CMD::ASSETSYSTEM );
+        FATAL_ERROR( "Failed to load asset [" + asset->Name + "]:\n" + result.error(), CMD::ASSETSYSTEM );
         return nullptr;
     }
 
@@ -242,6 +223,13 @@ void AssetSystem::DetectAndRegisterAsset( const FPath& file )
             if ( ext == imageExt )
             {
                 RegisterAsset( file, AssetType::TEXTURE );
+                return;
+            }
+
+        for ( const auto& meshExt: SUPPORTED_MESH_FORMATS )
+            if ( ext == meshExt )
+            {
+                RegisterAsset( file, AssetType::MESH );
                 return;
             }
     }

@@ -3,10 +3,10 @@
 #include <unordered_map>
 #include <string>
 #include <d3d11.h>
+
 #include "renderer/imaterial.hpp"
 #include "renderer/itexture.hpp"
-
-struct Asset;
+#include "assetsystem/materialdata.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -14,9 +14,9 @@ struct Asset;
 class DX11Material : public IMaterial
 {
 public:
-    DX11Material( ID3D11Device* device, ID3D11DeviceContext* context, const Asset* asset );
+    DX11Material( ID3D11Device* device, ID3D11DeviceContext* context, MaterialData* data );
 
-    ~DX11Material()
+    ~DX11Material() override
     {
         Release();
     }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <unordered_map>
 
 #include "asset.hpp"
@@ -16,7 +17,7 @@ class IAssetSystem : public ISystem
 {
 public:
     virtual const Assets& GetAssets() const = 0;
-    virtual const Asset* GetAsset( const FPath& path, AssetType type ) const = 0;
+    virtual std::optional<AssetId> GetAsset( const FPath& path, AssetType type ) const = 0;
     virtual const Asset* GetAsset( const AssetId& assetId ) const = 0;
 
     virtual void RegisterAsset( const FPath& path, AssetType type ) = 0;
@@ -25,6 +26,12 @@ public:
     T* LoadAsset( const Asset* asset )
     {
         return static_cast<T*>(LoadAssetImpl( asset ));
+    }
+
+    template<typename T>
+    T* LoadAsset( const AssetId& assetId )
+    {
+        return static_cast<T*>(LoadAssetImpl( GetAsset( assetId ) ));
     }
 
 protected:

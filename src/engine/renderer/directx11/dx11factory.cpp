@@ -6,21 +6,24 @@
 #include "dx11shaderprogram.hpp"
 #include "dx11texture.hpp"
 #include "dx11viewport.hpp"
+#include "assetsystem/asset.hpp"
 #include "assetsystem/iassetsystem.hpp"
 #include "assetsystem/materialdata.hpp"
 #include "assetsystem/texturedata.hpp"
+#include "assetsystem/shaderdata.hpp"
 #include "dbg/debug.hpp"
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
 DX11Factory::DX11Factory( ID3D11Device* device, ID3D11DeviceContext* context )
     : m_device( device ), m_context( context )
 {
 }
 
-ITexture* DX11Factory::CreateTexture( const Asset* asset )
+ITexture* DX11Factory::CreateTexture( const AssetId& assetId )
 {
-    assert( asset );
-
-    std::unique_ptr<TextureData> data( g_Assets->LoadAsset<TextureData>( asset ) );
+    std::unique_ptr<TextureData> data( g_Assets->LoadAsset<TextureData>( assetId ) );
     if ( !data || !data->Image )
         return nullptr;
 
@@ -43,15 +46,14 @@ ITexture* DX11Factory::CreateTexture( const TextureDesc& desc )
     return tex;
 }
 
-ITexture* DX11Factory::CreateCubemap( const Asset* asset )
+ITexture* DX11Factory::CreateCubemap( const AssetId& assetId )
 {
-    assert( asset );
-
-    std::unique_ptr<MaterialData> materialData( g_Assets->LoadAsset<MaterialData>( asset ) );
-    if ( !materialData )
+    auto asset = g_Assets->GetAsset( assetId );
+    std::unique_ptr<MaterialData> data( g_Assets->LoadAsset<MaterialData>( asset ) );
+    if ( !data )
         return nullptr;
 
-    if ( !materialData->IsCubemap )
+    if ( !data->IsCubemap )
     {
         CMD_ERROR(
             "DX11 Factory: Failed to create cubemap because material [" + asset->Name + "] isn't a cubemap.",
@@ -67,14 +69,18 @@ ITexture* DX11Factory::CreateCubemap( const Asset* asset )
     for ( const auto& faceName: CUBEMAP_FACES_ORDER )
     {
         const Asset* faceAsset = nullptr;
-        if ( const auto parameter = materialData->Parameters.find( faceName );
-            parameter != materialData->Parameters.end() && parameter->is_string() )
+        if ( const auto parameter = data->Parameters.find( faceName ); parameter != data->Parameters.end() )
         {
-            const auto textureReference = parameter->get<std::string>();
-            const auto facePath = asset->Path.parent_path() / textureReference;
-            faceAsset = g_Assets->GetAsset( facePath, AssetType::TEXTURE );
-            if ( !faceAsset )
-                faceAsset = g_Assets->GetAsset( textureReference, AssetType::TEXTURE );
+            std::string paramName = parameter->first;
+            MaterialParam& paramVal = parameter->second;
+
+            if ( paramName == faceName )
+                if ( const auto* id = std::get_if<AssetId>( &paramVal ) )
+                {
+                    const auto ass = g_Assets->GetAsset( *id );
+                    if ( ass->Type == AssetType::TEXTURE )
+                        faceAsset = ass;
+                }
         }
 
         if ( !faceAsset )
@@ -83,16 +89,16 @@ ITexture* DX11Factory::CreateCubemap( const Asset* asset )
             return nullptr;
         }
 
-        std::unique_ptr<TextureData> data{g_Assets->LoadAsset<TextureData>( faceAsset )};
-        if ( !data || !data->Image )
+        std::unique_ptr<TextureData> texData{g_Assets->LoadAsset<TextureData>( faceAsset )};
+        if ( !texData || !texData->Image )
         {
             CMD_ERROR( "Failed to load cubemap face: " + faceName, CMD::RENDERING );
             return nullptr;
         }
 
-        width = data->Width;
-        height = data->Height;
-        datas.push_back( std::move( data ) );
+        width = texData->Width;
+        height = texData->Height;
+        datas.push_back( std::move( texData ) );
     }
 
     std::vector<void*> images;
@@ -114,11 +120,12 @@ ITexture* DX11Factory::CreateCubemap( const Asset* asset )
     return tex;
 }
 
-IMaterial* DX11Factory::CreateMaterial( const Asset* asset )
+IMaterial* DX11Factory::CreateMaterial( const AssetId& assetId )
 {
-    assert( asset );
+    std::unique_ptr<MaterialData> data( g_Assets->LoadAsset<MaterialData>( assetId ) );
+    assert( data );
 
-    auto mat = new DX11Material( m_device, m_context, asset );
+    auto mat = new DX11Material( m_device, m_context, data.get() );
     m_resources.push_back( mat );
     return mat;
 }
@@ -134,7 +141,9 @@ IMaterial* DX11Factory::CreateMaterial( std::string assetName )
         return nullptr;
     }
 
-    auto mat = new DX11Material( m_device, m_context, asset );
+    std::unique_ptr<MaterialData> data( g_Assets->LoadAsset<MaterialData>( asset.value() ) );
+
+    auto mat = new DX11Material( m_device, m_context, data.get() );
     m_resources.push_back( mat );
     return mat;
 }
@@ -151,11 +160,12 @@ IMesh* DX11Factory::CreateMesh( const MeshData& data )
     return mesh;
 }
 
-IShaderProgram* DX11Factory::CreateShaderProgram( const Asset* asset )
+IShaderProgram* DX11Factory::CreateShaderProgram( const AssetId& assetId )
 {
-    assert( asset );
+    std::unique_ptr<ShaderData> data( g_Assets->LoadAsset<ShaderData>( assetId ) );
+    assert( data );
 
-    auto shader = new DX11ShaderProgram( m_device, m_context, asset );
+    auto shader = new DX11ShaderProgram( m_device, m_context, data.get() );
     m_resources.push_back( shader );
     return shader;
 }
@@ -204,4 +214,6 @@ void DX11Factory::Shutdown()
         m_resources.pop_back();
         delete resource;
     }
+
+    m_resources.clear();
 }

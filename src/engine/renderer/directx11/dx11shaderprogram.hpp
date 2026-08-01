@@ -4,7 +4,7 @@
 #include "filesystem/ifilesystem.hpp"
 #include "renderer/ishaderprogram.hpp"
 
-struct Asset;
+struct ShaderData;
 
 //-----------------------------------------------------------------------------
 //
@@ -15,9 +15,9 @@ public:
     DX11ShaderProgram(
         ID3D11Device* device,
         ID3D11DeviceContext* context,
-        const Asset* asset );
+        ShaderData* data );
 
-    ~DX11ShaderProgram()
+    ~DX11ShaderProgram() override
     {
         Release();
     }
@@ -63,13 +63,13 @@ private:
     void Compile( const FPath& path, ShaderType type, const std::string& shaderName );
 
 private:
-    IShader* m_pShader;
-    IShader* m_vShader;
+    IShader* m_pShader = nullptr;
+    IShader* m_vShader = nullptr;
 
-    ID3D11VertexShader* m_vs;
-    ID3D11PixelShader* m_ps;
-    ID3D10Blob* m_vsBlob;
-    ID3D10Blob* m_psBlob;
+    ID3D11VertexShader* m_vs = nullptr;
+    ID3D11PixelShader* m_ps = nullptr;
+    ID3D10Blob* m_vsBlob = nullptr;
+    ID3D10Blob* m_psBlob = nullptr;
 
 private:
     ID3D11Device* m_device;

@@ -66,6 +66,7 @@ ModelDataLoad ModelLoader::Load( IFileSystem* fileSystem, const Asset* asset )
         return data;
     } catch ( const nlohmann::json::exception& e )
     {
-        return std::unexpected( "JSON parse error: " + std::string( e.what() ) + "; File: " + asset->Path.string() );
+        return std::unexpected(
+            "JSON parse error: " + std::string( e.what() ) + "\nFile: " + asset->Path.string() );
     }
 }

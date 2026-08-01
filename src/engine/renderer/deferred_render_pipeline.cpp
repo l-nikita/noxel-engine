@@ -78,10 +78,17 @@ SysInit DeferredRenderPipeline::Initialize()
     const auto factory = g_Renderer->GetFactory();
 
     //----------------------------------------------------
-    g_ErrorTexture = factory->CreateTexture(
-        g_Assets->GetAsset( "error", AssetType::TEXTURE ) );
-    g_ErrorMaterial = factory->CreateMaterial(
-        g_Assets->GetAsset( "error", AssetType::MATERIAL ) );
+    auto errAssTex = g_Assets->GetAsset( "error", AssetType::TEXTURE );
+    if ( !errAssTex )
+        return std::unexpected( "Failed to load error texture" );
+
+    g_ErrorTexture = factory->CreateTexture( errAssTex.value() );
+
+    auto errAssMat = g_Assets->GetAsset( "error", AssetType::MATERIAL );
+    if ( !errAssMat )
+        return std::unexpected( "Failed to load error material" );
+
+    g_ErrorMaterial = factory->CreateMaterial( errAssMat.value() );
 
     TextureDesc desc = {};
     desc.Width = 1;
@@ -211,10 +218,17 @@ SysInit DeferredRenderPipeline::Initialize()
     SetupShadows();
     SetupSkybox();
 
-    m_shadowsShader = factory->CreateShaderProgram(
-        g_Assets->GetAsset( "shadowspass", AssetType::SHADER ) );
-    m_lightingShader = factory->CreateShaderProgram(
-        g_Assets->GetAsset( "lightingpass", AssetType::SHADER ) );
+    auto shadowsShaderAssId = g_Assets->GetAsset( "shadowspass", AssetType::SHADER );
+    if ( !shadowsShaderAssId )
+        return std::unexpected( "Failed to load shadowspass shader" );
+
+    m_shadowsShader = factory->CreateShaderProgram( shadowsShaderAssId.value() );
+
+    auto lightShaderAssId = g_Assets->GetAsset( "lightingpass", AssetType::SHADER );
+    if ( !lightShaderAssId )
+        return std::unexpected( "Failed to load lightingpass shader" );
+
+    m_lightingShader = factory->CreateShaderProgram( lightShaderAssId.value() );
 
     return {};
 }
@@ -233,24 +247,20 @@ void DeferredRenderPipeline::Shutdown()
         delete m_mainCamera, m_mainCamera = nullptr;
 
     const auto factory = g_Renderer->GetFactory();
+    const auto release = [factory]( auto*& res )
+    {
+        factory->Release( res );
+        res = nullptr;
+    };
 
-    if ( m_backBufferVP )
-        factory->Release( m_backBufferVP ), m_backBufferVP = nullptr;
-
-    if ( m_shadowsMapsVP )
-        factory->Release( m_shadowsMapsVP ), m_shadowsMapsVP = nullptr;
-
-    if ( m_shadowsShader )
-        factory->Release( m_shadowsShader ), m_shadowsShader = nullptr;
-
-    if ( m_lightingShader )
-        factory->Release( m_lightingShader ), m_lightingShader = nullptr;
-
-    if ( m_skyboxMat )
-        factory->Release( m_skyboxMat ), m_skyboxMat = nullptr;
-
-    if ( m_skyboxMesh )
-        factory->Release( m_skyboxMesh ), m_skyboxMesh = nullptr;
+    release( m_backBufferVP );
+    release( m_shadowsMapsVP );
+    release( m_shadowsShader );
+    release( m_lightingShader );
+    release( m_skyboxMat );
+    release( m_skyboxMesh );
+    release( g_ErrorTexture );
+    release( g_ErrorMaterial );
 }
 
 //-----------------------------------------------------------------------------
