@@ -8,11 +8,11 @@
 //-----------------------------------------------------------------------------
 // Model isn't owner of meshes and materials. It just handler which render them.
 //-----------------------------------------------------------------------------
-class Model : public Transformable
+class ModelRenderer : public Transformable
 {
 public:
-    Model( const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials );
-    Model( IMesh* mesh, IMaterial* material );
+    ModelRenderer( const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials );
+    ModelRenderer( IMesh* mesh, IMaterial* material );
 
     void SetMaterial( IMaterial* material, size_t index = 0 );
 

@@ -1,4 +1,4 @@
-#include "model.hpp"
+#include "modelrenderer.hpp"
 #include "irenderer.hpp"
 #include "irenderfactory.hpp"
 #include "ishaderprogram.hpp"
@@ -7,7 +7,7 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-Model::Model( const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials )
+ModelRenderer::ModelRenderer( const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& materials )
 {
     m_meshes = meshes;
     m_materials.reserve( meshes.size() );
@@ -22,7 +22,7 @@ Model::Model( const std::vector<IMesh*>& meshes, const std::vector<IMaterial*>& 
     }
 }
 
-Model::Model( IMesh* mesh, IMaterial* material )
+ModelRenderer::ModelRenderer( IMesh* mesh, IMaterial* material )
 {
     m_meshes.push_back( mesh );
 
@@ -35,7 +35,7 @@ Model::Model( IMesh* mesh, IMaterial* material )
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Model::SetMaterial( IMaterial* material, size_t index )
+void ModelRenderer::SetMaterial( IMaterial* material, size_t index )
 {
     assert( material );
     assert( index < m_materials.size() );
@@ -44,17 +44,17 @@ void Model::SetMaterial( IMaterial* material, size_t index )
 }
 
 //-----------------------------------------------------------------------------
-IMaterial* Model::GetMaterial() const
+IMaterial* ModelRenderer::GetMaterial() const
 {
     return !m_materials.empty() ? m_materials[ 0 ] : nullptr;
 }
 
-IMaterial* Model::GetMaterial( size_t index ) const
+IMaterial* ModelRenderer::GetMaterial( size_t index ) const
 {
     return ( index < m_materials.size() ) ? m_materials[ index ] : nullptr;
 }
 
-std::vector<IMaterial*>& Model::GetMaterials()
+std::vector<IMaterial*>& ModelRenderer::GetMaterials()
 {
     return m_materials;
 }
@@ -62,17 +62,17 @@ std::vector<IMaterial*>& Model::GetMaterials()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-IMesh* Model::GetMesh() const
+IMesh* ModelRenderer::GetMesh() const
 {
     return !m_meshes.empty() ? m_meshes[ 0 ] : nullptr;
 }
 
-IMesh* Model::GetMesh( size_t index ) const
+IMesh* ModelRenderer::GetMesh( size_t index ) const
 {
     return ( index < m_meshes.size() ) ? m_meshes[ index ] : nullptr;
 }
 
-std::vector<IMesh*>& Model::GetMeshes()
+std::vector<IMesh*>& ModelRenderer::GetMeshes()
 {
     return m_meshes;
 }
@@ -80,7 +80,7 @@ std::vector<IMesh*>& Model::GetMeshes()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void Model::Draw() const
+void ModelRenderer::Draw() const
 {
     for ( size_t i = 0; i < m_meshes.size(); ++i )
     {

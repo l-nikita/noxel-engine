@@ -11,7 +11,7 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DX11Material : public IMaterial
+class DX11Material final : public IMaterial
 {
 public:
     DX11Material( ID3D11Device* device, ID3D11DeviceContext* context, MaterialData* data );

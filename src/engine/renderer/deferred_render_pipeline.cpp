@@ -7,7 +7,7 @@
 #include "irenderer.hpp"
 #include "irenderfactory.hpp"
 #include "lighting.hpp"
-#include "model.hpp"
+#include "modelrenderer.hpp"
 #include "rendercamera.hpp"
 #include "gui/igui.hpp"
 
@@ -19,8 +19,8 @@ ITexture* g_ErrorTexture = nullptr;
 ITexture* g_BlackTexture = nullptr;
 IMaterial* g_ErrorMaterial = nullptr;
 
-static Model* g_TestModel;
-static Model* g_TestModel2;
+static ModelRenderer* g_TestModel;
+static ModelRenderer* g_TestModel2;
 
 void CalculateTangents( std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices )
 {
@@ -178,26 +178,26 @@ SysInit DeferredRenderPipeline::Initialize()
 	}
 	*/
 
-    const auto model = new Model( mesh, mat );
+    const auto model = new ModelRenderer( mesh, mat );
     model->m_Transform.Position = glm::vec3( 0, 0, 5 ) + glm::vec3( 0, -3, -10 );
     model->m_Transform.Scale = glm::vec3( 1, 5, 1 );
     m_Models.push_back( model );
 
-    const auto model2 = new Model( mesh, mat2 );
+    const auto model2 = new ModelRenderer( mesh, mat2 );
     model2->m_Transform.Position = glm::vec3( 0, 0, 8 ) + glm::vec3( 0, -3, 7 );
     model->m_Transform.Scale = glm::vec3( 1, 5, 1 );
     m_Models.push_back( model2 );
 
-    const auto model3 = new Model( mesh, mat );
+    const auto model3 = new ModelRenderer( mesh, mat );
     model3->m_Transform.Position = glm::vec3( -5, 0, 8 ) + glm::vec3( 0, -3, -10 );
     model->m_Transform.Scale = glm::vec3( 1, 5, 1 );
     m_Models.push_back( model3 );
 
-    g_TestModel = new Model( mesh, mat );
+    g_TestModel = new ModelRenderer( mesh, mat );
     g_TestModel->m_Transform.Scale = glm::vec3( 0.5f );
     m_Models.push_back( g_TestModel );
 
-    g_TestModel2 = new Model( mesh, mat );
+    g_TestModel2 = new ModelRenderer( mesh, mat );
     g_TestModel2->m_Transform.Position = glm::vec3( 0, -5, 0 );
     g_TestModel2->m_Transform.Scale = glm::vec3( 20, 1, 20 );
     m_Models.push_back( g_TestModel2 );
@@ -249,7 +249,8 @@ void DeferredRenderPipeline::Shutdown()
     const auto factory = g_Renderer->GetFactory();
     const auto release = [factory]( auto*& res )
     {
-        factory->Release( res );
+        if ( res )
+            factory->Release( res );
         res = nullptr;
     };
 
@@ -294,7 +295,7 @@ void DeferredRenderPipeline::OnWindowResize( int width, int height )
 
     g_Renderer->OnWindowResize( width, height );
 
-    m_backBufferVP->Resize( width, height );
+    m_backBufferVP->Resize( static_cast<float>(width), static_cast<float>(height) );
     g_Renderer->SetViewport( m_backBufferVP );
 
     SetupGBuffer( width, height );

@@ -7,13 +7,13 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DX11Texture : public ITexture
+class DX11Texture final : public ITexture
 {
 public:
     DX11Texture( ID3D11Device* device, ID3D11DeviceContext* context, const TextureDesc& desc );
     DX11Texture( ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Texture2D* texture );
 
-    ~DX11Texture()
+    ~DX11Texture() override
     {
         Release();
     }

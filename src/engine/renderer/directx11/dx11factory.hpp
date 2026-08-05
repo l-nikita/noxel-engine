@@ -7,7 +7,7 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DX11Factory : public IRenderFactory
+class DX11Factory final : public IRenderFactory
 {
 public:
     DX11Factory( ID3D11Device* device, ID3D11DeviceContext* context );

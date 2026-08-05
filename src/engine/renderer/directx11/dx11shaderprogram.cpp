@@ -44,64 +44,6 @@ DX11ShaderProgram::DX11ShaderProgram(
         FATAL_ERROR( "DX11: Failed to create pixel shader", CMD::RENDERING );
 }
 
-void DX11ShaderProgram::Compile( const FPath& path, ShaderType type, const std::string& shaderName )
-{
-    ID3D10Blob* errorBlob = nullptr;
-    HRESULT hr = E_FAIL;
-
-    uint32_t compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-    ID3DInclude* includeHandler = D3D_COMPILE_STANDARD_FILE_INCLUDE;
-#ifdef _DEBUG
-    compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-    if ( type == VERTEX )
-    {
-        hr = D3DCompileFromFile(
-            path.c_str(),
-            nullptr, // defines
-            includeHandler, // include handler
-            "main", // entry point
-            "vs_5_0", // shader model
-            compileFlags,
-            0,
-            &m_vsBlob,
-            &errorBlob
-        );
-    } else if ( type == PIXEL )
-    {
-        hr = D3DCompileFromFile(
-            path.c_str(),
-            nullptr,
-            includeHandler,
-            "main",
-            "ps_5_0",
-            compileFlags,
-            0,
-            &m_psBlob,
-            &errorBlob
-        );
-    } else
-        FATAL_ERROR( "DX11: Unknown shader type!", CMD::RENDERING );
-
-    if ( FAILED( hr ) )
-    {
-        if ( errorBlob )
-        {
-            OutputDebugStringA( static_cast<char*>(errorBlob->GetBufferPointer()) );
-            CMD_ERROR(
-                "DX11: Shader compilation error: " + std::string( static_cast<char*>(errorBlob->GetBufferPointer()) ),
-                CMD::RENDERING );
-            errorBlob->Release();
-        }
-
-        if ( type == VERTEX )
-            FATAL_ERROR( "DX11: Failed to compile vertex shader! [" + shaderName + "]", CMD::RENDERING );
-        else if ( type == PIXEL )
-            FATAL_ERROR( "DX11: Failed to compile pixel shader! [" + shaderName + "]", CMD::RENDERING );
-    }
-}
-
 void DX11ShaderProgram::Bind()
 {
     if ( m_vShader ) m_vShader->Bind();
@@ -154,4 +96,85 @@ ID3DBlob* DX11ShaderProgram::GetPSBlob() const
 {
     assert( m_psBlob );
     return m_psBlob;
+}
+
+void DX11ShaderProgram::Compile( const FPath& path, ShaderType type, const std::string& name )
+{
+    DX11ShaderInclude includeHandler( path );
+    ID3DBlob* errorBlob = nullptr;
+
+    std::uint32_t compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+    compileFlags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+    auto shaderSrc = g_FileSystem->ReadText( path );
+    if ( shaderSrc.empty() )
+        FATAL_ERROR( "Shader source is invalid: " + path.string(), CMD::RENDERING );
+
+    std::string srcNameStr = path.filename().string();
+    const char* srcName = srcNameStr.c_str();
+
+    const char* target = "";
+    ID3DBlob** blob = nullptr;
+
+    switch ( type )
+    {
+        case VERTEX:
+        {
+            target = "vs_5_0", blob = &m_vsBlob;
+            break;
+        }
+        case PIXEL:
+        {
+            target = "ps_5_0", blob = &m_psBlob;
+            break;
+        }
+        default:
+            FATAL_ERROR( "DX11: Unknown shader type!", CMD::RENDERING );
+    }
+
+    if ( *blob )
+    {
+        ( *blob )->Release();
+        *blob = nullptr;
+    }
+
+    HRESULT hr = D3DCompile(
+        shaderSrc.data(),
+        shaderSrc.size(),
+        srcName,
+        nullptr,
+        &includeHandler,
+        "main",
+        target,
+        compileFlags,
+        0,
+        blob,
+        &errorBlob );
+
+    if ( FAILED( hr ) )
+    {
+        if ( errorBlob )
+        {
+            auto errMsg = static_cast<char*>(errorBlob->GetBufferPointer());
+            OutputDebugStringA( errMsg );
+            CMD_ERROR(
+                "DX11: Shader compilation error: " + std::string( errMsg ),
+                CMD::RENDERING );
+
+            errorBlob->Release();
+        }
+
+        if ( *blob )
+        {
+            ( *blob )->Release();
+            *blob = nullptr;
+        }
+
+        if ( type == VERTEX )
+            FATAL_ERROR( "DX11: Failed to compile vertex shader! [" + name + "]", CMD::RENDERING );
+        else if ( type == PIXEL )
+            FATAL_ERROR( "DX11: Failed to compile pixel shader! [" + name + "]", CMD::RENDERING );
+    }
 }

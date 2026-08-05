@@ -21,17 +21,17 @@ public:
 
     void OnWindowResize( int width, int height ) override;
 
-    IRenderFactory* GetFactory() const
+    IRenderFactory* GetFactory() const override
     {
         return m_factory;
     }
 
-    RenderCamera* GetCamera() const
+    RenderCamera* GetCamera() const override
     {
         return m_camera;
     }
 
-    void SetCamera( RenderCamera* camera )
+    void SetCamera( RenderCamera* camera ) override
     {
         m_camera = camera;
     }
@@ -61,12 +61,12 @@ public:
     void DrawFullScreenTriangle() override;
     void SetViewport( IViewport* viewport ) override;
 
-    ID3D11Device* GetDevice()
+    ID3D11Device* GetDevice() const
     {
         return m_device;
     }
 
-    ID3D11DeviceContext* GetContext()
+    ID3D11DeviceContext* GetContext() const
     {
         return m_context;
     }

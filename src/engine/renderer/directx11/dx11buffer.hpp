@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DX11Buffer : public IGPUBuffer
+class DX11Buffer final : public IGPUBuffer
 {
 public:
     DX11Buffer(
@@ -17,7 +17,7 @@ public:
         const void* initialData = nullptr,
         std::uint32_t stride = 0 );
 
-    ~DX11Buffer()
+    ~DX11Buffer() override
     {
         Release();
     }

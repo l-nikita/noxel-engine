@@ -24,6 +24,8 @@ DX11Factory::DX11Factory( ID3D11Device* device, ID3D11DeviceContext* context )
 ITexture* DX11Factory::CreateTexture( const AssetId& assetId )
 {
     std::unique_ptr<TextureData> data( g_Assets->LoadAsset<TextureData>( assetId ) );
+    assert( data );
+
     if ( !data || !data->Image )
         return nullptr;
 
@@ -50,13 +52,15 @@ ITexture* DX11Factory::CreateCubemap( const AssetId& assetId )
 {
     auto asset = g_Assets->GetAsset( assetId );
     std::unique_ptr<MaterialData> data( g_Assets->LoadAsset<MaterialData>( asset ) );
+    assert( data );
+
     if ( !data )
         return nullptr;
 
     if ( !data->IsCubemap )
     {
         CMD_ERROR(
-            "DX11 Factory: Failed to create cubemap because material [" + asset->Name + "] isn't a cubemap.",
+            "DX11 Factory: Failed to create cubemap because material [" + asset->Name + "] isn't a cubemap",
             CMD::RENDERING );
         return nullptr;
     }
@@ -104,8 +108,8 @@ ITexture* DX11Factory::CreateCubemap( const AssetId& assetId )
     std::vector<void*> images;
     images.reserve( datas.size() );
 
-    for ( const auto& data: datas )
-        images.push_back( data->Image );
+    for ( const auto& texData: datas )
+        images.push_back( texData->Image );
 
     TextureDesc desc = {};
     desc.Width = width;
@@ -124,6 +128,9 @@ IMaterial* DX11Factory::CreateMaterial( const AssetId& assetId )
 {
     std::unique_ptr<MaterialData> data( g_Assets->LoadAsset<MaterialData>( assetId ) );
     assert( data );
+
+    if ( !data )
+        return nullptr;
 
     auto mat = new DX11Material( m_device, m_context, data.get() );
     m_resources.push_back( mat );
@@ -164,6 +171,9 @@ IShaderProgram* DX11Factory::CreateShaderProgram( const AssetId& assetId )
 {
     std::unique_ptr<ShaderData> data( g_Assets->LoadAsset<ShaderData>( assetId ) );
     assert( data );
+
+    if ( !data )
+        return nullptr;
 
     auto shader = new DX11ShaderProgram( m_device, m_context, data.get() );
     m_resources.push_back( shader );

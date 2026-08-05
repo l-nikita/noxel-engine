@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <iostream>
 #include <vector>
 #include "idepthstencil.hpp"
 #include "irenderer.hpp"
@@ -9,7 +10,7 @@
 #include "irenderpipeline.hpp"
 #include "ishaderprogram.hpp"
 
-class Model;
+class ModelRenderer;
 class RenderCamera;
 
 struct GBuffer
@@ -20,24 +21,26 @@ struct GBuffer
     IRenderTexture* Position;
     IRenderTexture* Specular; // metalness, roughness, ao, height
 
+    ~GBuffer()
+    {
+        Release();
+    }
+
     void Release()
     {
         const auto factory = g_Renderer->GetFactory();
+        const auto release = [factory]( auto*& res )
+        {
+            if ( res )
+                factory->Release( res );
+            res = nullptr;
+        };
 
-        if ( DepthStencil )
-            factory->Release( DepthStencil ), DepthStencil = nullptr;
-
-        if ( Color )
-            factory->Release( Color ), Color = nullptr;
-
-        if ( Normal )
-            factory->Release( Normal ), Normal = nullptr;
-
-        if ( Position )
-            factory->Release( Position ), Position = nullptr;
-
-        if ( Specular )
-            factory->Release( Specular ), Specular = nullptr;
+        release( DepthStencil );
+        release( Color );
+        release( Normal );
+        release( Position );
+        release( Specular );
     }
 };
 
@@ -79,7 +82,7 @@ public:
     std::uint32_t m_DrawCallCount = 0;
 #endif
 
-    std::vector<Model*> m_Models;
+    std::vector<ModelRenderer*> m_Models;
 
 private:
     void SetupGBuffer( int width, int height );

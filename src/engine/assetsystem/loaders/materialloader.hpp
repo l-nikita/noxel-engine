@@ -24,7 +24,7 @@ public:
         if ( !asset ) return std::unexpected( "Asset is invalid" );
 
         auto jsonStr = fileSystem->ReadText( asset->Path );
-        if ( !jsonStr.data() || jsonStr.empty() )
+        if ( jsonStr.empty() )
             return std::unexpected( "Material meta is invalid: " + asset->Path.string() );
 
         try

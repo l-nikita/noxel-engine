@@ -11,12 +11,12 @@ class DX11Buffer;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class DX11Mesh : public IMesh
+class DX11Mesh final : public IMesh
 {
 public:
     DX11Mesh( ID3D11Device* device, ID3D11DeviceContext* context, const MeshData& data );
 
-    ~DX11Mesh()
+    ~DX11Mesh() override
     {
         Release();
     }
