@@ -1,7 +1,11 @@
 
 #include "renderer/material.hpp"
+
+#include <ranges>
+
 #include "renderer/factory.hpp"
 #include "assetsystem/iassetsystem.hpp"
+#include "assetsystem/shaderdata.hpp"
 
 namespace render
 {
@@ -11,16 +15,43 @@ namespace render
     //
     //-----------------------------------------------------------------------------
     Material::Material( const assets::MaterialData& data )
-        : m_shaderId( data.Shader ), m_params( data.Parameters )
+        : m_shaderId( data.Shader ), m_texturesParams( data.TexturesParameters )
     {
-        for ( const auto& [ paramName, paramVal ]: data.Parameters )
+        auto shaderData = g_Assets->LoadData<assets::ShaderData>( m_shaderId );
+        assert( shaderData );
+
+        const auto createError = [this]( const std::string& paramName )
         {
-            if ( const auto* id = std::get_if<assets::Id>( &paramVal ) )
+            m_textures[ paramName ] = Factory::CreateTexture( assets::ERROR_TEXTURE_ID );
+        };
+
+        for ( const auto& [ paramName, shaderParam ]: shaderData->Textures )
+        {
+            const auto it = data.TexturesParameters.find( paramName );
+
+            if ( it == data.TexturesParameters.end() )
             {
-                const auto* asset = g_Assets->GetAsset( *id );
-                if ( asset && asset->Type == assets::Type::TEXTURE )
-                    m_textures[ paramName ] = Factory::CreateTexture( *id );
+                createError( paramName );
+                continue;
             }
+
+            const auto& matParam = it->second;
+
+            if ( const auto* id = std::get_if<assets::Id>( &matParam ) )
+            {
+                const auto asset = g_Assets->GetAsset( *id );
+
+                if ( !asset || asset->Type != assets::Type::TEXTURE )
+                {
+                    createError( paramName );
+                    continue;
+                }
+
+                m_textures[ paramName ] = Factory::CreateTexture( *id );
+                continue;
+            }
+
+            m_textures.erase( paramName );
         }
     }
 
@@ -37,6 +68,6 @@ namespace render
 
     const assets::MaterialParameters& Material::GetParameters() const
     {
-        return m_params;
+        return m_texturesParams;
     }
 }

@@ -49,26 +49,29 @@ namespace assets::loaders
 
                 data->Shader = shaderAss.value();
 
-                if ( json.contains( "iscubemap" ) )
-                    data->IsCubemap = json[ "iscubemap" ].get<bool>();
+                if ( json.contains( "is_cubemap" ) )
+                    data->IsCubemap = json[ "is_cubemap" ].get<bool>();
                 else
                     data->IsCubemap = false;
 
-                for ( const auto& [ paramName, param ]: json[ "parameters" ].items() )
+                for ( const auto& [ paramName, param ]: json[ "parameters" ][ "textures" ].items() )
                 {
-                    if ( param.is_boolean() )
-                        data->Parameters[ paramName ] = param.get<bool>();
-                    else if ( param.is_number_integer() )
-                        data->Parameters[ paramName ] = param.get<int>();
+                    if ( param.is_number_integer() )
+                        data->TexturesParameters[ paramName ] = param.get<int>();
                     else if ( param.is_number_float() )
-                        data->Parameters[ paramName ] = param.get<float>();
+                        data->TexturesParameters[ paramName ] = param.get<float>();
                     else if ( param.is_string() )
                     {
-                        auto paramStr = param.get<std::string>();
-                        if ( auto texAsset = g_Assets->GetAsset( paramStr, Type::TEXTURE ) )
-                            data->Parameters[ paramName ] = texAsset.value();
+                        const auto value = param.get<std::string>();
+
+                        if ( const auto texture = g_Assets->GetAsset( value, Type::TEXTURE ) )
+                            data->TexturesParameters[ paramName ] = texture.value();
                         else
-                            data->Parameters[ paramName ] = paramStr;
+                        {
+                            data->TexturesParameters[ paramName ] = g_Assets->GetErrorAsset( Type::TEXTURE );
+                            CMD_ERROR( "Texture not found: " + value + "\nMaterial: " + asset->Path.string(),
+                                       cmd::ASSETSYSTEM );
+                        }
                     }
                 }
 

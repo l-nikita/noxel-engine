@@ -6,6 +6,7 @@
 #include "renderer/rendersystem.hpp"
 
 #include "factory.hpp"
+#include "assetsystem/iassetsystem.hpp"
 #include "dbg/debug.hpp"
 #include "engine/iengine.hpp"
 #include "engine/window.hpp"

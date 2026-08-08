@@ -25,6 +25,7 @@ namespace assets
     SysInit AssetSystem::Initialize()
     {
         SearchAssets();
+        SetupErrorAssets();
 
         cmd::RegisterCommand( "as_print_assets", "Prints assets", [this]
         {
@@ -48,6 +49,7 @@ namespace assets
         m_assets.clear();
     }
 
+    //-----------------------------------------------------------------------------
     const Assets& AssetSystem::GetAssets() const
     {
         return m_assets;
@@ -89,6 +91,20 @@ namespace assets
         return m_assets.at( assetId );
     }
 
+    Id AssetSystem::GetErrorAsset( Type type ) const
+    {
+        if ( type == Type::TEXTURE )
+            return ERROR_TEXTURE_ID;
+
+        FATAL_ERROR( "Error asset for type '" + std::to_string( static_cast<int>(type) ) + "' is not found",
+                     cmd::ASSETSYSTEM );
+
+        return ERROR_TEXTURE_ID;
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
     void AssetSystem::RegisterAsset( const fs::Path& path, Type type )
     {
         const auto relPath = g_FileSystem->Relative( path );
@@ -163,6 +179,22 @@ namespace assets
         m_assets.emplace( assetId, new Asset{assetId, relPath.stem().string(), relPath, type} );
     }
 
+    //-----------------------------------------------------------------------------
+    bool AssetSystem::IsSupportedImage( const fs::Path& file ) const
+    {
+        auto ext = file.extension().string();
+        std::ranges::transform( ext, ext.begin(), ::tolower );
+
+        for ( const auto& imageExt: SUPPORTED_IMAGE_FORMATS )
+            if ( ext == imageExt )
+                return true;
+
+        return false;
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
     IAssetData* AssetSystem::LoadDataImpl( const Asset* asset )
     {
         if ( !asset )
@@ -199,15 +231,19 @@ namespace assets
         return result.value();
     }
 
+    void AssetSystem::SetupErrorAssets()
+    {
+        m_assets.emplace( ERROR_TEXTURE_ID, new Asset{ERROR_TEXTURE_ID, "error", "", Type::TEXTURE} );
+    }
+
     void AssetSystem::SearchAssets()
     {
-        m_assets.clear();
-
         const auto files = g_FileSystem->GetAllFiles();
         for ( const auto& file: files )
             DetectAndRegisterAsset( file );
     }
 
+    //-----------------------------------------------------------------------------
     void AssetSystem::DetectAndRegisterAsset( const fs::Path& file )
     {
         auto ext = file.extension().string();

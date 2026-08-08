@@ -1,9 +1,48 @@
 {
-	"name": "geometrypass",
-	"pixelshader": {
-		"file": "geometrypass_ps.hlsl"
-	},
-	"vertexshader": {
-		"file": "geometrypass_vs.hlsl"
-	}
+    "name": "GeometryPass",
+    "source_language": "HLSL",
+    "pixel_shader": {
+        "file": "geometrypass_ps.hlsl"
+    },
+    "vertex_shader": {
+        "file": "geometrypass_vs.hlsl"
+    },
+    "parameters": {
+        "textures": {
+            "color": {
+                "var_bind": "g_tColor",
+                "var_type": "MUTABLE"
+            },
+            "normal": {
+                "var_bind": "g_tNormal",
+                "var_type": "MUTABLE"
+            },
+            "rough": {
+                "var_bind": "g_tRoughness",
+                "var_type": "MUTABLE"
+            },
+            "metal": {
+                "var_bind": "g_tMetalness",
+                "var_type": "MUTABLE"
+            },
+            "ao": {
+                "var_bind": "g_tAO",
+                "var_type": "MUTABLE"
+            },
+            "height": {
+                "var_bind": "g_tHeight",
+                "var_type": "MUTABLE"
+            }
+        },
+        "samplers": {
+            "g_sSampler": {
+                "min_filter": "LINEAR",
+                "mag_filter": "LINEAR",
+                "mip_filter": "LINEAR",
+                "address_u": "WRAP",
+                "address_v": "WRAP",
+                "address_w": "WRAP"
+            }
+        }
+    }
 }

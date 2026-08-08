@@ -1,5 +1,9 @@
 {
-	"name": "lightingpass",
-	"pixelshader": "lightingpass_ps.hlsl",
-	"vertexshader": "lightingpass_vs.hlsl"
+    "name": "LightingPass",
+    "pixel_shader": {
+        "file": "lightingpass_ps.hlsl"
+    },
+    "vertex_shader": {
+        "file": "lightingpass_vs.hlsl"
+    }
 }

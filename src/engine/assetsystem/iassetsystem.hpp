@@ -21,8 +21,11 @@ namespace assets
         virtual const Assets& GetAssets() const = 0;
         virtual std::optional<Id> GetAsset( const fs::Path& path, Type type ) const = 0;
         virtual const Asset* GetAsset( const Id& assetId ) const = 0;
+        virtual Id GetErrorAsset( Type type ) const = 0;
 
         virtual void RegisterAsset( const fs::Path& path, Type type ) = 0;
+
+        virtual bool IsSupportedImage( const fs::Path& file ) const = 0;
 
         template<typename T>
         std::unique_ptr<T> LoadData( const Asset* asset )

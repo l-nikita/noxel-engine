@@ -1,12 +1,13 @@
 {
-	"shader": "geometrypass",
-	"parameters": 
-	{
-		"color": "metal1_color.jpg",
-		"normal": "metal1_normal.jpg",
-		"rough": "metal1_rough.jpg",
-		"metal": "metal1_metal.jpg",
-		"ao": "metal1_ao.jpg",
-		"height": "metal1_height.jpg"
-	}
+    "shader": "geometrypass.nshader",
+    "parameters": {
+        "textures": {
+            "color": "metal1_color.jpg",
+            "normal": "metal1_normal.jpg",
+            "rough": "metal1_rough.jpg",
+            "metal": "metal1_metal.jpg",
+            "ao": "metal1_ao.jpg",
+            "height": "metal1_height.jpg"
+        }
+    }
 }

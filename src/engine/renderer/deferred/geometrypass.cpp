@@ -97,12 +97,12 @@ namespace render::deferred
 
         //-----------------------------------------------------------------------------
         ShaderResourceVariableDesc vars[ ] = {
-            {SHADER_TYPE_PIXEL, "Color", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "Normal", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "Roughness", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "Metalness", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "AO", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "Height", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
+            {SHADER_TYPE_PIXEL, "g_tColor", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
+            {SHADER_TYPE_PIXEL, "g_tNormal", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
+            {SHADER_TYPE_PIXEL, "g_tRoughness", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
+            {SHADER_TYPE_PIXEL, "g_tMetalness", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
+            {SHADER_TYPE_PIXEL, "g_tAO", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
+            {SHADER_TYPE_PIXEL, "g_tHeight", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
         };
 
         info.PSODesc.ResourceLayout.Variables = vars;
@@ -118,7 +118,7 @@ namespace render::deferred
         sampler.AddressW = TEXTURE_ADDRESS_WRAP;
 
         ImmutableSamplerDesc immutableSamplers[ ] = {
-            {SHADER_TYPE_PIXEL, "Samp", sampler}
+            {SHADER_TYPE_PIXEL, "g_sSampler", sampler}
         };
 
         info.PSODesc.ResourceLayout.ImmutableSamplers = immutableSamplers;
@@ -189,29 +189,29 @@ namespace render::deferred
 
         struct TextureBinding
         {
-            const char* TextureName;
+            const char* ParamName;
             const char* ShaderName;
             RefCntAutoPtr<ITexture> DefaultTextures::* DefaultTexture;
         };
 
         constexpr TextureBinding texBindings[ ] = {
-            {"color", "Color", &DefaultTextures::White},
-            {"normal", "Normal", &DefaultTextures::NeutralNormal},
-            {"rough", "Roughness", &DefaultTextures::White},
-            {"metal", "Metalness", &DefaultTextures::Black},
-            {"ao", "AO", &DefaultTextures::White},
-            {"height", "Height", &DefaultTextures::Black}
+            {"color", "g_tColor", &DefaultTextures::White},
+            {"normal", "g_tNormal", &DefaultTextures::NeutralNormal},
+            {"rough", "g_tRoughness", &DefaultTextures::White},
+            {"metal", "g_tMetalness", &DefaultTextures::Black},
+            {"ao", "g_tAO", &DefaultTextures::White},
+            {"height", "g_tHeight", &DefaultTextures::Black}
         };
 
         const auto& defTextures = m_render->GetDefaultTextures();
 
-        for ( const auto& [ TextureName, ShaderName, DefaultTexture ]: texBindings )
+        for ( const auto& [ paramName, shaderName, DefaultTexture ]: texBindings )
         {
-            auto tex = material.GetTexture( TextureName );
-            auto var = binding->GetVariableByName( SHADER_TYPE_PIXEL, ShaderName );
+            auto tex = material.GetTexture( paramName );
+            auto var = binding->GetVariableByName( SHADER_TYPE_PIXEL, shaderName );
 
             if ( !var )
-                FATAL_ERROR( std::string( "Geometry shader resource is missing: " ) + ShaderName, cmd::RENDERING );
+                FATAL_ERROR( std::string( "Geometry shader resource is missing: " ) + shaderName, cmd::RENDERING );
 
             if ( !tex )
                 tex = ( defTextures.*DefaultTexture ).RawPtr();
@@ -300,74 +300,71 @@ namespace render::deferred
         auto context = m_render->GetContext();
         CBMaterialFactors factors{};
 
+        if ( material.GetTexture( "color" ) )
+            factors.TextureMask |= MATERIAL_HAS_COLOR_MAP;
+
+        if ( material.GetTexture( "normal" ) )
+            factors.TextureMask |= MATERIAL_HAS_NORMAL_MAP;
+
+        if ( material.GetTexture( "rough" ) )
+            factors.TextureMask |= MATERIAL_HAS_ROUGH_MAP;
+
+        if ( material.GetTexture( "metal" ) )
+            factors.TextureMask |= MATERIAL_HAS_METAL_MAP;
+
+        if ( material.GetTexture( "ao" ) )
+            factors.TextureMask |= MATERIAL_HAS_AO_MAP;
+
+        if ( material.GetTexture( "height" ) )
+            factors.TextureMask |= MATERIAL_HAS_HEIGHT_MAP;
+
         for ( const auto& [ paramName, paramValue ]: material.GetParameters() )
         {
             const auto getFactor = [&]() -> std::optional<float>
             {
-                if ( const auto* value = std::get_if<float>( &paramValue ) )
+                if ( const auto value = std::get_if<float>( &paramValue ) )
                     return *value;
 
-                if ( const auto* value = std::get_if<int>( &paramValue ) )
+                if ( const auto value = std::get_if<int>( &paramValue ) )
                     return static_cast<float>(*value);
 
                 return std::nullopt;
             };
 
-            const bool isTexture =
-                    std::holds_alternative<assets::Id>( paramValue );
-
             if ( paramName == "color" )
             {
-                if ( isTexture )
-                    factors.TextureMask |= MATERIAL_HAS_COLOR_MAP;
-                else if ( const auto value = getFactor() )
+                if ( const auto value = getFactor() )
                     factors.ColorFactor = glm::vec4( *value );
             } else if ( paramName == "normal" )
             {
-                if ( isTexture )
-                    factors.TextureMask |= MATERIAL_HAS_NORMAL_MAP;
-                else if ( const auto value = getFactor() )
+                if ( const auto value = getFactor() )
                     factors.NormalFactor = *value;
             } else if ( paramName == "rough" )
             {
-                if ( isTexture )
-                    factors.TextureMask |= MATERIAL_HAS_ROUGH_MAP;
-                else if ( const auto value = getFactor() )
+                if ( const auto value = getFactor() )
                     factors.RoughFactor = *value;
             } else if ( paramName == "metal" )
             {
-                if ( isTexture )
-                {
-                    factors.TextureMask |= MATERIAL_HAS_METAL_MAP;
-                    factors.MetalFactor = 1.0f;
-                } else if ( const auto value = getFactor() )
+                if ( const auto value = getFactor() )
                     factors.MetalFactor = *value;
             } else if ( paramName == "ao" )
             {
-                if ( isTexture )
-                    factors.TextureMask |= MATERIAL_HAS_AO_MAP;
-                else if ( const auto value = getFactor() )
+                if ( const auto value = getFactor() )
                     factors.AOFactor = *value;
             } else if ( paramName == "height" )
             {
-                if ( isTexture )
-                {
-                    factors.TextureMask |= MATERIAL_HAS_HEIGHT_MAP;
-                    factors.HeightFactor = 1.0f;
-                } else if ( const auto value = getFactor() )
+                if ( const auto value = getFactor() )
                     factors.HeightFactor = *value;
             }
         }
 
-        {
-            MapHelper<CBMaterialFactors> mappedFactors{
-                context,
-                m_matFactorsCB,
-                MAP_WRITE,
-                MAP_FLAG_DISCARD
-            };
+        MapHelper<CBMaterialFactors> mappedFactors{
+            context,
+            m_matFactorsCB,
+            MAP_WRITE,
+            MAP_FLAG_DISCARD
+        };
 
-            *mappedFactors = factors;
-        }
+        *mappedFactors = factors;
     }
 }

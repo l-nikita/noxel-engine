@@ -26,6 +26,6 @@ namespace assets
         Id AssetId;
         Id Shader;
         bool IsCubemap = false;
-        MaterialParameters Parameters;
+        MaterialParameters TexturesParameters;
     };
 }

@@ -28,7 +28,7 @@ namespace render
     private:
         assets::Id m_shaderId;
 
-        assets::MaterialParameters m_params;
+        assets::MaterialParameters m_texturesParams;
         std::unordered_map<std::string, Diligent::RefCntAutoPtr<ITexture>> m_textures;
     };
 }

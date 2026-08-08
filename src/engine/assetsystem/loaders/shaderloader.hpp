@@ -36,11 +36,11 @@ namespace assets::loaders
                 auto data = new ShaderData();
                 data->Name = json.value( "name", asset->Name );
 
-                if ( json.contains( "pixelshader" ) )
-                    data->PixelShaderPath = json[ "pixelshader" ].value( "file", "" );
+                if ( json.contains( "pixel_shader" ) )
+                    data->PixelShaderPath = json[ "pixel_shader" ].value( "file", "" );
 
-                if ( json.contains( "vertexshader" ) )
-                    data->VertexShaderPath = json[ "vertexshader" ].value( "file", "" );
+                if ( json.contains( "vertex_shader" ) )
+                    data->VertexShaderPath = json[ "vertex_shader" ].value( "file", "" );
 
                 const auto shaderDir = asset->Path.parent_path();
                 if ( !data->PixelShaderPath.empty() )
@@ -52,6 +52,38 @@ namespace assets::loaders
                 {
                     delete data;
                     return std::unexpected( "Shader paths are missing in: " + asset->Path.string() );
+                }
+
+                // "parameters": "textures"
+                for ( auto [ paramName, paramVal ]: json[ "parameters" ][ "textures" ].items() )
+                {
+                    auto varBind = paramVal.value( "var_bind", "" );
+                    auto varType = paramVal.value( "var_type", "" );
+
+                    data->Textures[ paramName ] = {
+                        varBind,
+                        varType
+                    };
+                }
+
+                // "parameters": "samplers"
+                for ( auto [ paramName, paramVal ]: json[ "parameters" ][ "samplers" ].items() )
+                {
+                    auto minFilter = paramVal.value( "min_filter", "" );
+                    auto magFilter = paramVal.value( "mag_filter", "" );
+                    auto mipFilter = paramVal.value( "mip_filter", "" );
+                    auto addressU = paramVal.value( "address_u", "" );
+                    auto addressV = paramVal.value( "address_v", "" );
+                    auto addressW = paramVal.value( "address_w", "" );
+
+                    data->Samplers[ paramName ] = {
+                        minFilter,
+                        magFilter,
+                        mipFilter,
+                        addressU,
+                        addressV,
+                        addressW,
+                    };
                 }
 
                 return data;

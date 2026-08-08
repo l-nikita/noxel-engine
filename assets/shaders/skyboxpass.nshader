@@ -1,5 +1,9 @@
 {
-	"name": "skyboxpass",
-	"pixelshader": "skyboxpass_ps.hlsl",
-	"vertexshader": "skyboxpass_vs.hlsl"
+    "name": "SkyboxPass",
+    "pixel_shader": {
+        "file": "skyboxpass_ps.hlsl"
+    },
+    "vertex_shader": {
+        "file": "skyboxpass_vs.hlsl"
+    }
 }

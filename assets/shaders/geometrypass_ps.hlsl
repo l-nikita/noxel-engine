@@ -1,13 +1,13 @@
 //----------------------------------------
-Texture2D Color         : register(t0);
-Texture2D Normal        : register(t1);
-Texture2D Roughness     : register(t2);
-Texture2D Metalness     : register(t3);
-Texture2D AO            : register(t4);
-Texture2D Height        : register(t5);
+Texture2D g_tColor         : register(t0);
+Texture2D g_tNormal        : register(t1);
+Texture2D g_tRoughness     : register(t2);
+Texture2D g_tMetalness     : register(t3);
+Texture2D g_tAO            : register(t4);
+Texture2D g_tHeight        : register(t5);
 
 //----------------------------------------
-SamplerState Samp : register(s0);
+SamplerState g_sSampler : register(s0);
 
 //----------------------------------------
 #define MATERIAL_HAS_COLOR_MAP  (1u << 0)
@@ -71,31 +71,31 @@ PS_OUTPUT main(PS_INPUT input)
 
     float4 color = input.vColor * Tint * ColorFactor;
     if ((TextureMask & MATERIAL_HAS_COLOR_MAP) != 0)
-        color *= Color.Sample(Samp, uv);
+        color *= g_tColor.Sample(g_sSampler, uv);
 
     float3 finalNormal = N;
     if ((TextureMask & MATERIAL_HAS_NORMAL_MAP) != 0)
     {
-        float3 normal = Normal.Sample(Samp, uv).xyz * 2.0 - 1.0;
+        float3 normal = g_tNormal.Sample(g_sSampler, uv).xyz * 2.0 - 1.0;
         normal.xy *= max(NormalFactor, 0.0);
         finalNormal = normalize(mul(normalize(normal), TBN));
     }
 
     float roughness = RoughFactor;
     if ((TextureMask & MATERIAL_HAS_ROUGH_MAP) != 0)
-        roughness *= Roughness.Sample(Samp, uv).r;
+        roughness *= g_tRoughness.Sample(g_sSampler, uv).r;
 
     float metalness = MetalFactor;
     if ((TextureMask & MATERIAL_HAS_METAL_MAP) != 0)
-        metalness *= Metalness.Sample(Samp, uv).r;
+        metalness *= g_tMetalness.Sample(g_sSampler, uv).r;
 
     float ao = AOFactor;
     if ((TextureMask & MATERIAL_HAS_AO_MAP) != 0)
-        ao *= AO.Sample(Samp, uv).r;
+        ao *= g_tAO.Sample(g_sSampler, uv).r;
 
     float height = HeightFactor;
     if ((TextureMask & MATERIAL_HAS_HEIGHT_MAP) != 0)
-        height *= Height.Sample(Samp, uv).r;
+        height *= g_tHeight.Sample(g_sSampler, uv).r;
 
     roughness = saturate(roughness);
     metalness = saturate(metalness);

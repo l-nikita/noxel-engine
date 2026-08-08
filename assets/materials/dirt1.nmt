@@ -1,12 +1,13 @@
 {
-	"shader": "geometrypass",
-	"parameters": 
-	{
-		"color": "dirt1_color.jpg",
-		"normal": "dirt1_normal.jpg",
-		"rough": "dirt1_rough.jpg",
-		"metal": 0.0,
-		"ao": "dirt1_ao.jpg",
-		"height": "dirt1_height.jpg"
-	}
+    "shader": "geometrypass.nshader",
+    "parameters": {
+        "textures": {
+            "color": "dirt1_color.jpg",
+            "normal": "dirt1_normal.jpg",
+            "rough": "dirt1_rough.jpg",
+            "metal": 0.0,
+            "ao": "dirt1_ao.jpg",
+            "height": "dirt1_height.jpg"
+        }
+    }
 }
