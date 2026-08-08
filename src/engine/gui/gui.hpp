@@ -7,7 +7,7 @@ class DebugMenu;
 class Gui : public IGui
 {
 public:
-    SYSTEM_METADATA( GUI, "Gui", SysId::RENDERER );
+    SYSTEM_METADATA( GUI, "Gui", SysId::RENDER );
 
 public:
     SysInit Initialize() override;

@@ -42,7 +42,7 @@ struct PS_OUTPUT
     float4 gSpecular    : SV_Target3;
 };
 
-PS_OUTPUT main(PS_INPUT input) : SV_TARGET
+PS_OUTPUT main(PS_INPUT input)
 {
     PS_OUTPUT o;
     
@@ -52,7 +52,7 @@ PS_OUTPUT main(PS_INPUT input) : SV_TARGET
     float3x3 TBN = float3x3(T, B, N);
     float2 uv = input.vUV;
 
-    float3 texColor = Color.Sample(Samp, uv);
+    float3 texColor = Color.Sample(Samp, uv).rgb;
     float4 color = input.vColor * Tint;
     
     if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0)

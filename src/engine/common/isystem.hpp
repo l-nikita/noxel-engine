@@ -14,7 +14,7 @@ enum class SysId
     ASSET_SYSTEM,
     INPUT,
     PHYSICS,
-    RENDERER,
+    RENDER,
     RENDER_PIPELINE,
     GUI
 };

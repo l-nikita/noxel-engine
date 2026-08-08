@@ -1,15 +1,20 @@
 #pragma once
 
 #include "common.hpp"
-#include "renderer/irenderer.hpp"
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+enum class GraphicsAPI : int
+{
+    NONE,
+    DIRECTX11,
+    VULKAN,
+};
+
+//-----------------------------------------------------------------------------
 
 class Window;
-class IFileSystem;
-class IAssetSystem;
-class IInput;
-class IPhysics;
-class IRenderPipeline;
-class IGui;
 
 //-----------------------------------------------------------------------------
 //
@@ -36,18 +41,9 @@ public:
     virtual float ElapsedTime() = 0;
     virtual float GetFPS() = 0;
 
-    virtual Window* GetWindow() = 0;
-    virtual void OnWindowResize() = 0;
+    virtual Window* GetPrimaryWindow() = 0;
 
     virtual GraphicsAPI GetGraphicsAPI() = 0;
-
-    virtual IFileSystem& FileSystem() const = 0;
-    virtual IAssetSystem& AssetSystem() const = 0;
-    virtual IInput& Input() const = 0;
-    virtual IPhysics& Physics() const = 0;
-    virtual IRenderer& Renderer() const = 0;
-    virtual IRenderPipeline& RenderPipeline() const = 0;
-    virtual IGui& Gui() const = 0;
 };
 
 extern ENGINE_API IEngine* g_Engine;

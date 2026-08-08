@@ -7,12 +7,12 @@ cbuffer Transform : register(b0)
 
 struct VS_INPUT
 {
-    float3 iPos         : POSITION;
-    float3 iNormal      : NORMAL;
-    float3 iTangent     : TANGENT;
-    float3 iBitangent   : BINORMAL;
-    float2 iUV          : TEXCOORD;
-    float4 iColor       : COLOR;
+    float3 iPos         : ATTRIB0;
+    float3 iNormal      : ATTRIB1;
+    float3 iTangent     : ATTRIB2;
+    float3 iBitangent   : ATTRIB3;
+    float2 iUV          : ATTRIB4;
+    float4 iColor       : ATTRIB5;
 };
 
 struct VS_OUTPUT

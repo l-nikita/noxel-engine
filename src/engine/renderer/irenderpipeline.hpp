@@ -2,19 +2,16 @@
 
 #include "common.hpp"
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-class IRenderPipeline : public ISystem
+namespace render
 {
-public:
-    virtual void Render() = 0;
-    virtual void OnWindowResize( int width, int height ) = 0;
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class IRenderPipeline : public ISystem
+    {
+    public:
+        virtual void Render() = 0;
+    };
+}
 
-#ifdef _DEBUG
-    virtual void AddDrawCallCount() = 0;
-    virtual std::uint32_t GetDrawCallCount() = 0;
-#endif
-};
-
-extern IRenderPipeline* g_RenderPipeline;
+extern render::IRenderPipeline* g_RenderPipeline;

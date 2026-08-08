@@ -1,10 +1,13 @@
 #pragma once
 
 #include <vector>
-#include "vertex.hpp"
+#include "renderer/vertex.hpp"
 
-struct MeshData
+namespace render
 {
-    std::vector<Vertex> Vertices;
-    std::vector<std::uint32_t> Indices;
-};
+    struct MeshData
+    {
+        std::vector<Vertex> Vertices;
+        std::vector<std::uint32_t> Indices;
+    };
+}

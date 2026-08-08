@@ -1,6 +1,7 @@
-#include <imgui_impl_sdl3.h>
+// #include <imgui_impl_sdl3.h>
 
-#include "engine.hpp"
+#include "engine/engine.hpp"
+#include "engine/window.hpp"
 #include "dbg/debug.hpp"
 #include "input/input.hpp"
 
@@ -18,15 +19,25 @@ void Engine::HandleEvents()
 
 void Engine::OnEvent( const SDL_Event& event )
 {
-    ImGui_ImplSDL3_ProcessEvent( &event );
+    // ImGui_ImplSDL3_ProcessEvent( &event );
+
+    auto winId = event.window.windowID;
+    Window* window = nullptr;
+
+    for ( auto win: m_windows )
+    {
+        if ( win->GetId() == winId )
+            window = win;
+    }
 
     switch ( event.type )
     {
         case SDL_EVENT_QUIT:
-            g_Engine->Quit();
+            Quit();
             break;
         case SDL_EVENT_WINDOW_RESIZED:
-            g_Engine->OnWindowResize();
+            assert( window );
+            window->OnResize();
             break;
         // input event
         case SDL_EVENT_KEY_DOWN:

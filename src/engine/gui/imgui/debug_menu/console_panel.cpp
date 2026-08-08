@@ -45,7 +45,7 @@ void ConsolePanel::DrawLogWindow()
 
         ImGui::PushTextWrapPos();
 
-        auto& logs = CMD::CMD::Get().GetLogs();
+        auto& logs = cmd::CMD::Get().GetLogs();
         for ( auto log = logs.begin(); log != logs.end(); ++log )
         {
             ImGui::PushTextWrapPos( ImGui::GetColumnWidth() - timestampWidth );
@@ -53,11 +53,11 @@ void ConsolePanel::DrawLogWindow()
             ImVec4 color;
             switch ( log->Type )
             {
-                case CMD::LogType::INFO: color = ImVec4( 0.4f, 1.0f, 1.0f, 1.0f );
+                case cmd::LogType::INFO: color = ImVec4( 0.4f, 1.0f, 1.0f, 1.0f );
                     break;
-                case CMD::LogType::WARNING: color = ImVec4( 0.9f, 0.7f, 0.0f, 1.0f );
+                case cmd::LogType::WARNING: color = ImVec4( 0.9f, 0.7f, 0.0f, 1.0f );
                     break;
-                case CMD::LogType::ERROR: color = ImVec4( 1.0f, 0.0f, 0.0f, 1.0f );
+                case cmd::LogType::ERROR: color = ImVec4( 1.0f, 0.0f, 0.0f, 1.0f );
                     break;
                 default: color = ImVec4( 0.8f, 0.8f, 0.8f, 1.0f );
                     break;
@@ -66,8 +66,8 @@ void ConsolePanel::DrawLogWindow()
             ImGui::PushStyleColor( ImGuiCol_Text, color );
 
             std::string formated;
-            if ( log->Category != CMD::CONSOLE )
-                formated = std::format( "[{}] {}\n", CMD::LogCategoryToString( log->Category ), log->Text );
+            if ( log->Category != cmd::CONSOLE )
+                formated = std::format( "[{}] {}\n", cmd::LogCategoryToString( log->Category ), log->Text );
             else
                 formated = log->Text;
 
@@ -104,7 +104,7 @@ void ConsolePanel::DrawLogWindow()
 void ConsolePanel::DrawInput()
 {
     if ( ImGui::Button( "Clear" ) )
-        CMD::CMD::Get().Execute( "clear" );
+        cmd::CMD::Get().Execute( "clear" );
 
     ImGui::SameLine();
 
@@ -227,7 +227,7 @@ void ConsolePanel::DrawInput()
             if ( m_autoScroll )
                 m_scrollToBottom = true;
 
-            CMD::Execute( m_input );
+            cmd::Execute( m_input );
         }
 
         m_input.clear();
@@ -255,10 +255,10 @@ std::vector<std::string> ConsolePanel::FindMatches( const std::string& input )
             matches.push_back( name );
     };
 
-    for ( const auto& name: CMD::CMD::Get().GetCommands() | std::views::keys )
+    for ( const auto& name: cmd::CMD::Get().GetCommands() | std::views::keys )
         addMatch( name );
 
-    for ( const auto& name: CMD::CMD::Get().GetVars() | std::views::keys )
+    for ( const auto& name: cmd::CMD::Get().GetVars() | std::views::keys )
         addMatch( name );
 
     std::ranges::sort( matches );

@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-namespace CMD
+namespace cmd
 {
     void CMD::Setup()
     {

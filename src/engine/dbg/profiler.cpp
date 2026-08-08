@@ -5,7 +5,7 @@
 #include "profiler.hpp"
 #include "debug.hpp"
 
-namespace Profiler
+namespace profiler
 {
     Profilers Profiler::m_all;
 
@@ -52,7 +52,7 @@ namespace Profiler
         if ( const auto it = Profiler::m_all.find(name); it != Profiler::m_all.end() )
             it->second->End();
         else
-            FATAL_ERROR("Profiler [" + name + "] not found", CMD::ENGINE);
+            FATAL_ERROR("Profiler [" + name + "] not found", cmd::ENGINE);
 #endif
     }
 }

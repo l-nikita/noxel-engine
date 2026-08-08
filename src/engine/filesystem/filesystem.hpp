@@ -2,38 +2,41 @@
 
 #include "ifilesystem.hpp"
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-class FileSystem : public IFileSystem
+namespace fs
 {
-public:
-    SYSTEM_METADATA( FILESYSTEM, "FileSystem" );
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class FileSystem : public IFileSystem
+    {
+    public:
+        SYSTEM_METADATA( FILESYSTEM, "FileSystem" );
 
-public:
-    SysInit Initialize() override;
-    void Shutdown() override;
+    public:
+        SysInit Initialize() override;
+        void Shutdown() override;
 
-    bool Exists( const FPath& path ) const override;
-    bool IsDirectory( const FPath& path ) const override;
+        bool Exists( const Path& path ) const override;
+        bool IsDirectory( const Path& path ) const override;
 
-    FPath Relative( const FPath& path, const FPath& basePath ) const override;
-    FPath Relative( const FPath& path ) const override;
+        Path Relative( const Path& path, const Path& basePath ) const override;
+        Path Relative( const Path& path ) const override;
 
-    FPath Absolute( const FPath& path ) const override;
+        Path Absolute( const Path& path ) const override;
 
-    FByteBuffer Read( const FPath& path ) const override;
-    std::string ReadText( const FPath& path ) const override;
+        ByteBuffer Read( const Path& path ) const override;
+        std::string ReadText( const Path& path ) const override;
 
-    bool Write( const FPath& path, const FByteBuffer& data ) const override;
-    bool WriteText( const FPath& path, std::string_view text ) const override;
+        bool Write( const Path& path, const ByteBuffer& data ) const override;
+        bool WriteText( const Path& path, std::string_view text ) const override;
 
-    void SearchFiles() override;
-    const FFiles& GetAllFiles() const override;
+        void SearchFiles() override;
+        const Files& GetAllFiles() const override;
 
-    FPath RootPath() const override;
+        Path RootPath() const override;
 
-private:
-    FFiles m_files;
-    FPath m_rootPath;
-};
+    private:
+        Files m_files;
+        Path m_rootPath;
+    };
+}

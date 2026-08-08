@@ -1,100 +1,102 @@
 #pragma once
 
 #include <Jolt/Jolt.h>
-#include <Jolt/Physics/PhysicsSystem.h>
 
-namespace Layers
+namespace phys
 {
-    static constexpr JPH::ObjectLayer NON_MOVING = 0;
-    static constexpr JPH::ObjectLayer MOVING = 1;
-    static constexpr JPH::ObjectLayer NUM_LAYERS = 2;
-};
-
-namespace BroadPhaseLayers
-{
-    static constexpr JPH::BroadPhaseLayer NON_MOVING(0);
-    static constexpr JPH::BroadPhaseLayer MOVING(1);
-    static constexpr JPH::uint NUM_LAYERS(2);
-};
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-class ObjectLayerPairFilterImpl : public JPH::ObjectLayerPairFilter
-{
-public:
-    bool ShouldCollide( const JPH::ObjectLayer inObject1, const JPH::ObjectLayer inObject2 ) const override
+    namespace Layers
     {
-        switch ( inObject1 )
+        static constexpr JPH::ObjectLayer NON_MOVING = 0;
+        static constexpr JPH::ObjectLayer MOVING = 1;
+        static constexpr JPH::ObjectLayer NUM_LAYERS = 2;
+    };
+
+    namespace BroadPhaseLayers
+    {
+        static constexpr JPH::BroadPhaseLayer NON_MOVING( 0 );
+        static constexpr JPH::BroadPhaseLayer MOVING( 1 );
+        static constexpr JPH::uint NUM_LAYERS( 2 );
+    };
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class ObjectLayerPairFilterImpl : public JPH::ObjectLayerPairFilter
+    {
+    public:
+        bool ShouldCollide( const JPH::ObjectLayer inObject1, const JPH::ObjectLayer inObject2 ) const override
         {
-            case Layers::NON_MOVING:
-                return inObject2 == Layers::MOVING; // Non-moving only collides with moving
-            case Layers::MOVING:
-                return true; // Moving collides with everything
-            default:
-                JPH_ASSERT(false);
-                return false;
+            switch ( inObject1 )
+            {
+                case Layers::NON_MOVING:
+                    return inObject2 == Layers::MOVING; // Non-moving only collides with moving
+                case Layers::MOVING:
+                    return true; // Moving collides with everything
+                default:
+                    JPH_ASSERT( false );
+                    return false;
+            }
         }
-    }
-};
+    };
 
-//-----------------------------------------------------------------------------
-class BPLayerInterfaceImpl final : public JPH::BroadPhaseLayerInterface
-{
-public:
-    BPLayerInterfaceImpl()
+    //-----------------------------------------------------------------------------
+    class BPLayerInterfaceImpl final : public JPH::BroadPhaseLayerInterface
     {
-        // Create a mapping table from object to broad phase layer
-        mObjectToBroadPhase[ Layers::NON_MOVING ] = BroadPhaseLayers::NON_MOVING;
-        mObjectToBroadPhase[ Layers::MOVING ] = BroadPhaseLayers::MOVING;
-    }
+    public:
+        BPLayerInterfaceImpl()
+        {
+            // Create a mapping table from object to broad phase layer
+            mObjectToBroadPhase[ Layers::NON_MOVING ] = BroadPhaseLayers::NON_MOVING;
+            mObjectToBroadPhase[ Layers::MOVING ] = BroadPhaseLayers::MOVING;
+        }
 
-    JPH::uint GetNumBroadPhaseLayers() const override
-    {
-        return BroadPhaseLayers::NUM_LAYERS;
-    }
+        JPH::uint GetNumBroadPhaseLayers() const override
+        {
+            return BroadPhaseLayers::NUM_LAYERS;
+        }
 
-    JPH::BroadPhaseLayer GetBroadPhaseLayer( JPH::ObjectLayer inLayer ) const override
-    {
-        JPH_ASSERT(inLayer < Layers::NUM_LAYERS);
-        return mObjectToBroadPhase[ inLayer ];
-    }
+        JPH::BroadPhaseLayer GetBroadPhaseLayer( JPH::ObjectLayer inLayer ) const override
+        {
+            JPH_ASSERT( inLayer < Layers::NUM_LAYERS );
+            return mObjectToBroadPhase[ inLayer ];
+        }
 
 #if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
-    virtual const char* GetBroadPhaseLayerName( JPH::BroadPhaseLayer inLayer ) const override
-    {
-        switch ( (JPH::BroadPhaseLayer::Type) inLayer )
+        virtual const char* GetBroadPhaseLayerName( JPH::BroadPhaseLayer inLayer ) const override
         {
-            case (JPH::BroadPhaseLayer::Type) BroadPhaseLayers::NON_MOVING:
-                return "NON_MOVING";
-            case (JPH::BroadPhaseLayer::Type) BroadPhaseLayers::MOVING:
-                return "MOVING";
-            default:
-                JPH_ASSERT(false);
-                return "INVALID";
+            switch ( (JPH::BroadPhaseLayer::Type)inLayer )
+            {
+                case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::NON_MOVING:
+                    return "NON_MOVING";
+                case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::MOVING:
+                    return "MOVING";
+                default:
+                    JPH_ASSERT( false );
+                    return "INVALID";
+            }
         }
-    }
 #endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
 
-private:
-    JPH::BroadPhaseLayer mObjectToBroadPhase[ Layers::NUM_LAYERS ];
-};
+    private:
+        JPH::BroadPhaseLayer mObjectToBroadPhase[ Layers::NUM_LAYERS ];
+    };
 
-//-----------------------------------------------------------------------------
-class ObjectVsBroadPhaseLayerFilterImpl : public JPH::ObjectVsBroadPhaseLayerFilter
-{
-public:
-    bool ShouldCollide( const JPH::ObjectLayer inLayer1, const JPH::BroadPhaseLayer inLayer2 ) const override
+    //-----------------------------------------------------------------------------
+    class ObjectVsBroadPhaseLayerFilterImpl : public JPH::ObjectVsBroadPhaseLayerFilter
     {
-        switch ( inLayer1 )
+    public:
+        bool ShouldCollide( const JPH::ObjectLayer inLayer1, const JPH::BroadPhaseLayer inLayer2 ) const override
         {
-            case Layers::NON_MOVING:
-                return inLayer2 == BroadPhaseLayers::MOVING;
-            case Layers::MOVING:
-                return true;
-            default:
-                JPH_ASSERT(false);
-                return false;
+            switch ( inLayer1 )
+            {
+                case Layers::NON_MOVING:
+                    return inLayer2 == BroadPhaseLayers::MOVING;
+                case Layers::MOVING:
+                    return true;
+                default:
+                    JPH_ASSERT( false );
+                    return false;
+            }
         }
-    }
-};
+    };
+}

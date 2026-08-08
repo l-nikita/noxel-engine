@@ -5,7 +5,7 @@
 #include "renderer/irenderer.hpp"
 #include "renderer/lighting.hpp"
 #include "renderer/render_debug.hpp"
-#include "renderer/rendercamera.hpp"
+#include "renderer/camera.hpp"
 
 DevPanel::DevPanel()
 {

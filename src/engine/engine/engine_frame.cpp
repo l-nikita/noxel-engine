@@ -1,13 +1,14 @@
-#include "engine.hpp"
-#include "player.hpp"
-#include "window.hpp"
 #include "dbg/debug.hpp"
+#include "engine/engine.hpp"
+#include "engine/player.hpp"
+#include "engine/window.hpp"
 #include "gui/gui.hpp"
 #include "gui/igui.hpp"
 #include "gui/imgui/debug_menu/debug_menu.hpp"
 #include "input/iinput.hpp"
 #include "physics/iphysics.hpp"
 #include "renderer/irenderpipeline.hpp"
+#include "renderer/rendersystem.hpp"
 
 //-----------------------------------------------------------------------------
 //
@@ -22,9 +23,6 @@ void Engine::Run()
 
     while ( m_isRunning )
     {
-        if ( g_Renderer && !GetWindow()->IsMinimized() )
-            g_Renderer->WaitForFrame();
-
         auto currentTime = high_resolution_clock::now();
         m_deltaTime = duration<float>( currentTime - lastTime );
         lastTime = currentTime;
@@ -74,7 +72,7 @@ void Engine::Update()
     if ( isF3 )
         g_Input->SetRelativeMouseMode( !g_Input->GetRelativeMouseMode() );
     else if ( isF11 )
-        GetWindow()->ToggleFullscreen();
+        GetPrimaryWindow()->ToggleFullscreen();
 
     g_Input->Reset();
 }
@@ -102,7 +100,7 @@ void Engine::FixedUpdate()
 
 void Engine::Render()
 {
-    if ( GetWindow()->IsMinimized() )
+    if ( g_Render && g_Render->GetWindow()->IsMinimized() )
         return;
 
     if ( g_RenderPipeline )

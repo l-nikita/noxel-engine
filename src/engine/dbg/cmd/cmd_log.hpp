@@ -7,7 +7,7 @@
 #undef ERROR
 #endif
 
-namespace CMD
+namespace cmd
 {
     enum LogType
     {

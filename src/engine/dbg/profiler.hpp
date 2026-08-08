@@ -9,7 +9,7 @@
 
 #define PROF_ENABLED _DEBUG
 
-namespace Profiler
+namespace profiler
 {
     class Profiler;
     using Profilers = std::unordered_map<std::string, std::unique_ptr<Profiler>>;

@@ -12,7 +12,7 @@ public:
     ~BudgetPanel() override;
 
     void Draw() override;
-    static void DrawRow( const std::unique_ptr<Profiler::Profiler>& prof );
+    static void DrawRow( const std::unique_ptr<profiler::Profiler>& prof );
 
 private:
     float m_fps = 0.0f;

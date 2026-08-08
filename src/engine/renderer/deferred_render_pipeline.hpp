@@ -1,103 +1,82 @@
 #pragma once
 
-#include <cstdint>
-#include <iostream>
-#include <vector>
-#include "idepthstencil.hpp"
-#include "irenderer.hpp"
-#include "irenderfactory.hpp"
-#include "irendertexture.hpp"
-#include "irenderpipeline.hpp"
-#include "ishaderprogram.hpp"
+#include "renderer/irenderpipeline.hpp"
+#include "renderer/rendersystem.hpp"
 
-class ModelRenderer;
-class RenderCamera;
-
-struct GBuffer
+namespace render
 {
-    IDepthStencil* DepthStencil;
-    IRenderTexture* Color;
-    IRenderTexture* Normal; // normal and emission
-    IRenderTexture* Position;
-    IRenderTexture* Specular; // metalness, roughness, ao, height
+    //-----------------------------------------------------------------------------
 
-    ~GBuffer()
-    {
-        Release();
-    }
+    class Camera;
 
-    void Release()
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    struct RenderTarget
     {
-        const auto factory = g_Renderer->GetFactory();
-        const auto release = [factory]( auto*& res )
+        Diligent::RefCntAutoPtr<ITexture> Texture;
+        ITextureView* RTV = nullptr;
+        ITextureView* SRV = nullptr;
+    };
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    struct GBuffer
+    {
+        RenderTarget Color;
+        RenderTarget Normal;
+        RenderTarget Position;
+        RenderTarget Specular;
+
+        Diligent::RefCntAutoPtr<ITexture> Depth;
+        ITextureView* DSV = nullptr;
+
+        void Release()
         {
-            if ( res )
-                factory->Release( res );
-            res = nullptr;
-        };
+            Color = {};
+            Normal = {};
+            Position = {};
+            Specular = {};
+            Depth.Release();
+            DSV = nullptr;
+        }
+    };
 
-        release( DepthStencil );
-        release( Color );
-        release( Normal );
-        release( Position );
-        release( Specular );
-    }
-};
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-class DeferredRenderPipeline final : public IRenderPipeline
-{
-public:
-    SYSTEM_METADATA( RENDER_PIPELINE, "DeferredRenderPipeline" );
-
-public:
-    DeferredRenderPipeline() = default;
-
-    SysInit Initialize() override;
-    void Shutdown() override;
-    void Render() override;
-    void OnWindowResize( int width, int height ) override;
-
-    void DoGeometryPass() const;
-    void DoShadowPass() const;
-    void DoLightingPass() const;
-    void DoSkyboxPass() const;
-
-#ifdef _DEBUG
-    void AddDrawCallCount() override
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class DeferredRenderPipeline final : public IRenderPipeline
     {
-        m_DrawCallCount++;
-    }
+    public:
+        SYSTEM_METADATA( RENDER_PIPELINE, "DeferredRenderPipeline", SysId::RENDER );
 
-    std::uint32_t GetDrawCallCount() override
-    {
-        return m_DrawCallCount;
-    }
-#endif
+    public:
+        DeferredRenderPipeline() = default;
 
-public:
-#ifdef _DEBUG
-    std::uint32_t m_DrawCallCount = 0;
-#endif
+        SysInit Initialize() override;
+        void Shutdown() override;
 
-    std::vector<ModelRenderer*> m_Models;
+        void Render() override;
 
-private:
-    void SetupGBuffer( int width, int height );
-    void SetupShadows();
-    void SetupSkybox();
+        void DoGeometryPass() const;
+        void DoShadowPass() const;
+        void DoLightingPass() const;
+        void DoSkyboxPass() const;
 
-private:
-    IMesh* m_skyboxMesh = nullptr;
-    IMaterial* m_skyboxMat = nullptr;
+    private:
+        void SetupGBuffer( std::uint32_t width, std::uint32_t height );
+        void SetupGeometryPass();
+        void SetupShadows();
+        void SetupSkybox();
 
-    GBuffer m_GBuffer{};
-    IShaderProgram* m_shadowsShader = nullptr;
-    IShaderProgram* m_lightingShader = nullptr;
+        void ClearBackBuffer();
 
-    RenderCamera* m_mainCamera = nullptr;
-    IViewport* m_backBufferVP = nullptr;
-    IViewport* m_shadowsMapsVP = nullptr;
-};
+    private:
+        GBuffer m_GBuffer{};
+
+        Diligent::RefCntAutoPtr<IPipelineState> m_geometryPSO;
+
+        Camera* m_mainCamera = nullptr;
+    };
+}

@@ -1,5 +1,5 @@
 {
 	"name": "shadowspass",
-	"pixelShader": "shadowspass_ps.hlsl",
-	"vertexShader": "shadowspass_vs.hlsl"
+	"pixelshader": "shadowspass_ps.hlsl",
+	"vertexshader": "shadowspass_vs.hlsl"
 }

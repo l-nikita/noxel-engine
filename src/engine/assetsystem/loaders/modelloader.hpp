@@ -5,15 +5,20 @@
 #include "assetsystem/modeldata.hpp"
 #include "dbg/debug.hpp"
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-using ModelDataLoad = std::expected<ModelData*, std::string>;
-
-class ModelLoader : public IAssetLoader<ModelData>
+namespace assets::loaders
 {
-public:
-    ~ModelLoader() override = default;
+    //-----------------------------------------------------------------------------
 
-    ModelDataLoad Load( IFileSystem* fileSystem, const Asset* asset ) override;
-};
+    using ModelDataLoad = std::expected<ModelData*, std::string>;
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class ModelLoader : public IAssetLoader<ModelData>
+    {
+    public:
+        ~ModelLoader() override = default;
+
+        ModelDataLoad Load( fs::IFileSystem* fileSystem, const Asset* asset ) override;
+    };
+}

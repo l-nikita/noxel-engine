@@ -5,12 +5,20 @@
 #include "assettype.hpp"
 #include "filesystem/ifilesystem.hpp"
 
-using AssetId = boost::uuids::uuid;
-
-struct Asset
+namespace assets
 {
-    AssetId Id;
-    std::string Name;
-    FPath Path;
-    AssetType Type;
-};
+    using Id = boost::uuids::uuid;
+
+    struct Asset
+    {
+        Id Id;
+        std::string Name;
+        fs::Path Path;
+        Type Type;
+    };
+
+    struct IAssetData
+    {
+        virtual ~IAssetData() = default;
+    };
+}

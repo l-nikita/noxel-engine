@@ -1,14 +1,8 @@
-#include <SDL3/SDL.h>
-
 #include <algorithm>
 #include <chrono>
-#include <iostream>
 #include <string>
-#ifdef DX11
-#include "renderer/directx11/dx11renderer.hpp"
-#else
-// opengl or vulkan
-#endif
+#include <SDL3/SDL.h>
+
 #include "engine.hpp"
 #include "window.hpp"
 #include "assetsystem/assetsystem.hpp"
@@ -27,16 +21,16 @@ Player* g_Player = nullptr;
 //-----------------------------------------------------------------------------
 void Engine::Initialize()
 {
-    CMD_INFO( "Hello! I am engine!", CMD::ENGINE );
+    CMD_INFO( "Hello! I am engine!", cmd::ENGINE );
 
 #ifdef _DEBUG
-    CMD_INFO( "Built in DEBUG mode", CMD::ENGINE );
+    CMD_INFO( "Built in DEBUG mode", cmd::ENGINE );
 #else
-    CMD_INFO( "Built in RELEASE mode", CMD::ENGINE );
+    CMD_INFO( "Built in RELEASE mode", cmd::ENGINE );
 #endif
 
     if ( !SDL_Init( SDL_INIT_VIDEO | SDL_INIT_EVENTS ) )
-        FATAL_ERROR( "SDL_Init Error: " + std::string(SDL_GetError()), CMD::ENGINE );
+        FATAL_ERROR( "SDL_Init Error: " + std::string(SDL_GetError()), cmd::ENGINE );
 
     SetupWindow();
 
@@ -48,17 +42,17 @@ void Engine::Initialize()
 
     InitializeSystems();
 
-    CMD::CMD::Get().Setup();
+    cmd::CMD::Get().Setup();
 
-    CMD::RegisterCommand( "quit", "", []
+    cmd::RegisterCommand( "quit", "", [this]
     {
-        g_Engine->Quit();
+        Quit();
     } );
 
-    if ( g_Renderer )
-        g_Player = new Player( g_Renderer->GetCamera() );
+    // if ( g_Renderer )
+    //    g_Player = new Player( g_Renderer->GetCamera() );
 
-    CMD_INFO( "Engine initialized successfully", CMD::ENGINE );
+    CMD_INFO( "Engine initialized successfully", cmd::ENGINE );
 }
 
 //-----------------------------------------------------------------------------
@@ -77,7 +71,7 @@ void Engine::Shutdown()
         delete m_window, m_window = nullptr;
 
     SDL_Quit();
-    CMD_INFO( "Engine stopped", CMD::ENGINE );
+    CMD_INFO( "Engine stopped", cmd::ENGINE );
 }
 
 bool Engine::IsRunning()
@@ -88,17 +82,9 @@ bool Engine::IsRunning()
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-Window* Engine::GetWindow()
+Window* Engine::GetPrimaryWindow()
 {
     return m_window;
-}
-
-void Engine::OnWindowResize()
-{
-    auto [ wW, wH ] = GetWindow()->GetSize();
-
-    if ( g_RenderPipeline )
-        g_RenderPipeline->OnWindowResize( wW, wH );
 }
 
 std::chrono::duration<float> Engine::DeltaDuration() const
@@ -143,4 +129,5 @@ GraphicsAPI Engine::GetGraphicsAPI()
 void Engine::SetupWindow()
 {
     m_window = new Window( ENGINE_NAME, 1920, 1080 );
+    m_windows.push_back( m_window );
 }

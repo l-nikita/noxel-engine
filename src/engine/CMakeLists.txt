@@ -5,7 +5,7 @@ file( GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
         "dbg/*.cpp"
         "engine/*.cpp"
         "filesystem/*.cpp"
-        "gui/*.cpp"
+        #"gui/*.cpp"
         "input/*.cpp"
         "networking/*.cpp"
         "physics/*.cpp"
@@ -19,7 +19,7 @@ file( GLOB_RECURSE HEADERS CONFIGURE_DEPENDS
         "dbg/*.hpp"
         "engine/*.hpp"
         "filesystem/*.hpp"
-        "gui/*.hpp"
+        #"gui/*.hpp"
         "input/*.hpp"
         "networking/*.hpp"
         "physics/*.hpp"
@@ -33,21 +33,12 @@ file( GLOB RENDERER_FILES
         "renderer/*.hpp"
 )
 
-file( GLOB DX11_FILES
-        "renderer/directx11/*.cpp"
-        "renderer/directx11/*.hpp"
+file( GLOB DILIGENT_FILES
+        "renderer/diligent/*.cpp"
+        "renderer/diligent/*.hpp"
 )
 
-file( GLOB VULKAN_FILES
-        "renderer/vulkan/*.cpp"
-        "renderer/vulkan/*.hpp"
-)
-
-set( ALL_SOURCES ${SOURCES} ${HEADERS} ${RENDERER_FILES} ${VULKAN_FILES} )
-
-if ( WIN32 )
-    list( APPEND ALL_SOURCES ${DX11_FILES} )
-endif ()
+set( ALL_SOURCES ${SOURCES} ${HEADERS} ${RENDERER_FILES} ${DILIGENT_FILES} )
 
 add_library( engine SHARED ${ALL_SOURCES} )
 
@@ -55,10 +46,6 @@ target_include_directories( engine PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/engine
 )
-
-if ( WIN32 )
-    target_compile_definitions( engine PRIVATE DX11 )
-endif ()
 
 # ----------------------------------------------
 target_compile_definitions( engine PRIVATE ENGINE_EXPORTS )
@@ -72,24 +59,35 @@ add_custom_command( TARGET engine POST_BUILD
 # ----------------------------------------------
 target_link_libraries( engine PUBLIC
         SDL3::SDL3
-        # EnTT::EnTT
         glm::glm
         Jolt::Jolt
         nlohmann_json::nlohmann_json
-        # protobuf::libprotobuf
-        # GameNetworkingSockets::static
         imgui::imgui
         Boost::uuid
-        # Vulkan::Vulkan
+
+        Diligent-BuildSettings
+        Diligent-TargetPlatform
 )
 
-if ( WIN32 )
-    target_link_libraries( engine PUBLIC
+if ( PLATFORM_WIN32 )
+    target_compile_definitions( engine INTERFACE PLATFORM_WIN32=1 )
+
+    target_link_libraries( engine
+            PUBLIC
+            Diligent-GraphicsEngineD3D11-static
             d3d11
             dxgi
             d3dcompiler
             dxguid
     )
+else ()
+    if ( PLATFORM_LINUX )
+        target_compile_definitions( engine INTERFACE PLATFORM_LINUX=1 )
+    endif ()
 endif ()
 
-target_include_directories( engine PUBLIC ${Stb_INCLUDE_DIR} ${TINYGLTF_INCLUDE_DIRS} )
+target_include_directories( engine PUBLIC
+        ${Stb_INCLUDE_DIR}
+        ${TINYGLTF_INCLUDE_DIRS}
+        ${diligentcore_SOURCE_DIR}
+)

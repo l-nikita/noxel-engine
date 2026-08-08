@@ -3,45 +3,49 @@
 #include "assetsystem/asset.hpp"
 #include "assetsystem/iassetloader.hpp"
 #include "assetsystem/texturedata.hpp"
-#include "dbg/debug.hpp"
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-using TexDataLoad = std::expected<TextureData*, std::string>;
-
-class TextureLoader : public IAssetLoader<TextureData>
+namespace assets::loaders
 {
-public:
-    ~TextureLoader() override = default;
+    //-----------------------------------------------------------------------------
 
-    TexDataLoad Load( IFileSystem* fileSystem, const Asset* asset ) override
+    using TexDataLoad = std::expected<TextureData*, std::string>;
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class TextureLoader : public IAssetLoader<TextureData>
     {
-        if ( !fileSystem ) return std::unexpected( "Filesystem is invalid" );
-        if ( !asset ) return std::unexpected( "Asset is invalid" );
+    public:
+        ~TextureLoader() override = default;
 
-        auto buffer = fileSystem->Read( asset->Path );
-        if ( buffer.empty() )
-            return std::unexpected( "Failed to read file buffer from path: " + asset->Path.string() );
+        TexDataLoad Load( fs::IFileSystem* fileSystem, const Asset* asset ) override
+        {
+            if ( !fileSystem ) return std::unexpected( "Filesystem is invalid" );
+            if ( !asset ) return std::unexpected( "Asset is invalid" );
 
-        int width, height, channels;
-        unsigned char* image = stbi_load_from_memory(
-            buffer.data(),
-            static_cast<int>(buffer.size()),
-            &width,
-            &height,
-            &channels,
-            4 );
+            auto buffer = fileSystem->Read( asset->Path );
+            if ( buffer.empty() )
+                return std::unexpected( "Failed to read file buffer from path: " + asset->Path.string() );
 
-        if ( !image )
-            return std::unexpected( "Couldn't load texture: " + asset->Path.string() );
+            int width, height, channels;
+            unsigned char* image = stbi_load_from_memory(
+                buffer.data(),
+                static_cast<int>(buffer.size()),
+                &width,
+                &height,
+                &channels,
+                4 );
 
-        auto* data = new TextureData();
-        data->Image = image;
-        data->Width = width;
-        data->Height = height;
-        data->Channels = 4;
+            if ( !image )
+                return std::unexpected( "Couldn't load texture: " + asset->Path.string() );
 
-        return data;
-    }
-};
+            auto data = new TextureData();
+            data->Image = image;
+            data->Width = width;
+            data->Height = height;
+            data->Channels = 4;
+
+            return data;
+        }
+    };
+}

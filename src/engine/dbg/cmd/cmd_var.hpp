@@ -5,7 +5,7 @@
 #include <functional>
 #include <sstream>
 
-namespace CMD
+namespace cmd
 {
     using VarValue = std::variant<int, float, bool, std::string>;
     using VarCallback = std::function<void( VarValue, VarValue )>;

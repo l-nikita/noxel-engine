@@ -1,32 +1,29 @@
 #include "window.hpp"
-#include "engine.hpp"
 #include "dbg/debug.hpp"
 
 Window::Window( const std::string& title, const int width, const int height )
 {
-    SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
-
-    if ( g_Engine->GetGraphicsAPI() == GraphicsAPI::OPENGL )
-    {
-        SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
-        SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
-        SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
-
-        flags |= SDL_WINDOW_OPENGL;
-    }
-
+    auto flags = SDL_WINDOW_RESIZABLE;
     m_handle = SDL_CreateWindow( title.c_str(), width, height, flags );
 
     if ( !m_handle )
-        FATAL_ERROR( "SDL_CreateWindow Error: " + std::string(SDL_GetError()), CMD::ENGINE );
+        FATAL_ERROR( "SDL_CreateWindow Error: " + std::string(SDL_GetError()), cmd::ENGINE );
 }
 
 Window::~Window()
 {
+    m_resizeCallbacks.clear();
     SDL_DestroyWindow( m_handle );
 }
 
-std::tuple<int, int> Window::GetSize() const
+void Window::OnResize()
+{
+    auto size = GetSize();
+    for ( const auto& callback: m_resizeCallbacks )
+        callback( size );
+}
+
+WindowSize Window::GetSize() const
 {
     int width, height = 0;
     SDL_GetWindowSizeInPixels( m_handle, &width, &height );
@@ -39,7 +36,7 @@ void Window::ToggleFullscreen()
     SetFullscreen( !IsInFullscreen() );
 }
 
-void Window::SetFullscreen( const bool fullscreen ) const
+void Window::SetFullscreen( const bool fullscreen )
 {
     SDL_SetWindowFullscreen( m_handle, fullscreen );
 }
@@ -64,7 +61,7 @@ void* Window::GetPointer() const
     const auto ptr = SDL_GetPointerProperty( SDL_GetWindowProperties( m_handle ), SDL_PROP_WINDOW_WIN32_HWND_POINTER,
                                              nullptr );
     if ( !ptr )
-        FATAL_ERROR( "Couldn't get window pointer from SDL window!", CMD::ENGINE );
+        FATAL_ERROR( "Couldn't get window pointer from SDL window!", cmd::ENGINE );
 
     return ptr;
 }
@@ -77,4 +74,14 @@ SDL_WindowFlags Window::GetFlags() const
 SDL_Window* Window::GetHandle() const
 {
     return m_handle;
+}
+
+SDL_WindowID Window::GetId() const
+{
+    return SDL_GetWindowID( m_handle );
+}
+
+void Window::SubscribeResize( const WindowResizeCallback& callback )
+{
+    m_resizeCallbacks.push_back( callback );
 }

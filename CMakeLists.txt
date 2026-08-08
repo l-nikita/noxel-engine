@@ -23,9 +23,21 @@ else ()
     add_compile_options( -Wall -Wextra -Wpedantic )
 endif ()
 
+set( PLATFORM_WIN32 FALSE CACHE INTERNAL "" )
+set( PLATFORM_LINUX FALSE CACHE INTERNAL "" )
+
+if ( WIN32 )
+    set( PLATFORM_WIN32 TRUE CACHE INTERNAL "Target platform: Win32" )
+    message( "Target platform: Win32" )
+else ()
+    if ( ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
+        set( PLATFORM_LINUX TRUE CACHE INTERNAL "Target platform: Linux" )
+        message( "Target platform: Linux" )
+    endif ()
+endif ()
+
 # ------------------ Dependencies ------------------
 find_package( SDL3 REQUIRED CONFIG )
-find_package( EnTT REQUIRED CONFIG )
 find_package( glm REQUIRED CONFIG )
 find_package( Jolt REQUIRED CONFIG )
 find_package( nlohmann_json REQUIRED CONFIG )
@@ -35,6 +47,22 @@ find_package( Stb REQUIRED )
 find_path( TINYGLTF_INCLUDE_DIRS "tiny_gltf.h" )
 find_package( boost_uuid REQUIRED CONFIG )
 #find_package(Tracy CONFIG REQUIRED)
+
+set( DILIGENT_BUILD_TESTS OFF CACHE BOOL "" FORCE )
+set( DILIGENT_NO_WEBGPU ON CACHE BOOL "" FORCE )
+
+include( FetchContent )
+FetchContent_Declare(
+        DiligentCore
+        GIT_REPOSITORY https://github.com/DiligentGraphics/DiligentCore.git
+        GIT_TAG master
+        GIT_SUBMODULES_RECURSE TRUE
+        SOURCE_DIR _deps/DiligentCore
+        PATCH_COMMAND ${CMAKE_COMMAND}
+                -DDILIGENT_CORE_SOURCE_DIR=<SOURCE_DIR>
+                -P ${CMAKE_CURRENT_LIST_DIR}/cmake/patch_diligent_core.cmake
+)
+FetchContent_MakeAvailable( DiligentCore )
 
 # ------------------ Settings ------------------
 set( BUILD_STATIC_LIB OFF CACHE INTERNAL "" )

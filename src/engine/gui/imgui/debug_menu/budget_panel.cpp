@@ -37,7 +37,7 @@ void BudgetPanel::Draw()
             ImGui::TableSetupColumn("Name");
             ImGui::TableSetupColumn("Time");
 
-            for ( const auto& val: Profiler::GetAll() | std::views::values )
+            for ( const auto& val: profiler::GetAll() | std::views::values )
                 DrawRow(val);
 
             ImGui::EndTable();
@@ -56,7 +56,7 @@ void BudgetPanel::Draw()
     ImGui::End();
 }
 
-void BudgetPanel::DrawRow( const std::unique_ptr<Profiler::Profiler>& prof )
+void BudgetPanel::DrawRow( const std::unique_ptr<profiler::Profiler>& prof )
 {
     if ( prof == nullptr ) return;
 

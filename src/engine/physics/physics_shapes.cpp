@@ -7,46 +7,49 @@
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 
-using namespace JPH;
-
-BodyID JoltPhysics::CreateShapeBox(
-    const RVec3& pos,
-    const Quat& quat,
-    const RVec3& offset,
-    const Quat& quatOffset,
-    const BoxShapeSettings* settings,
-    const EActivation activation,
-    const EMotionType motionType,
-    ObjectLayer layer )
+namespace phys
 {
-    const RotatedTranslatedShapeSettings offsetShapeSettings( offset, quat, settings );
-    const auto result = offsetShapeSettings.Create();
+    using namespace JPH;
 
-    auto& body_interface = GetPhysics()->GetSystem()->GetBodyInterface();
-    const BodyCreationSettings bodySettings( result.Get(), pos, quatOffset, motionType, layer );
+    BodyID JoltPhysics::CreateShapeBox(
+        const RVec3& pos,
+        const Quat& quat,
+        const RVec3& offset,
+        const Quat& quatOffset,
+        const BoxShapeSettings* settings,
+        const EActivation activation,
+        const EMotionType motionType,
+        ObjectLayer layer )
+    {
+        const RotatedTranslatedShapeSettings offsetShapeSettings( offset, quat, settings );
+        const auto result = offsetShapeSettings.Create();
 
-    const auto bodyID = body_interface.CreateAndAddBody( bodySettings, activation );
-    GetPhysics()->m_bodiesIDs.push_back( bodyID );
-    return bodyID;
-}
+        auto& body_interface = GetPhysics()->GetSystem()->GetBodyInterface();
+        const BodyCreationSettings bodySettings( result.Get(), pos, quatOffset, motionType, layer );
 
-BodyID JoltPhysics::CreateShapeSphere(
-    const RVec3& pos,
-    const Quat& quat,
-    const RVec3& offset,
-    const Quat& quatOffset,
-    const SphereShapeSettings* settings,
-    const EActivation activation,
-    const EMotionType motionType,
-    ObjectLayer layer )
-{
-    const RotatedTranslatedShapeSettings offsetShapeSettings( offset, quat, settings );
-    const auto result = offsetShapeSettings.Create();
+        const auto bodyID = body_interface.CreateAndAddBody( bodySettings, activation );
+        GetPhysics()->m_bodiesIDs.push_back( bodyID );
+        return bodyID;
+    }
 
-    auto& body_interface = GetPhysics()->GetSystem()->GetBodyInterface();
-    const BodyCreationSettings bodySettings( result.Get(), pos, quatOffset, motionType, layer );
+    BodyID JoltPhysics::CreateShapeSphere(
+        const RVec3& pos,
+        const Quat& quat,
+        const RVec3& offset,
+        const Quat& quatOffset,
+        const SphereShapeSettings* settings,
+        const EActivation activation,
+        const EMotionType motionType,
+        ObjectLayer layer )
+    {
+        const RotatedTranslatedShapeSettings offsetShapeSettings( offset, quat, settings );
+        const auto result = offsetShapeSettings.Create();
 
-    const auto bodyID = body_interface.CreateAndAddBody( bodySettings, activation );
-    GetPhysics()->m_bodiesIDs.push_back( bodyID );
-    return bodyID;
+        auto& body_interface = GetPhysics()->GetSystem()->GetBodyInterface();
+        const BodyCreationSettings bodySettings( result.Get(), pos, quatOffset, motionType, layer );
+
+        const auto bodyID = body_interface.CreateAndAddBody( bodySettings, activation );
+        GetPhysics()->m_bodiesIDs.push_back( bodyID );
+        return bodyID;
+    }
 }

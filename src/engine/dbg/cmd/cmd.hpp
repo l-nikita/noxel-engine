@@ -11,7 +11,7 @@
 #include "cmd_var.hpp"
 #include "common/singleton.hpp"
 
-namespace CMD
+namespace cmd
 {
     using Commands = std::unordered_map<std::string, Command>;
     using Vars = std::unordered_map<std::string, Var>;

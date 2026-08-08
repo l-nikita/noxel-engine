@@ -4,12 +4,15 @@
 
 #include "filesystem/ifilesystem.hpp"
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-struct ShaderData
+namespace assets
 {
-    std::string Name;
-    FPath PixelShaderPath;
-    FPath VertexShaderPath;
-};
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    struct ShaderData : IAssetData
+    {
+        std::string Name;
+        fs::Path PixelShaderPath;
+        fs::Path VertexShaderPath;
+    };
+}

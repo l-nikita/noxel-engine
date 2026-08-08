@@ -1,6 +1,6 @@
 #include "cmd_log.hpp"
 
-namespace CMD
+namespace cmd
 {
     std::string LogTypeToString( LogType type )
     {

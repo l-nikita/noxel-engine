@@ -12,13 +12,10 @@
 
 #include "engine.hpp"
 #include "window.hpp"
-#include "common/transformable.hpp"
-#include "dbg/debug.hpp"
 #include "input/iinput.hpp"
 #include "physics/physics.hpp"
 #include "physics/physics_renderer.hpp"
-#include "renderer/gizmos.hpp"
-#include "renderer/rendercamera.hpp"
+#include "renderer/camera.hpp"
 
 constexpr auto SENSITIVITY = 0.15f;
 constexpr auto CHARACTER_RADIUS = 0.3f;
@@ -36,7 +33,7 @@ constexpr auto CHARACTER_COYOTE_TIME = 0.1f;
 class Player
 {
 public:
-    explicit Player( RenderCamera* camera )
+    explicit Player( render::Camera* camera )
         : m_Camera( camera )
     {
         static_assert( CHARACTER_HEIGHT > 2.0f * CHARACTER_RADIUS );
@@ -51,7 +48,7 @@ public:
         settings->mSupportingVolume = JPH::Plane( JPH::Vec3::sAxisY(), -CHARACTER_RADIUS );
 
         m_character = new JPH::CharacterVirtual( settings, JPH::RVec3( 0.0f, 1.0f, 0.0f ), JPH::Quat::sIdentity(),
-                                                 GetPhysics()->GetSystem() );
+                                                 phys::GetPhysics()->GetSystem() );
         m_character->SetUp( JPH::Vec3( 0, 1, 0 ) );
 
         m_previousCharacterPosition = Utils::GLM_Vec3_JPH( m_character->GetPosition() );
@@ -66,7 +63,7 @@ public:
             Utils::JPH_Vec3_GLM( m_Camera->Backward() ) * 15
         );
 
-        Raycast( GetPhysics()->GetSystem(), ray, hit );
+        Raycast( phys::GetPhysics()->GetSystem(), ray, hit );
 
         const auto feetPos = glm::mix( m_previousCharacterPosition, m_currentCharacterPosition,
                                        g_Engine->FixedAlpha() );
@@ -83,7 +80,7 @@ public:
                 Utils::JPH_Vec3_GLM( rayDir * targetDistance * ( targetDistance / 2 ) )
             );
 
-            if ( Raycast( GetPhysics()->GetSystem(), ray, hit ) )
+            if ( Raycast( phys::GetPhysics()->GetSystem(), ray, hit ) )
                 eyePos += rayDir * ( targetDistance * ( hit.mFraction ) );
             else
                 eyePos += rayDir * targetDistance;
@@ -208,7 +205,7 @@ public:
             Utils::JPH_Vec3_GLM( m_Camera->Forward() ) * 5
         );
 
-        if ( Raycast( GetPhysics()->GetSystem(), ray, hit ) )
+        if ( Raycast( phys::GetPhysics()->GetSystem(), ray, hit ) )
             HitPos = Utils::GLM_Vec3_JPH( ray.GetPointOnRay( hit.mFraction ) );
         else
             HitPos = StartPos + m_Camera->Forward() * 5.0f;
@@ -221,7 +218,7 @@ public:
 
     static bool CanControl()
     {
-        return g_Input->GetRelativeMouseMode() && g_Engine->GetWindow()->IsInputFocused();
+        return g_Input->GetRelativeMouseMode() && g_Engine->GetPrimaryWindow()->IsInputFocused();
     }
 
     void HandleInput()
@@ -267,11 +264,12 @@ public:
                                      CHARACTER_GRAVITY_SCALE * g_Physics->GetGravity().length() *
                                      -m_character->GetUp(),
                                      updateSettings,
-                                     GetPhysics()->GetSystem()->GetDefaultBroadPhaseLayerFilter( Layers::MOVING ),
-                                     GetPhysics()->GetSystem()->GetDefaultLayerFilter( Layers::MOVING ),
+                                     phys::GetPhysics()->GetSystem()->GetDefaultBroadPhaseLayerFilter(
+                                         phys::Layers::MOVING ),
+                                     phys::GetPhysics()->GetSystem()->GetDefaultLayerFilter( phys::Layers::MOVING ),
                                      {},
                                      {},
-                                     *GetPhysics()->GetTempAllocator() );
+                                     *phys::GetPhysics()->GetTempAllocator() );
     }
 
     void Draw() const
@@ -283,11 +281,11 @@ public:
             //                               false, true );
         }
 
-        Gizmos::Box( HitPos, glm::quat(), glm::vec3( 0.0f, 0.0f, 0.0f ), glm::vec3( 0.1f, 0.1f, 0.1f ) );
-        Gizmos::Line( StartPos, HitPos );
+        // Gizmos::Box( HitPos, glm::quat(), glm::vec3( 0.0f, 0.0f, 0.0f ), glm::vec3( 0.1f, 0.1f, 0.1f ) );
+        // Gizmos::Line( StartPos, HitPos );
     }
 
-    RenderCamera* m_Camera = nullptr;
+    render::Camera* m_Camera = nullptr;
 
 private:
     float m_yaw = 0.0f;

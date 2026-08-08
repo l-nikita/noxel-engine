@@ -2,36 +2,39 @@
 
 #include <stb_image.h>
 
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-struct TextureData
+namespace assets
 {
-    unsigned char* Image = nullptr;
-    int Width = 0;
-    int Height = 0;
-    int Channels = 0;
-
-    TextureData() = default;
-
-    ~TextureData()
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    struct TextureData : IAssetData
     {
-        Release();
-    }
+        unsigned char* Image = nullptr;
+        int Width = 0;
+        int Height = 0;
+        int Channels = 0;
 
-    // disable copying
-    TextureData( const TextureData& ) = delete;
-    TextureData& operator=( const TextureData& ) = delete;
+        TextureData() = default;
 
-    void Release()
-    {
-        if ( Image )
+        ~TextureData() override
         {
-            stbi_image_free( Image );
-            Image = nullptr;
-            Width = 0;
-            Height = 0;
-            Channels = 0;
+            Release();
         }
-    }
-};
+
+        // disable copying
+        TextureData( const TextureData& ) = delete;
+        TextureData& operator=( const TextureData& ) = delete;
+
+        void Release()
+        {
+            if ( Image )
+            {
+                stbi_image_free( Image );
+                Image = nullptr;
+                Width = 0;
+                Height = 0;
+                Channels = 0;
+            }
+        }
+    };
+}

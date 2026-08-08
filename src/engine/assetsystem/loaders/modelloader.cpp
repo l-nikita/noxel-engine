@@ -9,64 +9,68 @@
 
 #include "assetsystem/loaders/modelloader.hpp"
 
-//-----------------------------------------------------------------------------
-inline void from_json( const nlohmann::json& json, ModelData& data )
+namespace assets::loaders
 {
-    data.MeshPath = json.value( "meshpath", "" );
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-ModelDataLoad ModelLoader::Load( IFileSystem* fileSystem, const Asset* asset )
-{
-    if ( !fileSystem ) return std::unexpected( "Filesystem is invalid" );
-    if ( !asset ) return std::unexpected( "Asset is invalid" );
-
-    auto jsonStr = fileSystem->ReadText( asset->Path );
-    if ( jsonStr.empty() )
-        return std::unexpected( "Model meta is invalid: " + asset->Path.string() );
-
-    try
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    ModelDataLoad ModelLoader::Load( fs::IFileSystem* fileSystem, const Asset* asset )
     {
-        nlohmann::json json = nlohmann::json::parse( jsonStr );
-        auto data = new ModelData( json.get<ModelData>() );
+        if ( !fileSystem ) return std::unexpected( "Filesystem is invalid" );
+        if ( !asset ) return std::unexpected( "Asset is invalid" );
 
-        auto meshPath = asset->Path.parent_path() / data->MeshPath;
-        if ( !g_FileSystem->Exists( meshPath ) )
+        auto jsonStr = fileSystem->ReadText( asset->Path );
+        if ( jsonStr.empty() )
+            return std::unexpected( "Model meta is invalid: " + asset->Path.string() );
+
+        try
         {
-            meshPath = data->MeshPath;
+            nlohmann::json json = nlohmann::json::parse( jsonStr );
+            auto data = new ModelData();
+            data->MeshPath = json.value( "meshpath", "" );
+
+            auto meshPath = asset->Path.parent_path() / data->MeshPath;
             if ( !g_FileSystem->Exists( meshPath ) )
-                return std::unexpected( "Couldn't find mesh file: " + meshPath.string() );
+            {
+                meshPath = data->MeshPath;
+                if ( !g_FileSystem->Exists( meshPath ) )
+                    return std::unexpected( "Couldn't find mesh file: " + meshPath.string() );
+            }
+
+            tinygltf::Model model;
+            tinygltf::TinyGLTF loader;
+
+            std::string err;
+            std::string warn;
+
+            auto buffer = fileSystem->Read( meshPath );
+            if ( buffer.empty() )
+            {
+                delete data;
+                return std::unexpected( "Failed to read file buffer from path: " + asset->Path.string() );
+            }
+
+            bool loaded = loader.LoadBinaryFromMemory( &model, &err, &warn, buffer.data(), buffer.size() );
+            if ( !loaded )
+            {
+                delete data;
+                return std::unexpected( "Failed to parse glTF file: " + asset->Path.string() );
+            }
+
+            if ( !warn.empty() )
+                CMD_WARNING( "glTF Warning: " + asset->Path.string() + " - " + warn, cmd::ASSETSYSTEM );
+
+            if ( !err.empty() )
+                CMD_ERROR( "glTF Error: " + asset->Path.string() + " - " + err, cmd::ASSETSYSTEM );
+
+            auto mesh = model.meshes.front();
+            CMD_DMSG( std::to_string( mesh.primitives.size() ) );
+
+            return data;
+        } catch ( const nlohmann::json::exception& e )
+        {
+            return std::unexpected(
+                "JSON parse error: " + std::string( e.what() ) + "\nFile: " + asset->Path.string() );
         }
-
-        tinygltf::Model model;
-        tinygltf::TinyGLTF loader;
-
-        std::string err;
-        std::string warn;
-
-        auto buffer = fileSystem->Read( meshPath );
-        if ( buffer.empty() )
-            return std::unexpected( "Failed to read file buffer from path: " + asset->Path.string() );
-
-        bool loaded = loader.LoadBinaryFromMemory( &model, &err, &warn, buffer.data(), buffer.size() );
-        if ( !loaded )
-            return std::unexpected( "Failed to parse glTF file: " + asset->Path.string() );
-
-        if ( !warn.empty() )
-            CMD_WARNING( "glTF Warning: " + asset->Path.string() + " - " + warn, CMD::ASSETSYSTEM );
-
-        if ( !err.empty() )
-            CMD_ERROR( "glTF Error: " + asset->Path.string() + " - " + err, CMD::ASSETSYSTEM );
-
-        auto mesh = model.meshes.front();
-        CMD_DMSG( std::to_string( mesh.primitives.size() ) );
-
-        return data;
-    } catch ( const nlohmann::json::exception& e )
-    {
-        return std::unexpected(
-            "JSON parse error: " + std::string( e.what() ) + "\nFile: " + asset->Path.string() );
     }
 }

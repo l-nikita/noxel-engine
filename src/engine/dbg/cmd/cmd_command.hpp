@@ -3,7 +3,7 @@
 #include <string>
 #include <functional>
 
-namespace CMD
+namespace cmd
 {
     struct Command
     {

@@ -4,7 +4,6 @@
   "dependencies": [
     "boost-uuid",
     "sdl3",
-    "entt",
     "glm",
     "nlohmann-json",
     "stb",

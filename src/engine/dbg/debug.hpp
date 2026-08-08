@@ -5,7 +5,7 @@
 #include "profiler.hpp"
 #include "cmd/cmd.hpp"
 
-namespace Debug
+namespace debug
 {
     inline std::string GetSystemDebugInfo()
     {
@@ -25,17 +25,17 @@ namespace Debug
 
     inline void Log(
         std::string_view msg,
-        CMD::LogCategory category,
-        CMD::LogType type )
+        cmd::LogCategory category,
+        cmd::LogType type )
     {
-        CMD::CMD::Get().LogMsg(
+        cmd::CMD::Get().LogMsg(
             std::string( msg ),
             type,
             category
         );
     }
 
-    inline void FatalError( const std::string& message, CMD::LogCategory category,
+    inline void FatalError( const std::string& message, cmd::LogCategory category,
                             const std::source_location& location = std::source_location::current() )
     {
         const auto now = std::chrono::system_clock::now();
@@ -53,9 +53,9 @@ namespace Debug
         formatedMsg += "\n";
         formatedMsg += GetSystemDebugInfo();
 
-        CMD::CMD::Get().LogMsg(
+        cmd::CMD::Get().LogMsg(
             formatedMsg,
-            CMD::FATAL_ERROR,
+            cmd::FATAL_ERROR,
             category,
             now
         );
@@ -78,30 +78,30 @@ namespace Debug
 //-----------------------------------------------------------------------------
 
 #define CMD_LOG(msg, type, category) \
-    ::Debug::Log((msg), type, category)
+    ::debug::Log((msg), type, category)
 
 #define CMD_MSG(msg, category) \
-    ::Debug::Log((msg), category, CMD::DEFAULT)
+    ::debug::Log((msg), category, cmd::DEFAULT)
 
 #define CMD_DMSG(msg) \
-    ::Debug::Log((msg), CMD::NONE, CMD::DEFAULT)
+    ::debug::Log((msg), cmd::NONE, cmd::DEFAULT)
 
 #define CMD_INFO(msg, category) \
-    ::Debug::Log((msg), category, CMD::INFO)
+    ::debug::Log((msg), category, cmd::INFO)
 
 #define CMD_WARNING(msg, category) \
-    ::Debug::Log((msg), category, CMD::WARNING)
+    ::debug::Log((msg), category, cmd::WARNING)
 
 #define CMD_ERROR(msg, category) \
-    ::Debug::Log((msg), category, CMD::ERROR)
+    ::debug::Log((msg), category, cmd::ERROR)
 
 #define FATAL_ERROR(msg, category) \
-    ::Debug::FatalError((msg), category)
+    ::debug::FatalError((msg), category)
 
 //-----------------------------------------------------------------------------
 
 #define PROF_START(name, category) \
-    Profiler::Start(name, category);
+    profiler::Start(name, category);
 
 #define PROF_END(name) \
-    Profiler::End(name);
+    profiler::End(name);

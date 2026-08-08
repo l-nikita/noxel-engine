@@ -6,36 +6,41 @@
 #include "asset.hpp"
 #include "common.hpp"
 
-//-----------------------------------------------------------------------------
-
-using Assets = std::unordered_map<AssetId, Asset*>;
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-class IAssetSystem : public ISystem
+namespace assets
 {
-public:
-    virtual const Assets& GetAssets() const = 0;
-    virtual std::optional<AssetId> GetAsset( const FPath& path, AssetType type ) const = 0;
-    virtual const Asset* GetAsset( const AssetId& assetId ) const = 0;
+    //-----------------------------------------------------------------------------
 
-    virtual void RegisterAsset( const FPath& path, AssetType type ) = 0;
+    using Assets = std::unordered_map<Id, Asset*>;
 
-    template<typename T>
-    T* LoadAsset( const Asset* asset )
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    class IAssetSystem : public ISystem
     {
-        return static_cast<T*>(LoadAssetImpl( asset ));
-    }
+    public:
+        virtual const Assets& GetAssets() const = 0;
+        virtual std::optional<Id> GetAsset( const fs::Path& path, Type type ) const = 0;
+        virtual const Asset* GetAsset( const Id& assetId ) const = 0;
 
-    template<typename T>
-    T* LoadAsset( const AssetId& assetId )
-    {
-        return static_cast<T*>(LoadAssetImpl( GetAsset( assetId ) ));
-    }
+        virtual void RegisterAsset( const fs::Path& path, Type type ) = 0;
 
-protected:
-    virtual void* LoadAssetImpl( const Asset* asset ) = 0;
-};
+        template<typename T>
+        std::unique_ptr<T> LoadData( const Asset* asset )
+        {
+            return std::unique_ptr<T>(
+                static_cast<T*>(LoadDataImpl( asset ))
+            );
+        }
 
-extern IAssetSystem* g_Assets;
+        template<typename T>
+        std::unique_ptr<T> LoadData( const Id& assetId )
+        {
+            return LoadData<T>( GetAsset( assetId ) );
+        }
+
+    protected:
+        virtual IAssetData* LoadDataImpl( const Asset* asset ) = 0;
+    };
+}
+
+extern assets::IAssetSystem* g_Assets;

@@ -1,508 +1,300 @@
-#ifdef DX11
-#include "directx11/dx11renderer.hpp"
-#include "directx11/dx11texture.hpp"
-#endif
-#include "deferred_render_pipeline.hpp"
-#include "gizmos.hpp"
-#include "irenderer.hpp"
-#include "irenderfactory.hpp"
-#include "lighting.hpp"
-#include "modelrenderer.hpp"
-#include "rendercamera.hpp"
-#include "gui/igui.hpp"
+#include <Graphics/GraphicsEngine/interface/PipelineState.h>
 
 #include "assetsystem/iassetsystem.hpp"
-#include "engine/iengine.hpp"
 #include "engine/window.hpp"
+#include "renderer/deferred_render_pipeline.hpp"
 
-ITexture* g_ErrorTexture = nullptr;
-ITexture* g_BlackTexture = nullptr;
-IMaterial* g_ErrorMaterial = nullptr;
+#include "factory.hpp"
+#include "dbg/debug.hpp"
+#include "renderer/camera.hpp"
+#include "renderer/rendersystem.hpp"
+#include "renderer/vertex.hpp"
 
-static ModelRenderer* g_TestModel;
-static ModelRenderer* g_TestModel2;
-
-void CalculateTangents( std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices )
+namespace render
 {
-    for ( auto& v: vertices )
+    //-----------------------------------------------------------------------------
+
+    using namespace Diligent;
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    void CalculateTangents( std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices )
     {
-        v.Tangent = glm::vec3( 0.0f );
-        v.Bitangent = glm::vec3( 0.0f );
-    }
-
-    for ( size_t i = 0; i < indices.size(); i += 3 )
-    {
-        Vertex& v0 = vertices[ indices[ i + 0 ] ];
-        Vertex& v1 = vertices[ indices[ i + 1 ] ];
-        Vertex& v2 = vertices[ indices[ i + 2 ] ];
-
-        glm::vec3 edge1 = v1.Position - v0.Position;
-        glm::vec3 edge2 = v2.Position - v0.Position;
-
-        glm::vec2 deltaUV1 = v1.UV - v0.UV;
-        glm::vec2 deltaUV2 = v2.UV - v0.UV;
-
-        float f = 1.0f / ( deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y );
-
-        glm::vec3 tangent;
-        glm::vec3 bitangent;
-
-        tangent.x = f * ( deltaUV2.y * edge1.x - deltaUV1.y * edge2.x );
-        tangent.y = f * ( deltaUV2.y * edge1.y - deltaUV1.y * edge2.y );
-        tangent.z = f * ( deltaUV2.y * edge1.z - deltaUV1.y * edge2.z );
-
-        bitangent.x = f * ( -deltaUV2.x * edge1.x + deltaUV1.x * edge2.x );
-        bitangent.y = f * ( -deltaUV2.x * edge1.y + deltaUV1.x * edge2.y );
-        bitangent.z = f * ( -deltaUV2.x * edge1.z + deltaUV1.x * edge2.z );
-
-        v0.Tangent += tangent;
-        v1.Tangent += tangent;
-        v2.Tangent += tangent;
-        v0.Bitangent += bitangent;
-        v1.Bitangent += bitangent;
-        v2.Bitangent += bitangent;
-    }
-
-    for ( auto& v: vertices )
-    {
-        v.Tangent = glm::normalize( v.Tangent - v.Normal * glm::dot( v.Normal, v.Tangent ) );
-        v.Bitangent = glm::normalize( glm::cross( v.Normal, v.Tangent ) );
-    }
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-SysInit DeferredRenderPipeline::Initialize()
-{
-    const auto factory = g_Renderer->GetFactory();
-
-    //----------------------------------------------------
-    auto errAssTex = g_Assets->GetAsset( "error", AssetType::TEXTURE );
-    if ( !errAssTex )
-        return std::unexpected( "Failed to load error texture" );
-
-    g_ErrorTexture = factory->CreateTexture( errAssTex.value() );
-
-    auto errAssMat = g_Assets->GetAsset( "error", AssetType::MATERIAL );
-    if ( !errAssMat )
-        return std::unexpected( "Failed to load error material" );
-
-    g_ErrorMaterial = factory->CreateMaterial( errAssMat.value() );
-
-    TextureDesc desc = {};
-    desc.Width = 1;
-    desc.Height = 1;
-    desc.Format = TextureFormat::RGBA8;
-    desc.BindFlags = TextureBindFlags::SHADER_RESOURCE;
-    desc.MipLevels = 1;
-
-    g_BlackTexture = factory->CreateTexture( desc );
-
-    //----------------------------------------------------
-    std::vector<Vertex> cubeVertices
-    {
-        // Front (+Z)
-        {{-1, -1, 1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{1, -1, 1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{1, 1, 1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{-1, 1, 1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
-
-        // Back (-Z)
-        {{1, -1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{-1, -1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{-1, 1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{1, 1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
-
-        // Top (+Y)
-        {{-1, 1, 1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{1, 1, 1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{1, 1, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{-1, 1, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
-
-        // Bottom (-Y)
-        {{-1, -1, -1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{1, -1, -1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{1, -1, 1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{-1, -1, 1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
-
-        // Right (+X)
-        {{1, -1, 1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{1, -1, -1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{1, 1, -1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{1, 1, 1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
-
-        // Left (-X)
-        {{-1, -1, -1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{-1, -1, 1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{-1, 1, 1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{-1, 1, -1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
-    };
-
-    std::vector<std::uint32_t> cubeIndices
-    {
-        // Front
-        0, 1, 2, 2, 3, 0,
-        // Back
-        4, 5, 6, 6, 7, 4,
-        // Top
-        8, 9, 10, 10, 11, 8,
-        // Bottom
-        12, 13, 14, 14, 15, 12,
-        // Right
-        16, 17, 18, 18, 19, 16,
-        // Left
-        20, 21, 22, 22, 23, 20
-    };
-
-    CalculateTangents( cubeVertices, cubeIndices );
-
-    //----------------------------------------------------
-    // TODO: Memory leak, make resource manager
-    auto* mat = factory->CreateMaterial( "metal1" );
-    auto* mat2 = factory->CreateMaterial( "dirt1" );
-    auto* mesh = factory->CreateMesh( MeshData{cubeVertices, cubeIndices} );
-
-    /*
-	for (int i = 0; i < 45; i++)
-	{
-		for (int j = 0; j < 45; j++)
-		{
-			if (mat && mesh)
-			{
-				auto model = new Model(mesh, mat);
-				model->m_Transform.Position = glm::vec3(j*3, 0, i * 3);
-				m_Models.push_back(model);
-			}
-		}
-	}
-	*/
-
-    const auto model = new ModelRenderer( mesh, mat );
-    model->m_Transform.Position = glm::vec3( 0, 0, 5 ) + glm::vec3( 0, -3, -10 );
-    model->m_Transform.Scale = glm::vec3( 1, 5, 1 );
-    m_Models.push_back( model );
-
-    const auto model2 = new ModelRenderer( mesh, mat2 );
-    model2->m_Transform.Position = glm::vec3( 0, 0, 8 ) + glm::vec3( 0, -3, 7 );
-    model->m_Transform.Scale = glm::vec3( 1, 5, 1 );
-    m_Models.push_back( model2 );
-
-    const auto model3 = new ModelRenderer( mesh, mat );
-    model3->m_Transform.Position = glm::vec3( -5, 0, 8 ) + glm::vec3( 0, -3, -10 );
-    model->m_Transform.Scale = glm::vec3( 1, 5, 1 );
-    m_Models.push_back( model3 );
-
-    g_TestModel = new ModelRenderer( mesh, mat );
-    g_TestModel->m_Transform.Scale = glm::vec3( 0.5f );
-    m_Models.push_back( g_TestModel );
-
-    g_TestModel2 = new ModelRenderer( mesh, mat );
-    g_TestModel2->m_Transform.Position = glm::vec3( 0, -5, 0 );
-    g_TestModel2->m_Transform.Scale = glm::vec3( 20, 1, 20 );
-    m_Models.push_back( g_TestModel2 );
-
-    //----------------------------------------------------
-    auto [ wW, wH ] = g_Engine->GetWindow()->GetSize();
-
-    m_backBufferVP = factory->CreateViewport( 0, 0, wW, wH );
-    m_mainCamera = new RenderCamera( wW, wH );
-    m_mainCamera->SetFOV( 95.0f );
-    m_mainCamera->SetNear( 0.01f );
-    m_mainCamera->SetFar( 100.0f );
-
-    g_Renderer->SetCamera( m_mainCamera );
-    g_Renderer->SetViewport( m_backBufferVP );
-
-    SetupGBuffer( wW, wH );
-    SetupShadows();
-    SetupSkybox();
-
-    auto shadowsShaderAssId = g_Assets->GetAsset( "shadowspass", AssetType::SHADER );
-    if ( !shadowsShaderAssId )
-        return std::unexpected( "Failed to load shadowspass shader" );
-
-    m_shadowsShader = factory->CreateShaderProgram( shadowsShaderAssId.value() );
-
-    auto lightShaderAssId = g_Assets->GetAsset( "lightingpass", AssetType::SHADER );
-    if ( !lightShaderAssId )
-        return std::unexpected( "Failed to load lightingpass shader" );
-
-    m_lightingShader = factory->CreateShaderProgram( lightShaderAssId.value() );
-
-    return {};
-}
-
-void DeferredRenderPipeline::Shutdown()
-{
-    LightManager::Get().Release();
-
-    for ( const auto model: m_Models )
-        delete model;
-
-    m_Models.clear();
-    m_GBuffer.Release();
-
-    if ( m_mainCamera )
-        delete m_mainCamera, m_mainCamera = nullptr;
-
-    const auto factory = g_Renderer->GetFactory();
-    const auto release = [factory]( auto*& res )
-    {
-        if ( res )
-            factory->Release( res );
-        res = nullptr;
-    };
-
-    release( m_backBufferVP );
-    release( m_shadowsMapsVP );
-    release( m_shadowsShader );
-    release( m_lightingShader );
-    release( m_skyboxMat );
-    release( m_skyboxMesh );
-    release( g_ErrorTexture );
-    release( g_ErrorMaterial );
-}
-
-//-----------------------------------------------------------------------------
-void DeferredRenderPipeline::Render()
-{
-    auto backBuffer = g_Renderer->GetBackBufferRT();
-    backBuffer->Clear( glm::vec4( 0.0f, 0.0f, 0.0f, 0.0f ) );
-
-    DoGeometryPass();
-    DoShadowPass();
-
-    g_Renderer->SetViewport( m_backBufferVP );
-    g_Renderer->SetRenderTextures( &backBuffer, 1, nullptr );
-    DoLightingPass();
-    DoSkyboxPass();
-
-    g_Gui->Render();
-
-    g_Renderer->Swap();
-#ifdef _DEBUG
-    m_DrawCallCount = 0;
-#endif
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void DeferredRenderPipeline::OnWindowResize( int width, int height )
-{
-    m_GBuffer.Release();
-
-    g_Renderer->OnWindowResize( width, height );
-
-    m_backBufferVP->Resize( static_cast<float>(width), static_cast<float>(height) );
-    g_Renderer->SetViewport( m_backBufferVP );
-
-    SetupGBuffer( width, height );
-    m_mainCamera->OnFrameBufferResize( width, height );
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void DeferredRenderPipeline::DoGeometryPass() const
-{
-    IRenderTexture* rts[ 4 ] = {
-        m_GBuffer.Color,
-        m_GBuffer.Normal,
-        m_GBuffer.Position,
-        m_GBuffer.Specular,
-    };
-
-    // 0.1f, 0.2f, 0.3f, 1.0f
-    auto color = glm::vec4( 0.0f, 0.0f, 0.0f, 0.0f );
-    for ( auto& rt: rts )
-        rt->Clear( color );
-
-    m_GBuffer.DepthStencil->Clear();
-
-    //---------------------
-#ifdef DX11
-    auto dxrenderer = static_cast<DX11Renderer*>(g_Renderer);
-    auto context = dxrenderer->GetContext();
-
-    ID3D11ShaderResourceView* nullSRVs[ 4 ] = {nullptr, nullptr, nullptr, nullptr};
-    context->PSSetShaderResources( 0, 4, nullSRVs );
-#endif
-
-    g_Renderer->SetRenderTextures( rts, 4, m_GBuffer.DepthStencil );
-
-    //g_Physics->Render();
-    g_Engine->DrawPlayer();
-
-    for ( const auto model: m_Models )
-        model->Draw();
-
-    static auto totalTime = 0.0f;
-    totalTime += g_Engine->DeltaTime();
-
-    g_TestModel->SetPosition( glm::vec3(
-        sin( totalTime ) * 1.0f,
-        -3.0f,
-        cos( totalTime ) * 1.0f
-    ) );
-
-    glm::quat rot = glm::angleAxis( totalTime * 3.0f, glm::normalize( glm::vec3( 0.0f, 1.0f, 0.0f ) ) );
-    g_TestModel->SetRotation( rot );
-}
-
-//-----------------------------------------------------------------------------
-void DeferredRenderPipeline::DoShadowPass() const
-{
-    auto& lights = LightManager::Get().GetLights();
-    for ( auto light: lights )
-    {
-        if ( !light || ( light && !light->IsShadowsEnabled() ) )
-            continue;
-
-        const auto shadowMap = light->GetShadowMap();
-        const auto depth = shadowMap->GetDepth();
-        const int size = shadowMap->GetSize();
-
-        m_shadowsMapsVP->Resize( size, size );
-        g_Renderer->SetViewport( m_shadowsMapsVP );
-
-        g_Renderer->SetRenderTextures( nullptr, 0, depth );
-        depth->Clear();
-
-        m_shadowsShader->SetVSVar( "lightview", light->GetViewMatrix() );
-        m_shadowsShader->SetVSVar( "lightproj", light->GetProjectionMatrix() );
-        m_shadowsShader->SetVSVar( "directional", light->IsA( LIGHT_DIRECTIONAL ) );
-
-        // draw scene
-        for ( const auto model: m_Models )
+        for ( auto& v: vertices )
         {
-            if ( !model->m_CastShadows )
-                continue;
+            v.Tangent = glm::vec3( 0.0f );
+            v.Bitangent = glm::vec3( 0.0f );
+        }
 
-            for ( const auto mesh: model->GetMeshes() )
-            {
-                m_shadowsShader->SetVSVar( "model", model->m_Transform.GetTransformMatrix() );
-                m_shadowsShader->Bind();
-                mesh->Draw();
-                m_shadowsShader->Unbind();
-            }
+        for ( size_t i = 0; i < indices.size(); i += 3 )
+        {
+            Vertex& v0 = vertices[ indices[ i + 0 ] ];
+            Vertex& v1 = vertices[ indices[ i + 1 ] ];
+            Vertex& v2 = vertices[ indices[ i + 2 ] ];
+
+            glm::vec3 edge1 = v1.Position - v0.Position;
+            glm::vec3 edge2 = v2.Position - v0.Position;
+
+            glm::vec2 deltaUV1 = v1.UV - v0.UV;
+            glm::vec2 deltaUV2 = v2.UV - v0.UV;
+
+            float f = 1.0f / ( deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y );
+
+            glm::vec3 tangent;
+            glm::vec3 bitangent;
+
+            tangent.x = f * ( deltaUV2.y * edge1.x - deltaUV1.y * edge2.x );
+            tangent.y = f * ( deltaUV2.y * edge1.y - deltaUV1.y * edge2.y );
+            tangent.z = f * ( deltaUV2.y * edge1.z - deltaUV1.y * edge2.z );
+
+            bitangent.x = f * ( -deltaUV2.x * edge1.x + deltaUV1.x * edge2.x );
+            bitangent.y = f * ( -deltaUV2.x * edge1.y + deltaUV1.x * edge2.y );
+            bitangent.z = f * ( -deltaUV2.x * edge1.z + deltaUV1.x * edge2.z );
+
+            v0.Tangent += tangent;
+            v1.Tangent += tangent;
+            v2.Tangent += tangent;
+            v0.Bitangent += bitangent;
+            v1.Bitangent += bitangent;
+            v2.Bitangent += bitangent;
+        }
+
+        for ( auto& v: vertices )
+        {
+            v.Tangent = glm::normalize( v.Tangent - v.Normal * glm::dot( v.Normal, v.Tangent ) );
+            v.Bitangent = glm::normalize( glm::cross( v.Normal, v.Tangent ) );
         }
     }
 
-    g_Renderer->SetRenderTextures( nullptr, 0, nullptr );
-}
+    constexpr float CLEAR_COLOR[ ] = {0.1f, 0.2f, 0.3f, 1.0f};
 
-//-----------------------------------------------------------------------------
-void DeferredRenderPipeline::DoLightingPass() const
-{
-    IRenderTexture* rts[ 4 ] = {
-        m_GBuffer.Color,
-        m_GBuffer.Normal,
-        m_GBuffer.Position,
-        m_GBuffer.Specular,
-    };
-
-    // move to lighting shader
-    g_Renderer->BindRenderTextures( rts, 4 );
-
-    m_lightingShader->SetPSVar( "cubemap", m_skyboxMat->GetTexture( "cubemap" ) );
-    m_lightingShader->Bind();
-    g_Renderer->DrawFullScreenTriangle();
-    m_lightingShader->Unbind();
-}
-
-//-----------------------------------------------------------------------------
-void DeferredRenderPipeline::DoSkyboxPass() const
-{
-    auto backBuffer = g_Renderer->GetBackBufferRT();
-    g_Renderer->SetRenderTextures( &backBuffer, 1, m_GBuffer.DepthStencil );
-
-    m_skyboxMat->Bind();
-    g_Renderer->SetPrimitiveTopology( TRIANGLES );
-    m_skyboxMesh->Draw();
-    m_skyboxMat->Unbind();
-}
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-void DeferredRenderPipeline::SetupGBuffer( int width, int height )
-{
-    const auto factory = g_Renderer->GetFactory();
-
-    m_GBuffer.DepthStencil = factory->CreateDepthStencil( width, height, false );
-    m_GBuffer.Color = factory->CreateRenderTexture( width, height, false );
-    m_GBuffer.Normal = factory->CreateRenderTexture( width, height, false );
-    m_GBuffer.Position = factory->CreateRenderTexture( width, height, false );
-    m_GBuffer.Specular = factory->CreateRenderTexture( width, height, false );
-}
-
-void DeferredRenderPipeline::SetupShadows()
-{
-    const auto factory = g_Renderer->GetFactory();
-    m_shadowsMapsVP = factory->CreateViewport( 0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE );
-}
-
-void DeferredRenderPipeline::SetupSkybox()
-{
-    const auto factory = g_Renderer->GetFactory();
-
-    std::vector<Vertex> cubeVertices
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    SysInit DeferredRenderPipeline::Initialize()
     {
-        // Front (+Z)
-        {{-1, -1, 1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{1, -1, 1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{1, 1, 1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{-1, 1, 1}, {0, 0, 1}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
+        auto window = g_Render->GetWindow();
+        auto [ wW, wH ] = window->GetSize();
 
-        // Back (-Z)
-        {{1, -1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{-1, -1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{-1, 1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{1, 1, -1}, {0, 0, -1}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
+        SetupGBuffer( wW, wH );
+        SetupGeometryPass();
 
-        // Top (+Y)
-        {{-1, 1, 1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{1, 1, 1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{1, 1, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{-1, 1, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
+        window->SubscribeResize( [this]( const WindowSize& size )
+        {
+            auto [ newWW, newWH ] = size;
+            SetupGBuffer( newWW, newWH );
+        } );
 
-        // Bottom (-Y)
-        {{-1, -1, -1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{1, -1, -1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{1, -1, 1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{-1, -1, 1}, {0, -1, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
+        return {};
+    }
 
-        // Right (+X)
-        {{1, -1, 1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{1, -1, -1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{1, 1, -1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{1, 1, 1}, {1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
-
-        // Left (-X)
-        {{-1, -1, -1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 1}, {1, 1, 1, 1}},
-        {{-1, -1, 1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1, 1}, {1, 1, 1, 1}},
-        {{-1, 1, 1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {1, 0}, {1, 1, 1, 1}},
-        {{-1, 1, -1}, {-1, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0}, {1, 1, 1, 1}},
-    };
-
-    std::vector<std::uint32_t> cubeIndices
+    void DeferredRenderPipeline::Shutdown()
     {
-        // Front
-        0, 1, 2, 2, 3, 0,
-        // Back
-        4, 5, 6, 6, 7, 4,
-        // Top
-        8, 9, 10, 10, 11, 8,
-        // Bottom
-        12, 13, 14, 14, 15, 12,
-        // Right
-        16, 17, 18, 18, 19, 16,
-        // Left
-        20, 21, 22, 22, 23, 20
-    };
+        m_GBuffer.Release();
+    }
 
-    m_skyboxMat = factory->CreateMaterial( "skybox" );
-    m_skyboxMesh = factory->CreateMesh( MeshData{cubeVertices, cubeIndices} );
+    void DeferredRenderPipeline::ClearBackBuffer()
+    {
+        auto swapChain = g_Render->GetSwapChain();
+        auto context = g_Render->GetContext();
+
+        ITextureView* bBuffer = swapChain->GetCurrentBackBufferRTV();
+        ITextureView* bBufferDepth = swapChain->GetDepthBufferDSV();
+        context->SetRenderTargets( 1, &bBuffer, bBufferDepth, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+        context->ClearRenderTarget( bBuffer, CLEAR_COLOR, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+        context->ClearDepthStencil( bBufferDepth, CLEAR_DEPTH_FLAG, 1.f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::Render()
+    {
+        ClearBackBuffer();
+        DoGeometryPass();
+
+        g_Render->Present();
+    }
+
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::DoGeometryPass() const
+    {
+        auto context = g_Render->GetContext();
+
+        ITextureView* rtvs[ ] = {
+            m_GBuffer.Color.RTV,
+            m_GBuffer.Normal.RTV,
+            m_GBuffer.Position.RTV,
+            m_GBuffer.Specular.RTV
+        };
+
+        context->SetRenderTargets( std::size( rtvs ), rtvs, m_GBuffer.DSV, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+        for ( auto rtv: rtvs )
+            context->ClearRenderTarget( rtv, CLEAR_COLOR, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+        context->ClearDepthStencil( m_GBuffer.DSV, CLEAR_DEPTH_FLAG, 1.0f, 0,
+                                    RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+        context->SetPipelineState( m_geometryPSO );
+    }
+
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::DoShadowPass() const
+    {
+    }
+
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::DoLightingPass() const
+    {
+    }
+
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::DoSkyboxPass() const
+    {
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::SetupGBuffer( std::uint32_t width, std::uint32_t height )
+    {
+        auto device = g_Render->GetDevice();
+        auto context = g_Render->GetContext();
+
+        context->SetRenderTargets( 0, nullptr, nullptr, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+        m_GBuffer.Release();
+
+        const auto createRenderTarget = [&]( RenderTarget& rt, const char* name )
+        {
+            TextureDesc desc;
+            desc.Name = name;
+            desc.Type = RESOURCE_DIM_TEX_2D;
+            desc.Width = width;
+            desc.Height = height;
+            desc.Format = TEX_FORMAT_RGBA32_FLOAT;
+            desc.MipLevels = 1;
+            desc.BindFlags = BIND_RENDER_TARGET | BIND_SHADER_RESOURCE;
+            desc.Usage = USAGE_DEFAULT;
+            desc.ClearValue.SetColor( desc.Format, CLEAR_COLOR );
+
+            device->CreateTexture( desc, nullptr, &rt.Texture );
+
+            if ( !rt.Texture )
+                FATAL_ERROR( std::string( "Failed to create " ) + name, cmd::RENDERING );
+
+            rt.RTV = rt.Texture->GetDefaultView( TEXTURE_VIEW_RENDER_TARGET );
+            rt.SRV = rt.Texture->GetDefaultView( TEXTURE_VIEW_SHADER_RESOURCE );
+        };
+
+        createRenderTarget( m_GBuffer.Color, "GBuffer Color" );
+        createRenderTarget( m_GBuffer.Normal, "GBuffer Normal" );
+        createRenderTarget( m_GBuffer.Position, "GBuffer Position" );
+        createRenderTarget( m_GBuffer.Specular, "GBuffer Specular" );
+
+        TextureDesc depthDesc;
+        depthDesc.Name = "GBuffer Depth";
+        depthDesc.Type = RESOURCE_DIM_TEX_2D;
+        depthDesc.Width = width;
+        depthDesc.Height = height;
+        depthDesc.Format = TEX_FORMAT_D24_UNORM_S8_UINT;
+        depthDesc.MipLevels = 1;
+        depthDesc.BindFlags = BIND_DEPTH_STENCIL;
+        depthDesc.Usage = USAGE_DEFAULT;
+
+        depthDesc.ClearValue.SetDepthStencil( depthDesc.Format, 1.0f, 0 );
+        device->CreateTexture( depthDesc, nullptr, &m_GBuffer.Depth );
+
+        if ( !m_GBuffer.Depth )
+            FATAL_ERROR( "Failed to create GBuffer Depth", cmd::RENDERING );
+
+        m_GBuffer.DSV = m_GBuffer.Depth->GetDefaultView( TEXTURE_VIEW_DEPTH_STENCIL );
+    }
+
+    void DeferredRenderPipeline::SetupGeometryPass()
+    {
+        auto swapChain = g_Render->GetSwapChain();
+        auto device = g_Render->GetDevice();
+
+        GraphicsPipelineStateCreateInfo info;
+        info.PSODesc.Name = "Geometry Pass";
+        info.PSODesc.PipelineType = PIPELINE_TYPE_GRAPHICS;
+
+        auto& gp = info.GraphicsPipeline;
+
+        gp.NumRenderTargets = 4;
+        gp.RTVFormats[ 0 ] = TEX_FORMAT_RGBA32_FLOAT;
+        gp.RTVFormats[ 1 ] = TEX_FORMAT_RGBA32_FLOAT;
+        gp.RTVFormats[ 2 ] = TEX_FORMAT_RGBA32_FLOAT;
+        gp.RTVFormats[ 3 ] = TEX_FORMAT_RGBA32_FLOAT;
+        gp.DSVFormat = TEX_FORMAT_D24_UNORM_S8_UINT;
+
+        gp.PrimitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+        gp.RasterizerDesc.FillMode = FILL_MODE_SOLID;
+        gp.RasterizerDesc.CullMode = CULL_MODE_BACK;
+        gp.RasterizerDesc.FrontCounterClockwise = False;
+
+        gp.DepthStencilDesc.DepthEnable = True;
+        gp.DepthStencilDesc.DepthWriteEnable = True;
+        gp.DepthStencilDesc.DepthFunc = COMPARISON_FUNC_LESS;
+
+        static const LayoutElement elements[ ] = {
+            {
+                "ATTRIB", 0, 0, 3, VT_FLOAT32, False,
+                offsetof( Vertex, Position ), sizeof( Vertex )
+            },
+
+            {
+                "ATTRIB", 1, 0, 3, VT_FLOAT32, False,
+                offsetof( Vertex, Normal ), sizeof( Vertex )
+            },
+
+            {
+                "ATTRIB", 2, 0, 3, VT_FLOAT32, False,
+                offsetof( Vertex, Tangent ), sizeof( Vertex )
+            },
+
+            {
+                "ATTRIB", 3, 0, 3, VT_FLOAT32, False,
+                offsetof( Vertex, Bitangent ), sizeof( Vertex )
+            },
+
+            {
+                "ATTRIB", 4, 0, 2, VT_FLOAT32, False,
+                offsetof( Vertex, UV ), sizeof( Vertex )
+            },
+
+            {
+                "ATTRIB", 5, 0, 4, VT_FLOAT32, False,
+                offsetof( Vertex, Color ), sizeof( Vertex )
+            },
+        };
+
+        static_assert( std::is_standard_layout_v<Vertex> );
+
+        gp.InputLayout.LayoutElements = elements;
+        gp.InputLayout.NumElements = std::size( elements );
+
+        auto geometryPass = g_Assets->GetAsset( "shaders/geometrypass.nshader", assets::Type::SHADER );
+        if ( !geometryPass )
+            FATAL_ERROR( "GeometryPass shader not found", cmd::RENDERING );
+
+        auto [ vs, ps ] = Factory::CreateShader( geometryPass.value() );
+
+        info.pVS = vs;
+        info.pPS = ps;
+        device->CreateGraphicsPipelineState( info, &m_geometryPSO );
+    }
+
+    void DeferredRenderPipeline::SetupShadows()
+    {
+    }
+
+    void DeferredRenderPipeline::SetupSkybox()
+    {
+    }
 }
