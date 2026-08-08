@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "assetsystem/shaderdata.hpp"
 #include "renderer/camera.hpp"
 #include "renderer/material.hpp"
 #include "renderer/modelrenderer.hpp"
@@ -46,6 +47,9 @@ namespace render::deferred
         void ApplyMaterialParameters( const Material& material );
 
     private:
+        // Geometry pass shader data
+        std::unique_ptr<assets::ShaderData> m_shaderData;
+
         Diligent::RefCntAutoPtr<IPipelineState> m_geometryPSO;
         Diligent::RefCntAutoPtr<IBuffer> m_transformCB;
         Diligent::RefCntAutoPtr<IBuffer> m_tintCB;

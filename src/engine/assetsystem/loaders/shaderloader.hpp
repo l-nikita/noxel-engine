@@ -59,10 +59,12 @@ namespace assets::loaders
                 {
                     auto varBind = paramVal.value( "var_bind", "" );
                     auto varType = paramVal.value( "var_type", "" );
+                    auto defTex = paramVal.value( "def_texture", "" );
 
                     data->Textures[ paramName ] = {
                         varBind,
-                        varType
+                        varType,
+                        defTex
                     };
                 }
 

@@ -11,27 +11,33 @@
         "textures": {
             "color": {
                 "var_bind": "g_tColor",
-                "var_type": "MUTABLE"
+                "var_type": "MUTABLE",
+                "def_texture": "white"
             },
             "normal": {
                 "var_bind": "g_tNormal",
-                "var_type": "MUTABLE"
+                "var_type": "MUTABLE",
+                "def_texture": "neutral_normal"
             },
             "rough": {
                 "var_bind": "g_tRoughness",
-                "var_type": "MUTABLE"
+                "var_type": "MUTABLE",
+                "def_texture": "white"
             },
             "metal": {
                 "var_bind": "g_tMetalness",
-                "var_type": "MUTABLE"
+                "var_type": "MUTABLE",
+                "def_texture": "black"
             },
             "ao": {
                 "var_bind": "g_tAO",
-                "var_type": "MUTABLE"
+                "var_type": "MUTABLE",
+                "def_texture": "white"
             },
             "height": {
                 "var_bind": "g_tHeight",
-                "var_type": "MUTABLE"
+                "var_type": "MUTABLE",
+                "def_texture": "black"
             }
         },
         "samplers": {

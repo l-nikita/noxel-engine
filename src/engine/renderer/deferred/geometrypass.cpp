@@ -1,6 +1,9 @@
 #include <Graphics/GraphicsTools/interface/MapHelper.hpp>
 
 #include "renderer/deferred/geometrypass.hpp"
+
+#include <ranges>
+
 #include "assetsystem/iassetsystem.hpp"
 #include "dbg/debug.hpp"
 #include "renderer/factory.hpp"
@@ -90,39 +93,84 @@ namespace render::deferred
         if ( !geometryPass )
             FATAL_ERROR( "GeometryPass shader not found", cmd::RENDERING );
 
+        m_shaderData = g_Assets->LoadData<assets::ShaderData>( geometryPass.value() );
+
         auto [ vs, ps ] = Factory::CreateShader( geometryPass.value() );
 
         info.pVS = vs;
         info.pPS = ps;
 
         //-----------------------------------------------------------------------------
-        ShaderResourceVariableDesc vars[ ] = {
-            {SHADER_TYPE_PIXEL, "g_tColor", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "g_tNormal", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "g_tRoughness", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "g_tMetalness", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "g_tAO", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-            {SHADER_TYPE_PIXEL, "g_tHeight", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE},
-        };
+        std::vector<ShaderResourceVariableDesc> vars;
 
-        info.PSODesc.ResourceLayout.Variables = vars;
-        info.PSODesc.ResourceLayout.NumVariables = std::size( vars );
+        for ( auto& texParam: m_shaderData->Textures | std::views::values )
+        {
+            auto type = texParam.VarType;
+            auto srvType = SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE;
 
-        SamplerDesc sampler;
-        sampler.MinFilter = FILTER_TYPE_LINEAR;
-        sampler.MagFilter = FILTER_TYPE_LINEAR;
-        sampler.MipFilter = FILTER_TYPE_LINEAR;
+            if ( type == "STATIC" )
+                srvType = SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
+            else if ( type == "DYNAMIC" )
+                srvType = SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC;
 
-        sampler.AddressU = TEXTURE_ADDRESS_WRAP;
-        sampler.AddressV = TEXTURE_ADDRESS_WRAP;
-        sampler.AddressW = TEXTURE_ADDRESS_WRAP;
+            vars.emplace_back( SHADER_TYPE_PIXEL, texParam.VarBind.c_str(), srvType );
+        }
 
-        ImmutableSamplerDesc immutableSamplers[ ] = {
-            {SHADER_TYPE_PIXEL, "g_sSampler", sampler}
-        };
+        info.PSODesc.ResourceLayout.Variables = vars.data();
+        info.PSODesc.ResourceLayout.NumVariables = static_cast<std::uint32_t>(vars.size());
 
-        info.PSODesc.ResourceLayout.ImmutableSamplers = immutableSamplers;
-        info.PSODesc.ResourceLayout.NumImmutableSamplers = std::size( immutableSamplers );
+        std::vector<ImmutableSamplerDesc> immutableSamplers;
+
+        for ( auto& [ samBindName, sampParam ]: m_shaderData->Samplers )
+        {
+            SamplerDesc sampler;
+
+            auto minFilter = sampParam.MinFilter;
+            auto magFilter = sampParam.MagFilter;
+            auto mipFilter = sampParam.MipFilter;
+
+            auto addressU = sampParam.AddressU;
+            auto addressV = sampParam.AddressV;
+            auto addressW = sampParam.AddressW;
+
+            if ( minFilter == "LINEAR" )
+                sampler.MinFilter = FILTER_TYPE_LINEAR;
+            else if ( minFilter == "POINT" )
+                sampler.MinFilter = FILTER_TYPE_POINT;
+
+            if ( magFilter == "LINEAR" )
+                sampler.MagFilter = FILTER_TYPE_LINEAR;
+            else if ( magFilter == "POINT" )
+                sampler.MagFilter = FILTER_TYPE_POINT;
+
+            if ( mipFilter == "LINEAR" )
+                sampler.MipFilter = FILTER_TYPE_LINEAR;
+            else if ( mipFilter == "POINT" )
+                sampler.MipFilter = FILTER_TYPE_POINT;
+
+            if ( addressU == "WARP" )
+                sampler.AddressU = TEXTURE_ADDRESS_WRAP;
+            else if ( addressU == "CLAMP" )
+                sampler.AddressU = TEXTURE_ADDRESS_CLAMP;
+
+            if ( addressV == "WARP" )
+                sampler.AddressV = TEXTURE_ADDRESS_WRAP;
+            else if ( addressV == "CLAMP" )
+                sampler.AddressV = TEXTURE_ADDRESS_CLAMP;
+
+            if ( addressW == "WARP" )
+                sampler.AddressW = TEXTURE_ADDRESS_WRAP;
+            else if ( addressW == "CLAMP" )
+                sampler.AddressW = TEXTURE_ADDRESS_CLAMP;
+
+            immutableSamplers.emplace_back( SHADER_TYPE_PIXEL, samBindName.c_str(), sampler );
+        }
+
+        if ( immutableSamplers.empty() )
+            FATAL_ERROR( "No immutable samplers for geometry pass found", cmd::RENDERING );
+
+        info.PSODesc.ResourceLayout.ImmutableSamplers = immutableSamplers.data();
+        info.PSODesc.ResourceLayout.NumImmutableSamplers = static_cast<std::uint32_t>(immutableSamplers.size());
 
         device->CreateGraphicsPipelineState( info, &m_geometryPSO );
     }
@@ -187,34 +235,30 @@ namespace render::deferred
         if ( !binding )
             FATAL_ERROR( "Failed to create geometry material binding", cmd::RENDERING );
 
-        struct TextureBinding
-        {
-            const char* ParamName;
-            const char* ShaderName;
-            RefCntAutoPtr<ITexture> DefaultTextures::* DefaultTexture;
-        };
-
-        constexpr TextureBinding texBindings[ ] = {
-            {"color", "g_tColor", &DefaultTextures::White},
-            {"normal", "g_tNormal", &DefaultTextures::NeutralNormal},
-            {"rough", "g_tRoughness", &DefaultTextures::White},
-            {"metal", "g_tMetalness", &DefaultTextures::Black},
-            {"ao", "g_tAO", &DefaultTextures::White},
-            {"height", "g_tHeight", &DefaultTextures::Black}
-        };
-
         const auto& defTextures = m_render->GetDefaultTextures();
 
-        for ( const auto& [ paramName, shaderName, DefaultTexture ]: texBindings )
+        for ( const auto& [ texName, texParam ]: m_shaderData->Textures )
         {
-            auto tex = material.GetTexture( paramName );
-            auto var = binding->GetVariableByName( SHADER_TYPE_PIXEL, shaderName );
+            auto tex = material.GetTexture( texName );
+            auto var = binding->GetVariableByName( SHADER_TYPE_PIXEL, texParam.VarBind.c_str() );
 
             if ( !var )
-                FATAL_ERROR( std::string( "Geometry shader resource is missing: " ) + shaderName, cmd::RENDERING );
+                FATAL_ERROR( std::string( "Geometry shader resource is missing: " ) + texName, cmd::RENDERING );
+
+            RefCntAutoPtr<ITexture> defTex;
+            auto defTexStr = texParam.DefaultTexture;
+
+            if ( defTexStr == "white" )
+                defTex = defTextures.White;
+            else if ( defTexStr == "black" )
+                defTex = defTextures.Black;
+            else if ( defTexStr == "neutral_normal" )
+                defTex = defTextures.NeutralNormal;
+            else
+                FATAL_ERROR( "Default texture for geometry shader is invalid: " + defTexStr, cmd::RENDERING );
 
             if ( !tex )
-                tex = ( defTextures.*DefaultTexture ).RawPtr();
+                tex = defTex.RawPtr();
 
             var->Set( tex->GetDefaultView( TEXTURE_VIEW_SHADER_RESOURCE ) );
         }

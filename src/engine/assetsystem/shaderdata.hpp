@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "assetsystem/asset.hpp"
 #include "filesystem/ifilesystem.hpp"
 
 namespace assets
@@ -21,6 +22,7 @@ namespace assets
         {
             std::string VarBind;
             std::string VarType;
+            std::string DefaultTexture;
         };
 
         std::unordered_map<std::string, TextureParam> Textures;

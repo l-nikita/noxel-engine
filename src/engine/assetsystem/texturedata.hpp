@@ -2,6 +2,8 @@
 
 #include <stb_image.h>
 
+#include "assetsystem/asset.hpp"
+
 namespace assets
 {
     //-----------------------------------------------------------------------------
