@@ -49,8 +49,8 @@ void Engine::Initialize()
         Quit();
     } );
 
-    // if ( g_Renderer )
-    //    g_Player = new Player( g_Renderer->GetCamera() );
+    if ( g_RenderPipeline )
+        g_Player = new Player( g_RenderPipeline->GetCamera() );
 
     CMD_INFO( "Engine initialized successfully", cmd::ENGINE );
 }

@@ -17,7 +17,7 @@ namespace render
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    ShaderPsVs Factory::CreateShader( const assets::Id& id )
+    Shader Factory::CreateShader( const assets::Id& id )
     {
         auto data = g_Assets->LoadData<assets::ShaderData>( id );
         auto device = g_Render->GetDevice();
@@ -37,12 +37,13 @@ namespace render
         auto vsName = data->Name;
         vsName += "_vs";
 
-        RefCntAutoPtr<IShader> vs;
+        Shader shader = {};
+
         info.Desc.ShaderType = SHADER_TYPE_VERTEX;
         info.EntryPoint = "main";
         info.Desc.Name = vsName.c_str();
         info.Source = vsSrc.c_str();
-        device->CreateShader( info, &vs );
+        device->CreateShader( info, &shader.VertexShader );
 
         auto psName = data->Name;
         psName += "_ps";
@@ -52,9 +53,9 @@ namespace render
         info.EntryPoint = "main";
         info.Desc.Name = psName.c_str();
         info.Source = psSrc.c_str();
-        device->CreateShader( info, &ps );
+        device->CreateShader( info, &shader.PixelShader );
 
-        return {vs, ps};
+        return shader;
     }
 
     RefCntAutoPtr<ITexture> Factory::CreateTexture( const assets::Id& id )
@@ -74,8 +75,7 @@ namespace render
 
         TextureSubResData subresource;
         subresource.pData = data->Image;
-        subresource.Stride =
-                data->Width * 4u;
+        subresource.Stride = data->Width * 4u;
 
         TextureData initData;
         initData.pSubResources = &subresource;
@@ -88,6 +88,38 @@ namespace render
 
         if ( !texture )
             FATAL_ERROR( "Failed to create texture: " + asset->Name, cmd::RENDERING );
+
+        return texture;
+    }
+
+    RefCntAutoPtr<ITexture> Factory::CreateSolidTexture( const std::array<std::uint8_t, 4>& color,
+                                                         const std::string& name )
+    {
+        auto device = g_Render->GetDevice();
+
+        TextureDesc desc;
+        desc.Name = name.c_str();
+        desc.Type = RESOURCE_DIM_TEX_2D;
+        desc.Width = 1;
+        desc.Height = 1;
+        desc.Format = TEX_FORMAT_RGBA8_UNORM;
+        desc.MipLevels = 1;
+        desc.BindFlags = BIND_SHADER_RESOURCE;
+        desc.Usage = USAGE_IMMUTABLE;
+
+        TextureSubResData subresource;
+        subresource.pData = color.data();
+        subresource.Stride = 4;
+
+        TextureData initData;
+        initData.pSubResources = &subresource;
+        initData.NumSubresources = 1;
+
+        RefCntAutoPtr<ITexture> texture;
+        device->CreateTexture( desc, &initData, &texture );
+
+        if ( !texture )
+            FATAL_ERROR( std::string{"Failed to create texture: "} + name, cmd::RENDERING );
 
         return texture;
     }

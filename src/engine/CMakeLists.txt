@@ -31,14 +31,11 @@ file( GLOB_RECURSE HEADERS CONFIGURE_DEPENDS
 file( GLOB RENDERER_FILES
         "renderer/*.cpp"
         "renderer/*.hpp"
+        "renderer/deferred/*.cpp"
+        "renderer/deferred/*.hpp"
 )
 
-file( GLOB DILIGENT_FILES
-        "renderer/diligent/*.cpp"
-        "renderer/diligent/*.hpp"
-)
-
-set( ALL_SOURCES ${SOURCES} ${HEADERS} ${RENDERER_FILES} ${DILIGENT_FILES} )
+set( ALL_SOURCES ${SOURCES} ${HEADERS} ${RENDERER_FILES} )
 
 add_library( engine SHARED ${ALL_SOURCES} )
 
@@ -72,9 +69,9 @@ target_link_libraries( engine PUBLIC
 if ( PLATFORM_WIN32 )
     target_compile_definitions( engine INTERFACE PLATFORM_WIN32=1 )
 
-    target_link_libraries( engine
-            PUBLIC
+    target_link_libraries( engine PUBLIC
             Diligent-GraphicsEngineD3D11-static
+            # Diligent-GraphicsEngineVk-static
             d3d11
             dxgi
             d3dcompiler
@@ -83,6 +80,10 @@ if ( PLATFORM_WIN32 )
 else ()
     if ( PLATFORM_LINUX )
         target_compile_definitions( engine INTERFACE PLATFORM_LINUX=1 )
+
+        # target_link_libraries( engine PUBLIC
+        #         Diligent-GraphicsEngineVk-static
+        # )
     endif ()
 endif ()
 

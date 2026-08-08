@@ -57,8 +57,30 @@ namespace render
         float _pad1;
     };
 
-    struct CBViewData
+    enum MaterialTextureFlags : std::uint32_t
     {
-        glm::vec4 ViewPos;
+        MATERIAL_HAS_COLOR_MAP = 1u << 0,
+        MATERIAL_HAS_NORMAL_MAP = 1u << 1,
+        MATERIAL_HAS_ROUGH_MAP = 1u << 2,
+        MATERIAL_HAS_METAL_MAP = 1u << 3,
+        MATERIAL_HAS_AO_MAP = 1u << 4,
+        MATERIAL_HAS_HEIGHT_MAP = 1u << 5
     };
+
+    struct alignas(16) CBMaterialFactors
+    {
+        glm::vec4 ColorFactor{1.0f};
+
+        float NormalFactor = 1.0f;
+        float RoughFactor = 1.0f;
+        float MetalFactor = 0.0f;
+        float AOFactor = 1.0f;
+
+        float HeightFactor = 0.0f;
+        std::uint32_t TextureMask = 0;
+        float _pad0 = 0.0f;
+        float _pad1 = 0.0f;
+    };
+
+    static_assert( sizeof( CBMaterialFactors ) == 48 );
 }

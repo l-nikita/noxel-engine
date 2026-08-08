@@ -35,8 +35,12 @@ namespace assets::loaders
 
                 auto data = new ShaderData();
                 data->Name = json.value( "name", asset->Name );
-                data->PixelShaderPath = json.value( "pixelshader", "" );
-                data->VertexShaderPath = json.value( "vertexshader", "" );
+
+                if ( json.contains( "pixelshader" ) )
+                    data->PixelShaderPath = json[ "pixelshader" ].value( "file", "" );
+
+                if ( json.contains( "vertexshader" ) )
+                    data->VertexShaderPath = json[ "vertexshader" ].value( "file", "" );
 
                 const auto shaderDir = asset->Path.parent_path();
                 if ( !data->PixelShaderPath.empty() )

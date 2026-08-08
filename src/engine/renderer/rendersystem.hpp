@@ -6,13 +6,13 @@
 #include <Graphics/GraphicsEngine/interface/SwapChain.h>
 
 #include "common.hpp"
-#include "window.hpp"
+#include "engine/window.hpp"
 
 namespace render
 {
     //-----------------------------------------------------------------------------
 
-    class Camera;
+    constexpr float CLEAR_COLOR[ ] = {0.1f, 0.2f, 0.3f, 1.0f};
 
     //-----------------------------------------------------------------------------
 
@@ -24,6 +24,17 @@ namespace render
     using ITextureView = Diligent::ITextureView;
     using ITexture = Diligent::ITexture;
     using IBuffer = Diligent::IBuffer;
+    using IShaderResourceBinding = Diligent::IShaderResourceBinding;
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    struct DefaultTextures
+    {
+        Diligent::RefCntAutoPtr<ITexture> Black;
+        Diligent::RefCntAutoPtr<ITexture> White;
+        Diligent::RefCntAutoPtr<ITexture> NeutralNormal;
+    };
 
     //-----------------------------------------------------------------------------
     //
@@ -46,11 +57,17 @@ namespace render
         Diligent::RefCntAutoPtr<IDeviceContext> GetContext();
         Diligent::RefCntAutoPtr<ISwapChain> GetSwapChain();
 
+        const DefaultTextures& GetDefaultTextures();
+
     private:
         SysInit CreateDeviceAndSwapChain();
 
+        void CreateDefaultTextures();
+
     private:
         Window* m_window = nullptr;
+
+        DefaultTextures m_defTextures = {};
 
         Diligent::RefCntAutoPtr<IRenderDevice> m_device;
         Diligent::RefCntAutoPtr<IDeviceContext> m_context;

@@ -1,5 +1,9 @@
 {
 	"name": "geometrypass",
-	"pixelshader": "geometrypass_ps.hlsl",
-	"vertexshader": "geometrypass_vs.hlsl"
+	"pixelshader": {
+		"file": "geometrypass_ps.hlsl"
+	},
+	"vertexshader": {
+		"file": "geometrypass_vs.hlsl"
+	}
 }

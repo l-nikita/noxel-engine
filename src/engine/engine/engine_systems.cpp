@@ -6,8 +6,8 @@
 #include "filesystem/filesystem.hpp"
 #include "input/input.hpp"
 #include "physics/physics.hpp"
-#include "renderer/deferred_render_pipeline.hpp"
 #include "renderer/rendersystem.hpp"
+#include "renderer/deferred/deferred_render_pipeline.hpp"
 
 IFileSystem* g_FileSystem = nullptr;
 IAssetSystem* g_Assets = nullptr;
@@ -27,7 +27,7 @@ void Engine::InitializeSystems()
     g_Input = m_input = new input::Input();
     g_Physics = m_physics = new phys::JoltPhysics();
     g_Render = m_render = new render::RenderSystem( GetPrimaryWindow() );
-    g_RenderPipeline = m_renderPipeline = new render::DeferredRenderPipeline();
+    g_RenderPipeline = m_renderPipeline = new render::deferred::DeferredRenderPipeline();
 
     m_systems.append_range( std::initializer_list<ISystem*>{
         m_fileSystem,

@@ -36,14 +36,14 @@ namespace render
     void Mesh::CreateVertexBuffer( IRenderDevice* device, const MeshData& data )
     {
         BufferDesc vbDesc;
-        vbDesc.Name = "Mesh vertex buffer";
-        vbDesc.Size = sizeof( data.Vertices );
+        vbDesc.Name = "Mesh Vertex Buffer";
+        vbDesc.Size = data.Vertices.size() * sizeof( Vertex );
         vbDesc.Usage = USAGE_IMMUTABLE;
         vbDesc.BindFlags = BIND_VERTEX_BUFFER;
 
         BufferData vbData;
         vbData.pData = data.Vertices.data();
-        vbData.DataSize = sizeof( data.Vertices );
+        vbData.DataSize = data.Vertices.size() * sizeof( Vertex );
 
         device->CreateBuffer( vbDesc, &vbData, &m_vertexBuffer );
     }
@@ -51,14 +51,14 @@ namespace render
     void Mesh::CreateIndexBuffer( IRenderDevice* device, const MeshData& data )
     {
         BufferDesc ibDesc;
-        ibDesc.Name = "Mesh index buffer";
-        ibDesc.Size = sizeof( data.Indices );
+        ibDesc.Name = "Mesh Index Buffer";
+        ibDesc.Size = data.Indices.size() * sizeof( std::uint32_t );
         ibDesc.Usage = USAGE_IMMUTABLE;
         ibDesc.BindFlags = BIND_INDEX_BUFFER;
 
         BufferData ibData;
         ibData.pData = data.Indices.data();
-        ibData.DataSize = sizeof( data.Indices );
+        ibData.DataSize = data.Indices.size() * sizeof( std::uint32_t );
 
         device->CreateBuffer( ibDesc, &ibData, &m_indexBuffer );
     }

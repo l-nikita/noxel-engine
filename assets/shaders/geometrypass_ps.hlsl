@@ -10,16 +10,33 @@ Texture2D Height        : register(t5);
 SamplerState Samp : register(s0);
 
 //----------------------------------------
-cbuffer ViewData : register(b0)
-{
-    float4 ViewPos;
-};
+#define MATERIAL_HAS_COLOR_MAP  (1u << 0)
+#define MATERIAL_HAS_NORMAL_MAP (1u << 1)
+#define MATERIAL_HAS_ROUGH_MAP  (1u << 2)
+#define MATERIAL_HAS_METAL_MAP  (1u << 3)
+#define MATERIAL_HAS_AO_MAP     (1u << 4)
+#define MATERIAL_HAS_HEIGHT_MAP (1u << 5)
 
-cbuffer Tint : register(b1)
+cbuffer Tint : register(b0)
 {
     float4 Tint;
     float _pad0, _pad1, _pad2;
     float Emission;
+};
+
+cbuffer MaterialFactors : register(b1)
+{
+    float4 ColorFactor;
+
+    float NormalFactor;
+    float RoughFactor;
+    float MetalFactor;
+    float AOFactor;
+
+    float HeightFactor;
+    uint TextureMask;
+    float _matPad0;
+    float _matPad1;
 };
 
 //----------------------------------------
@@ -52,18 +69,38 @@ PS_OUTPUT main(PS_INPUT input)
     float3x3 TBN = float3x3(T, B, N);
     float2 uv = input.vUV;
 
-    float3 texColor = Color.Sample(Samp, uv).rgb;
-    float4 color = input.vColor * Tint;
-    
-    if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0)
-        color = Color.Sample(Samp, uv) * input.vColor * Tint;
-    
-    float3 normal = Normal.Sample(Samp, uv).xyz * 2.0 - 1.0;
-    float roughness = Roughness.Sample(Samp, uv).r;
-    float metalness = Metalness.Sample(Samp, uv).r;
-    float height = Height.Sample(Samp, uv).r;
-    float ao = AO.Sample(Samp, uv).r;
-    float3 finalNormal = normalize(mul(normal, TBN));
+    float4 color = input.vColor * Tint * ColorFactor;
+    if ((TextureMask & MATERIAL_HAS_COLOR_MAP) != 0)
+        color *= Color.Sample(Samp, uv);
+
+    float3 finalNormal = N;
+    if ((TextureMask & MATERIAL_HAS_NORMAL_MAP) != 0)
+    {
+        float3 normal = Normal.Sample(Samp, uv).xyz * 2.0 - 1.0;
+        normal.xy *= max(NormalFactor, 0.0);
+        finalNormal = normalize(mul(normalize(normal), TBN));
+    }
+
+    float roughness = RoughFactor;
+    if ((TextureMask & MATERIAL_HAS_ROUGH_MAP) != 0)
+        roughness *= Roughness.Sample(Samp, uv).r;
+
+    float metalness = MetalFactor;
+    if ((TextureMask & MATERIAL_HAS_METAL_MAP) != 0)
+        metalness *= Metalness.Sample(Samp, uv).r;
+
+    float ao = AOFactor;
+    if ((TextureMask & MATERIAL_HAS_AO_MAP) != 0)
+        ao *= AO.Sample(Samp, uv).r;
+
+    float height = HeightFactor;
+    if ((TextureMask & MATERIAL_HAS_HEIGHT_MAP) != 0)
+        height *= Height.Sample(Samp, uv).r;
+
+    roughness = saturate(roughness);
+    metalness = saturate(metalness);
+    ao = saturate(ao);
+    height = saturate(height);
 
     o.gColor = color;
     o.gNormal = float4(finalNormal, Emission);

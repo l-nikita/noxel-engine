@@ -1,8 +1,11 @@
 #include <cassert>
 #include <DebugOutput.h>
 #include <Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h>
+#include <Graphics/GraphicsEngineVulkan/interface/EngineFactoryVk.h>
 
 #include "renderer/rendersystem.hpp"
+
+#include "factory.hpp"
 #include "dbg/debug.hpp"
 #include "engine/iengine.hpp"
 #include "engine/window.hpp"
@@ -63,6 +66,8 @@ namespace render
                 m_swapChain->Resize( wW, wH );
         } );
 
+        CreateDefaultTextures();
+
         return {};
     }
 
@@ -72,6 +77,7 @@ namespace render
             m_context->Flush();
     }
 
+    //-----------------------------------------------------------------------------
     Window* RenderSystem::GetWindow() const
     {
         return m_window;
@@ -83,6 +89,7 @@ namespace render
             m_swapChain->Present();
     }
 
+    //-----------------------------------------------------------------------------
     RefCntAutoPtr<IRenderDevice> RenderSystem::GetDevice()
     {
         return m_device;
@@ -98,6 +105,12 @@ namespace render
         return m_swapChain;
     }
 
+    const DefaultTextures& RenderSystem::GetDefaultTextures()
+    {
+        return m_defTextures;
+    }
+
+    //-----------------------------------------------------------------------------
     SysInit RenderSystem::CreateDeviceAndSwapChain()
     {
         auto [ wW, wH ] = m_window->GetSize();
@@ -125,5 +138,15 @@ namespace render
 #endif
 
         return {};
+    }
+
+    //-----------------------------------------------------------------------------
+    void RenderSystem::CreateDefaultTextures()
+    {
+        m_defTextures = {
+            .Black = Factory::CreateSolidTexture( {0, 0, 0, 255}, "Black" ),
+            .White = Factory::CreateSolidTexture( {255, 255, 255, 255}, "White" ),
+            .NeutralNormal = Factory::CreateSolidTexture( {128, 128, 255, 255}, "Neutral Normal" ),
+        };
     }
 }

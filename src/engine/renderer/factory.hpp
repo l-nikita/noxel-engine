@@ -7,7 +7,11 @@ namespace render
 {
     //-----------------------------------------------------------------------------
 
-    using ShaderPsVs = std::tuple<Diligent::RefCntAutoPtr<IShader>, Diligent::RefCntAutoPtr<IShader>>;
+    struct Shader
+    {
+        Diligent::RefCntAutoPtr<IShader> VertexShader;
+        Diligent::RefCntAutoPtr<IShader> PixelShader;
+    };
 
     //-----------------------------------------------------------------------------
     //
@@ -15,7 +19,9 @@ namespace render
     class Factory
     {
     public:
-        static ShaderPsVs CreateShader( const assets::Id& id );
+        static Shader CreateShader( const assets::Id& id );
         static Diligent::RefCntAutoPtr<ITexture> CreateTexture( const assets::Id& id );
+        static Diligent::RefCntAutoPtr<ITexture> CreateSolidTexture( const std::array<std::uint8_t, 4>& color,
+                                                                     const std::string& name );
     };
 }
