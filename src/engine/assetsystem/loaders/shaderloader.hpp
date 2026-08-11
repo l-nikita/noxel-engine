@@ -34,7 +34,8 @@ namespace assets::loaders
                 nlohmann::json json = nlohmann::json::parse( jsonStr );
 
                 auto data = new ShaderData();
-                data->Name = json.value( "name", asset->Name );
+                data->Name = json.value( "name", "" );
+                data->SourceLanguage = json.value( "source_language", "" );
 
                 if ( json.contains( "pixel_shader" ) )
                     data->PixelShaderPath = json[ "pixel_shader" ].value( "file", "" );

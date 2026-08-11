@@ -1,57 +1,36 @@
 //----------------------------------------
 #include "lighting.hlsl"
 
-#define SIMPLE_LIGHTING 0
-
-#define DEBUG_LIT 0
-#define DEBUG_ALBEDO 1
-#define DEBUG_NORMALS 2
-#define DEBUG_WORLD_POSITION 3
-#define DEBUG_ROUGHNESS 4
-#define DEBUG_METALNESS 5
-#define DEBUG_AO 6
-#define DEBUG_EMISSION 7
-#define DEBUG_SHADOW_FACTOR 8
-#define DEBUG_SELECTED_LIGHT 9
-#define DEBUG_DIRECT_LIGHTING 10
-#define DEBUG_AMBIENT_LIGHTING 11
-#define DEBUG_DEPTH 12
+#define SIMPLE_LIGHTING 1
+#define NO_SHADOWS 1
 
 //----------------------------------------
-Texture2D gColor : register(t0);
-Texture2D gNormal : register(t1);
-Texture2D gPosition : register(t2);
-Texture2D gSpecular : register(t3);
+Texture2D g_tColor : register(t0);
+Texture2D g_tNormal : register(t1);
+Texture2D g_tPosition : register(t2);
+Texture2D g_tSpecular : register(t3);
 
+#if !NO_SHADOWS
 Texture2D ShadowMaps0 : register(t4);
 Texture2D ShadowMaps1 : register(t5);
 Texture2D ShadowMaps2 : register(t6);
 Texture2D ShadowMaps3 : register(t7);
+#endif
 
 TextureCube Cubemap : register(t10);
 
 //----------------------------------------
-SamplerState Samp : register(s0);
+SamplerState g_sSampler : register(s0);
+#if !NO_SHADOWS
 SamplerComparisonState ShadowSampler : register(s1);
 SamplerState ShadowDepthSampler : register(s2);
+#endif
 
 //----------------------------------------
 cbuffer LightsData : register(b0)
 {
     Light Lights[MAX_LIGHTS];
     float3 ViewPos;
-};
-
-cbuffer DebugData : register(b1)
-{
-    int DebugView;
-    int DebugLightIndex;
-    float DebugOverlayOpacity;
-    float DebugExposure;
-    float3 CameraForward;
-    float CameraNear;
-    float CameraFar;
-    int IBLEnabled;
 };
 
 //----------------------------------------
@@ -61,27 +40,14 @@ struct PS_INPUT
     float2 vUV : TEXCOORD0;
 };
 
-float3 DebugHeatmap(float value)
-{
-    value = saturate(value);
-    float3 blue = float3(0.0, 0.1, 1.0);
-    float3 cyan = float3(0.0, 1.0, 1.0);
-    float3 yellow = float3(1.0, 1.0, 0.0);
-    float3 red = float3(1.0, 0.0, 0.0);
-
-    float3 cold = lerp(blue, cyan, saturate(value * 3.0));
-    float3 warm = lerp(yellow, red, saturate((value - 0.66) * 3.0));
-    return lerp(cold, warm, saturate((value - 0.33) * 1.5));
-}
-
 float4 main(PS_INPUT input) : SV_TARGET
 {
     // gbuffer
-    float3 color = gColor.Sample(Samp, input.vUV).rgb;
-    float4 norm = gNormal.Sample(Samp, input.vUV);
-    float3 normal = normalize(norm.rgb);
-    float3 worldPos = gPosition.Sample(Samp, input.vUV).rgb;
-    float3 spec = gSpecular.Sample(Samp, input.vUV).rgb;
+    float3 color = g_tColor.Sample(g_sSampler, input.vUV).rgb;
+    float4 norm = g_tNormal.Sample(g_sSampler, input.vUV);
+    float3 normal = normalize(norm.rgb * 2.0 - 1.0);
+    float3 worldPos = g_tPosition.Sample(g_sSampler, input.vUV).rgb;
+    float3 spec = g_tSpecular.Sample(g_sSampler, input.vUV).rgb;
     
     float emission = norm.a;
     float roughness = clamp(spec.r, MIN_ROUGHNESS, 1.0);
@@ -98,7 +64,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     if (IBLEnabled != 0)
     {
         result =
-            CalcIBL(normal, toView, color, metalness, roughness, ao, Cubemap, Samp);
+            CalcIBL(normal, toView, color, metalness, roughness, ao, Cubemap, g_sSampler);
     }
     else
     {
@@ -108,8 +74,6 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     float3 ambientLighting = result;
     float3 directLighting = 0.0;
-    float selectedShadow = 1.0;
-    float3 selectedLightContribution = 0.0;
     
     // lighting
     [loop]
@@ -147,7 +111,8 @@ float4 main(PS_INPUT input) : SV_TARGET
 			
             float spotEffect = smoothstep(outerCutoff, innerCutoff, theta);
             attenuation = att * spotEffect;
-            
+
+#if !NO_SHADOWS
             int index = Lights[i].ShadowMapIndex;
 
             if (index >= 0)
@@ -161,13 +126,14 @@ float4 main(PS_INPUT input) : SV_TARGET
                 else if (index == 3)
                     shadow = CalcSpotShadows(worldPos, normal, toLight, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, ShadowMaps3, ShadowDepthSampler, ShadowSampler);
             }
-
+#endif
         }
         else if (lightType == LIGHT_DIRECTIONAL)
         {
             toLight = normalize(-lightDir);
             attenuation = 1.0;
 
+#if !NO_SHADOWS
             int index = Lights[i].ShadowMapIndex;
 
             if (index >= 0)
@@ -181,6 +147,7 @@ float4 main(PS_INPUT input) : SV_TARGET
                 else if (index == 3)
                     shadow = CalcDirectionalShadows(worldPos, normal, toLight, lightView, lightProjection, ShadowMaps3, ShadowSampler);
             }
+#endif
         }
 
         float3 lightContribution = 0.0;
@@ -233,48 +200,9 @@ float4 main(PS_INPUT input) : SV_TARGET
 
         result += lightContribution;
         directLighting += lightContribution;
-
-        if (i == DebugLightIndex)
-        {
-            selectedShadow = shadow;
-            selectedLightContribution = lightContribution;
-        }
     }
     
     result += color * emission;
-    result *= max(DebugExposure, 0.0);
 
-    float3 debugColor = result;
-
-    if (DebugView == DEBUG_ALBEDO)
-        debugColor = color;
-    else if (DebugView == DEBUG_NORMALS)
-        debugColor = normal * 0.5 + 0.5;
-    else if (DebugView == DEBUG_WORLD_POSITION)
-        debugColor = sin(worldPos * 0.1) * 0.5 + 0.5;
-    else if (DebugView == DEBUG_ROUGHNESS)
-        debugColor = roughness.xxx;
-    else if (DebugView == DEBUG_METALNESS)
-        debugColor = metalness.xxx;
-    else if (DebugView == DEBUG_AO)
-        debugColor = ao.xxx;
-    else if (DebugView == DEBUG_EMISSION)
-        debugColor = DebugHeatmap(emission);
-    else if (DebugView == DEBUG_SHADOW_FACTOR)
-        debugColor = selectedShadow.xxx;
-    else if (DebugView == DEBUG_SELECTED_LIGHT)
-        debugColor = selectedLightContribution;
-    else if (DebugView == DEBUG_DIRECT_LIGHTING)
-        debugColor = directLighting;
-    else if (DebugView == DEBUG_AMBIENT_LIGHTING)
-        debugColor = ambientLighting;
-    else if (DebugView == DEBUG_DEPTH)
-    {
-        float viewDepth = dot(worldPos - ViewPos, normalize(CameraForward));
-        float linearDepth = saturate((viewDepth - CameraNear) / max(CameraFar - CameraNear, EPSILON));
-        debugColor = linearDepth.xxx;
-    }
-
-    float overlayOpacity = DebugView == DEBUG_LIT ? 0.0 : saturate(DebugOverlayOpacity);
-    return float4(lerp(result, debugColor, overlayOpacity), 1.0);
+    return float4(result, 1.0);
 }

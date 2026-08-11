@@ -103,7 +103,7 @@ PS_OUTPUT main(PS_INPUT input)
     height = saturate(height);
 
     o.gColor = color;
-    o.gNormal = float4(finalNormal, Emission);
+    o.gNormal = float4(finalNormal * 0.5 + 0.5, Emission); // encode normal
     o.gPosition = float4(input.vWorldPos, 1.0);
     o.gSpecular = float4(roughness, metalness, ao, height);
 

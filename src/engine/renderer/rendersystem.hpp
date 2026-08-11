@@ -25,6 +25,12 @@ namespace render
     using ITexture = Diligent::ITexture;
     using IBuffer = Diligent::IBuffer;
     using IShaderResourceBinding = Diligent::IShaderResourceBinding;
+    using IEngineFactory = Diligent::IEngineFactory;
+    using IShaderSourceInputStreamFactory = Diligent::IShaderSourceInputStreamFactory;
+
+    //-----------------------------------------------------------------------------
+
+    class Factory;
 
     //-----------------------------------------------------------------------------
     //
@@ -53,10 +59,12 @@ namespace render
         Window* GetWindow() const;
         void Present();
 
-        Diligent::RefCntAutoPtr<IRenderDevice> GetDevice();
-        Diligent::RefCntAutoPtr<IDeviceContext> GetContext();
-        Diligent::RefCntAutoPtr<ISwapChain> GetSwapChain();
+        IRenderDevice* GetDevice() const;
+        IDeviceContext* GetContext() const;
+        ISwapChain* GetSwapChain() const;
+        IEngineFactory* GetEngineFactory() const;
 
+        Factory* GetFactory() const;
         const DefaultTextures& GetDefaultTextures();
 
     private:
@@ -66,13 +74,16 @@ namespace render
 
     private:
         Window* m_window = nullptr;
+        std::unique_ptr<Factory> m_factory;
 
         DefaultTextures m_defTextures = {};
 
+    private:
         Diligent::RefCntAutoPtr<IRenderDevice> m_device;
         Diligent::RefCntAutoPtr<IDeviceContext> m_context;
         Diligent::RefCntAutoPtr<ISwapChain> m_swapChain;
         Diligent::RefCntAutoPtr<IPipelineState> m_pso;
+        Diligent::RefCntAutoPtr<IEngineFactory> m_engineFactory;
     };
 }
 

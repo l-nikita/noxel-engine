@@ -67,6 +67,8 @@ namespace render
                 m_swapChain->Resize( wW, wH );
         } );
 
+        m_factory = std::make_unique<Factory>( this );
+
         CreateDefaultTextures();
 
         return {};
@@ -91,19 +93,29 @@ namespace render
     }
 
     //-----------------------------------------------------------------------------
-    RefCntAutoPtr<IRenderDevice> RenderSystem::GetDevice()
+    IRenderDevice* RenderSystem::GetDevice() const
     {
-        return m_device;
+        return m_device.RawPtr();
     }
 
-    RefCntAutoPtr<IDeviceContext> RenderSystem::GetContext()
+    IDeviceContext* RenderSystem::GetContext() const
     {
-        return m_context;
+        return m_context.RawPtr();
     }
 
-    RefCntAutoPtr<ISwapChain> RenderSystem::GetSwapChain()
+    ISwapChain* RenderSystem::GetSwapChain() const
     {
-        return m_swapChain;
+        return m_swapChain.RawPtr();
+    }
+
+    IEngineFactory* RenderSystem::GetEngineFactory() const
+    {
+        return m_engineFactory.RawPtr();
+    }
+
+    Factory* RenderSystem::GetFactory() const
+    {
+        return m_factory.get();
     }
 
     const DefaultTextures& RenderSystem::GetDefaultTextures()
@@ -136,6 +148,8 @@ namespace render
 
         factoryD3D11->CreateSwapChainD3D11( m_device, m_context, scDesc, FullScreenModeDesc{}, Window,
                                             &m_swapChain );
+
+        m_engineFactory = factoryD3D11;
 #endif
 
         return {};
@@ -145,9 +159,9 @@ namespace render
     void RenderSystem::CreateDefaultTextures()
     {
         m_defTextures = {
-            .Black = Factory::CreateSolidTexture( {0, 0, 0, 255}, "Black" ),
-            .White = Factory::CreateSolidTexture( {255, 255, 255, 255}, "White" ),
-            .NeutralNormal = Factory::CreateSolidTexture( {128, 128, 255, 255}, "Neutral Normal" ),
+            .Black = m_factory->CreateSolidTexture( {0, 0, 0, 255}, "Black" ),
+            .White = m_factory->CreateSolidTexture( {255, 255, 255, 255}, "White" ),
+            .NeutralNormal = m_factory->CreateSolidTexture( {128, 128, 255, 255}, "Neutral Normal" ),
         };
     }
 }

@@ -43,20 +43,6 @@ namespace render
         float _pad0;
     };
 
-    struct alignas(16) CBDebugData
-    {
-        int DebugView;
-        int DebugLightIndex;
-        float DebugOverlayOpacity;
-        float DebugExposure;
-        glm::vec3 CameraForward;
-        float CameraNear;
-        float CameraFar;
-        int IBLEnabled;
-        float _pad0;
-        float _pad1;
-    };
-
     enum MaterialTextureFlags : std::uint32_t
     {
         MATERIAL_HAS_COLOR_MAP = 1u << 0,

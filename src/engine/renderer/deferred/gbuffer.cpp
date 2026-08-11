@@ -27,14 +27,14 @@ namespace render::deferred
 
         auto device = m_render->GetDevice();
 
-        const auto createRenderTarget = [&]( RenderTarget& rt, const char* name )
+        const auto createRenderTarget = [&]( RenderTarget& rt, const char* name, TEXTURE_FORMAT format )
         {
             TextureDesc desc;
             desc.Name = name;
             desc.Type = RESOURCE_DIM_TEX_2D;
             desc.Width = width;
             desc.Height = height;
-            desc.Format = TEX_FORMAT_RGBA8_UNORM; // TEX_FORMAT_RGBA32_FLOAT
+            desc.Format = format;
             desc.MipLevels = 1;
             desc.BindFlags = BIND_RENDER_TARGET | BIND_SHADER_RESOURCE;
             desc.Usage = USAGE_DEFAULT;
@@ -49,10 +49,10 @@ namespace render::deferred
             rt.SRV = rt.Texture->GetDefaultView( TEXTURE_VIEW_SHADER_RESOURCE );
         };
 
-        createRenderTarget( m_color, "GBuffer Color" );
-        createRenderTarget( m_normal, "GBuffer Normal" );
-        createRenderTarget( m_position, "GBuffer Position" );
-        createRenderTarget( m_specular, "GBuffer Specular" );
+        createRenderTarget( m_color, "GBuffer Color", TEX_FORMAT_RGBA8_UNORM );
+        createRenderTarget( m_normal, "GBuffer Normal", TEX_FORMAT_RGBA8_UNORM );
+        createRenderTarget( m_position, "GBuffer Position", TEX_FORMAT_RGBA16_FLOAT );
+        createRenderTarget( m_specular, "GBuffer Specular", TEX_FORMAT_RGBA8_UNORM );
 
         TextureDesc depthDesc;
         depthDesc.Name = "GBuffer Depth";

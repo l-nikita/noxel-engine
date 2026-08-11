@@ -33,6 +33,8 @@ file( GLOB RENDERER_FILES
         "renderer/*.hpp"
         "renderer/deferred/*.cpp"
         "renderer/deferred/*.hpp"
+        "renderer/deferred/passes/*.cpp"
+        "renderer/deferred/passes/*.hpp"
 )
 
 set( ALL_SOURCES ${SOURCES} ${HEADERS} ${RENDERER_FILES} )

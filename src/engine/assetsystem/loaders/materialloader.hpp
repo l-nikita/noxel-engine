@@ -40,7 +40,7 @@ namespace assets::loaders
                 auto data = new MaterialData();
                 data->AssetId = asset->Id;
 
-                auto shaderAss = g_Assets->GetAsset( json[ "shader" ].get<std::string>(), Type::SHADER );
+                auto shaderAss = g_Assets->FindAsset( json[ "shader" ].get<std::string>(), Type::SHADER );
                 if ( !shaderAss )
                 {
                     delete data;
@@ -64,7 +64,7 @@ namespace assets::loaders
                     {
                         const auto value = param.get<std::string>();
 
-                        if ( const auto texture = g_Assets->GetAsset( value, Type::TEXTURE ) )
+                        if ( const auto texture = g_Assets->FindAsset( value, Type::TEXTURE ) )
                             data->TexturesParameters[ paramName ] = texture.value();
                         else
                         {

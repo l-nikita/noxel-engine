@@ -55,7 +55,7 @@ namespace assets
         return m_assets;
     }
 
-    std::optional<Id> AssetSystem::GetAsset( const fs::Path& path, Type type ) const
+    std::optional<Id> AssetSystem::FindAsset( const fs::Path& path, Type type ) const
     {
         const auto query = path.lexically_normal();
         const auto absoluteQuery = query.is_absolute()

@@ -9,7 +9,6 @@
 #include "engine/window.hpp"
 #include "renderer/camera.hpp"
 #include "renderer/rendersystem.hpp"
-#include "renderer/shader_cbuffers.hpp"
 #include "renderer/vertex.hpp"
 
 namespace render::deferred
@@ -73,9 +72,24 @@ namespace render::deferred
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
+    DeferredRenderPipeline::DeferredRenderPipeline( RenderSystem* render )
+        : m_render( render )
+    {
+        passes::DeferredPassContext ctx{
+            .Render = render,
+            .Pipeline = this,
+        };
+
+        m_geometryPass = std::make_unique<passes::GeometryPass>( ctx );
+        m_lightingPass = std::make_unique<passes::LightingPass>( ctx );
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
     SysInit DeferredRenderPipeline::Initialize()
     {
-        auto window = g_Render->GetWindow();
+        auto window = m_render->GetWindow();
         auto [ wW, wH ] = window->GetSize();
 
         m_mainCamera = std::make_unique<Camera>( wW, wH );
@@ -83,11 +97,11 @@ namespace render::deferred
         m_mainCamera->SetNear( 0.01f );
         m_mainCamera->SetFar( 100.0f );
 
-        m_GBuffer = std::make_unique<GBuffer>( g_Render, this );
+        m_GBuffer = std::make_unique<GBuffer>( m_render, this );
         m_GBuffer->Setup( wW, wH );
 
-        m_geometryPass = std::make_unique<GeometryPass>( g_Render, this );
         m_geometryPass->Setup();
+        m_lightingPass->Setup();
 
         SetupTestModel();
 
@@ -119,14 +133,6 @@ namespace render::deferred
     {
         ClearBackBuffer();
 
-        GeometryPassContext gpr{
-            .GBuffer = m_GBuffer.get(),
-            .Camera = m_mainCamera.get(),
-            .ModelRenderers = m_models,
-        };
-
-        m_geometryPass->Render( gpr );
-
         static auto totalTime = 0.0f;
         totalTime += g_Engine->DeltaTime();
 
@@ -139,8 +145,17 @@ namespace render::deferred
         glm::quat rot = glm::angleAxis( totalTime * 3.0f, glm::normalize( glm::vec3( 0.0f, 1.0f, 0.0f ) ) );
         g_TestModel->SetRotation( rot );
 
-        auto swapChain = g_Render->GetSwapChain();
-        auto context = g_Render->GetContext();
+        passes::GeometryPassContext gpc{
+            .GBuffer = m_GBuffer.get(),
+            .Camera = m_mainCamera.get(),
+            .ModelRenderers = m_models,
+        };
+
+        m_geometryPass->Render( gpc );
+
+        /*
+        auto swapChain = m_render->GetSwapChain();
+        auto context = m_render->GetContext();
 
         ITextureView* bBuffer = swapChain->GetCurrentBackBufferRTV();
 
@@ -151,15 +166,16 @@ namespace render::deferred
         copyAttribs.DstTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
 
         context->CopyTexture( copyAttribs );
+        */
 
-        g_Render->Present();
-    }
+        passes::LightingPassContext lpc{
+            .GBuffer = m_GBuffer.get(),
+            .Camera = m_mainCamera.get(),
+        };
 
-    //-----------------------------------------------------------------------------
-    void DeferredRenderPipeline::AddModel( std::unique_ptr<ModelRenderer> model )
-    {
-        if ( model )
-            m_models.push_back( std::move( model ) );
+        m_lightingPass->Render( lpc );
+
+        m_render->Present();
     }
 
     Camera* DeferredRenderPipeline::GetCamera() const
@@ -212,13 +228,13 @@ namespace render::deferred
 
         CalculateTangents( cubeData.Vertices, cubeData.Indices );
 
-        const auto metalId = g_Assets->GetAsset( "materials/metal1.nmt", assets::Type::MATERIAL );
-        const auto dirtId = g_Assets->GetAsset( "materials/dirt1.nmt", assets::Type::MATERIAL );
+        const auto metalId = g_Assets->FindAsset( "materials/metal1.nmt", assets::Type::MATERIAL );
+        const auto dirtId = g_Assets->FindAsset( "materials/dirt1.nmt", assets::Type::MATERIAL );
 
         auto metalData = g_Assets->LoadData<assets::MaterialData>( *metalId );
         auto dirtData = g_Assets->LoadData<assets::MaterialData>( *dirtId );
 
-        m_testMesh = std::make_unique<Mesh>( g_Render->GetDevice(), cubeData );
+        m_testMesh = std::make_unique<Mesh>( m_render->GetDevice(), cubeData );
         m_testMaterial = std::make_unique<Material>( *metalData );
         m_testMaterial2 = std::make_unique<Material>( *dirtData );
 
@@ -252,10 +268,17 @@ namespace render::deferred
     }
 
     //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::AddModel( std::unique_ptr<ModelRenderer> model )
+    {
+        if ( model )
+            m_models.push_back( std::move( model ) );
+    }
+
+    //-----------------------------------------------------------------------------
     void DeferredRenderPipeline::ClearBackBuffer()
     {
-        auto swapChain = g_Render->GetSwapChain();
-        auto context = g_Render->GetContext();
+        auto swapChain = m_render->GetSwapChain();
+        auto context = m_render->GetContext();
 
         ITextureView* bBuffer = swapChain->GetCurrentBackBufferRTV();
         ITextureView* bBufferDepth = swapChain->GetDepthBufferDSV();

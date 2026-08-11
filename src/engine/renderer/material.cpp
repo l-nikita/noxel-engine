@@ -20,9 +20,11 @@ namespace render
         auto shaderData = g_Assets->LoadData<assets::ShaderData>( m_shaderId );
         assert( shaderData );
 
-        const auto createError = [this]( const std::string& paramName )
+        auto factory = g_Render->GetFactory();
+
+        const auto createError = [this, factory]( const std::string& paramName )
         {
-            m_textures[ paramName ] = Factory::CreateTexture( assets::ERROR_TEXTURE_ID );
+            m_textures[ paramName ] = factory->CreateTexture( assets::ERROR_TEXTURE_ID );
         };
 
         for ( const auto& [ paramName, shaderParam ]: shaderData->Textures )
@@ -47,7 +49,7 @@ namespace render
                     continue;
                 }
 
-                m_textures[ paramName ] = Factory::CreateTexture( *id );
+                m_textures[ paramName ] = factory->CreateTexture( *id );
                 continue;
             }
 

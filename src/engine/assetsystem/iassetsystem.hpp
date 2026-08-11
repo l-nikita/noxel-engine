@@ -19,7 +19,7 @@ namespace assets
     {
     public:
         virtual const Assets& GetAssets() const = 0;
-        virtual std::optional<Id> GetAsset( const fs::Path& path, Type type ) const = 0;
+        virtual std::optional<Id> FindAsset( const fs::Path& path, Type type ) const = 0;
         virtual const Asset* GetAsset( const Id& assetId ) const = 0;
         virtual Id GetErrorAsset( Type type ) const = 0;
 
@@ -40,6 +40,8 @@ namespace assets
         {
             return LoadData<T>( GetAsset( assetId ) );
         }
+
+        // TODO: FindAssetAndLoadData
 
     protected:
         virtual IAssetData* LoadDataImpl( const Asset* asset ) = 0;

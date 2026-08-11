@@ -27,7 +27,7 @@ void Engine::InitializeSystems()
     g_Input = m_input = new input::Input();
     g_Physics = m_physics = new phys::JoltPhysics();
     g_Render = m_render = new render::RenderSystem( GetPrimaryWindow() );
-    g_RenderPipeline = m_renderPipeline = new render::deferred::DeferredRenderPipeline();
+    g_RenderPipeline = m_renderPipeline = new render::deferred::DeferredRenderPipeline( m_render );
 
     m_systems.append_range( std::initializer_list<ISystem*>{
         m_fileSystem,

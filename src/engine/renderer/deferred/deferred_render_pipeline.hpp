@@ -9,7 +9,8 @@
 #include "renderer/mesh.hpp"
 #include "renderer/modelrenderer.hpp"
 #include "renderer/rendersystem.hpp"
-#include "renderer/deferred/geometrypass.hpp"
+#include "renderer/deferred/passes/geometrypass.hpp"
+#include "renderer/deferred/passes/lightingpass.hpp"
 #include "renderer/deferred/gbuffer.hpp"
 
 namespace render::deferred
@@ -23,19 +24,18 @@ namespace render::deferred
         SYSTEM_METADATA( RENDER_PIPELINE, "DeferredRenderPipeline", SysId::RENDER );
 
     public:
-        DeferredRenderPipeline() = default;
+        DeferredRenderPipeline( RenderSystem* render );
 
         SysInit Initialize() override;
         void Shutdown() override;
 
         void Render() override;
 
-        void AddModel( std::unique_ptr<ModelRenderer> model );
-
         Camera* GetCamera() const override;
 
     private:
         void SetupTestModel();
+        void AddModel( std::unique_ptr<ModelRenderer> model );
 
         void ClearBackBuffer();
 
@@ -43,7 +43,8 @@ namespace render::deferred
         std::unique_ptr<GBuffer> m_GBuffer = {};
 
         // Passes
-        std::unique_ptr<GeometryPass> m_geometryPass = {};
+        std::unique_ptr<passes::GeometryPass> m_geometryPass;
+        std::unique_ptr<passes::LightingPass> m_lightingPass;
 
         std::unique_ptr<Camera> m_mainCamera = {};
 
@@ -52,5 +53,8 @@ namespace render::deferred
         std::unique_ptr<Material> m_testMaterial;
         std::unique_ptr<Material> m_testMaterial2;
         std::vector<std::unique_ptr<ModelRenderer>> m_models;
+
+    private:
+        RenderSystem* m_render = nullptr;
     };
 }

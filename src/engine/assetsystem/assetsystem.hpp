@@ -20,7 +20,7 @@ namespace assets
         void Shutdown() override;
 
         const Assets& GetAssets() const override;
-        std::optional<Id> GetAsset( const fs::Path& path, Type type ) const override;
+        std::optional<Id> FindAsset( const fs::Path& path, Type type ) const override;
         const Asset* GetAsset( const Id& assetId ) const override;
         Id GetErrorAsset( Type type ) const override;
 

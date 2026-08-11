@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include "assetsystem/asset.hpp"
 #include "filesystem/ifilesystem.hpp"

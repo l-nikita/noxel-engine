@@ -1,9 +1,44 @@
 {
     "name": "LightingPass",
+    "source_language": "HLSL",
     "pixel_shader": {
         "file": "lightingpass_ps.hlsl"
     },
     "vertex_shader": {
         "file": "lightingpass_vs.hlsl"
+    },
+    "parameters": {
+        "textures": {
+            "gbuffer_color": {
+                "var_bind": "g_tColor",
+                "var_type": "DYNAMIC",
+                "def_texture": "white"
+            },
+            "gbuffer_normal": {
+                "var_bind": "g_tNormal",
+                "var_type": "DYNAMIC",
+                "def_texture": "neutral_normal"
+            },
+            "gbuffer_rough": {
+                "var_bind": "g_tPosition",
+                "var_type": "DYNAMIC",
+                "def_texture": "black"
+            },
+            "gbuffer_metal": {
+                "var_bind": "g_tSpecular",
+                "var_type": "DYNAMIC",
+                "def_texture": "black"
+            }
+        },
+        "samplers": {
+            "g_sSampler": {
+                "min_filter": "LINEAR",
+                "mag_filter": "LINEAR",
+                "mip_filter": "LINEAR",
+                "address_u": "WRAP",
+                "address_v": "WRAP",
+                "address_w": "WRAP"
+            }
+        }
     }
 }
