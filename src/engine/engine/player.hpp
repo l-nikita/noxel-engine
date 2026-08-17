@@ -2,11 +2,11 @@
 
 #include <algorithm>
 #include <limits>
+#include <print>
 #include <Jolt/Jolt.h>
-#include <Jolt/Physics/Character/Character.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
-#include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 
@@ -16,6 +16,7 @@
 #include "physics/physics.hpp"
 #include "physics/physics_renderer.hpp"
 #include "renderer/camera.hpp"
+#include "renderer/lighting.hpp"
 
 constexpr auto SENSITIVITY = 0.15f;
 constexpr auto CHARACTER_RADIUS = 0.3f;
@@ -51,16 +52,22 @@ public:
                                                  phys::GetPhysics()->GetSystem() );
         m_character->SetUp( JPH::Vec3( 0, 1, 0 ) );
 
-        m_previousCharacterPosition = Utils::GLM_Vec3_JPH( m_character->GetPosition() );
+        m_previousCharacterPosition = utils::GLM_Vec3_JPH( m_character->GetPosition() );
         m_currentCharacterPosition = m_previousCharacterPosition;
+    }
+
+    template<typename T>
+    constexpr T remap( T value, T inMin, T inMax, T outMin, T outMax )
+    {
+        return outMin + ( value - inMin ) * ( outMax - outMin ) / ( inMax - inMin );
     }
 
     void UpdateCamera()
     {
         JPH::RayCastResult hit;
         const JPH::RRayCast ray(
-            Utils::JPH_Vec3_GLM( m_Camera->GetPosition() ),
-            Utils::JPH_Vec3_GLM( m_Camera->Backward() ) * 15
+            utils::JPH_Vec3_GLM( m_Camera->GetPosition() ),
+            utils::JPH_Vec3_GLM( m_Camera->Backward() ) * 15
         );
 
         Raycast( phys::GetPhysics()->GetSystem(), ray, hit );
@@ -69,6 +76,19 @@ public:
                                        g_Engine->FixedAlpha() );
         auto eyePos = feetPos + glm::vec3( 0, CHARACTER_EYE_HEIGHT, 0 );
 
+        /*
+        static float totalTime = 0.0f;
+        totalTime += g_Engine->DeltaTime();
+
+        auto velLength = m_character->GetLinearVelocity().Length();
+
+        if ( m_character->GetGroundState() == JPH::Character::EGroundState::OnGround )
+        {
+            eyePos = eyePos + glm::vec3( 0, 1, 0 ) * std::sin( totalTime * 16.0f ) * 0.1f * remap(
+                         velLength, 0.0f, 7.0f, 0.0f, 1.0f );
+        }
+        */
+
         if ( m_thirdPerson )
         {
             constexpr auto targetDistance = 3.0f;
@@ -76,8 +96,8 @@ public:
 
             JPH::RayCastResult hit;
             const JPH::RRayCast ray(
-                Utils::JPH_Vec3_GLM( eyePos ),
-                Utils::JPH_Vec3_GLM( rayDir * targetDistance * ( targetDistance / 2 ) )
+                utils::JPH_Vec3_GLM( eyePos ),
+                utils::JPH_Vec3_GLM( rayDir * targetDistance * ( targetDistance / 2 ) )
             );
 
             if ( Raycast( phys::GetPhysics()->GetSystem(), ray, hit ) )
@@ -97,10 +117,14 @@ public:
         const auto forward = glm::vec3( m_Camera->Forward().x, 0, m_Camera->Forward().z );
         const auto right = glm::vec3( m_Camera->Right().x, 0, m_Camera->Right().z );
 
-        if ( g_Input->IsKeyDown( SDL_SCANCODE_W ) ) dir += forward;
-        if ( g_Input->IsKeyDown( SDL_SCANCODE_S ) ) dir -= forward;
-        if ( g_Input->IsKeyDown( SDL_SCANCODE_A ) ) dir -= right;
-        if ( g_Input->IsKeyDown( SDL_SCANCODE_D ) ) dir += right;
+        if ( g_Input->IsKeyDown( SDL_SCANCODE_W ) )
+            dir += forward;
+        if ( g_Input->IsKeyDown( SDL_SCANCODE_S ) )
+            dir -= forward;
+        if ( g_Input->IsKeyDown( SDL_SCANCODE_A ) )
+            dir -= right;
+        if ( g_Input->IsKeyDown( SDL_SCANCODE_D ) )
+            dir += right;
 
         if ( glm::length( dir ) > 0.0f )
             dir = glm::normalize( dir );
@@ -136,11 +160,11 @@ public:
     {
         m_character->UpdateGroundVelocity();
 
-        const auto up = Utils::GLM_Vec3_JPH( m_character->GetUp() );
-        const auto currentVelocity = Utils::GLM_Vec3_JPH( m_character->GetLinearVelocity() );
+        const auto up = utils::GLM_Vec3_JPH( m_character->GetUp() );
+        const auto currentVelocity = utils::GLM_Vec3_JPH( m_character->GetLinearVelocity() );
         const auto currentVerticalVelocity = glm::dot( currentVelocity, up ) * up;
         const auto currentHorizontalVelocity = currentVelocity - currentVerticalVelocity;
-        const auto groundVelocity = Utils::GLM_Vec3_JPH( m_character->GetGroundVelocity() );
+        const auto groundVelocity = utils::GLM_Vec3_JPH( m_character->GetGroundVelocity() );
         const auto groundVerticalVelocity = glm::dot( groundVelocity, up ) * up;
         const auto groundHorizontalVelocity = groundVelocity - groundVerticalVelocity;
         const auto movingTowardsGround = glm::dot( currentVerticalVelocity - groundVerticalVelocity, up ) < 0.1f;
@@ -182,7 +206,7 @@ public:
         }
 
         velocity += g_Physics->GetGravity() * CHARACTER_GRAVITY_SCALE * dt;
-        m_character->SetLinearVelocity( Utils::JPH_Vec3_GLM( velocity ) );
+        m_character->SetLinearVelocity( utils::JPH_Vec3_GLM( velocity ) );
     }
 
     bool Raycast(
@@ -201,12 +225,12 @@ public:
 
         JPH::RayCastResult hit;
         const JPH::RRayCast ray(
-            Utils::JPH_Vec3_GLM( StartPos ),
-            Utils::JPH_Vec3_GLM( m_Camera->Forward() ) * 5
+            utils::JPH_Vec3_GLM( StartPos ),
+            utils::JPH_Vec3_GLM( m_Camera->Forward() ) * 5
         );
 
         if ( Raycast( phys::GetPhysics()->GetSystem(), ray, hit ) )
-            HitPos = Utils::GLM_Vec3_JPH( ray.GetPointOnRay( hit.mFraction ) );
+            HitPos = utils::GLM_Vec3_JPH( ray.GetPointOnRay( hit.mFraction ) );
         else
             HitPos = StartPos + m_Camera->Forward() * 5.0f;
     }
@@ -243,6 +267,9 @@ public:
         if ( g_Input->IsKeyPressed( SDL_SCANCODE_C ) )
             m_thirdPerson = !m_thirdPerson;
 
+        if ( m_Flashlight && g_Input->IsKeyPressed( SDL_SCANCODE_F ) )
+            m_Flashlight->Toggle();
+
         m_moveInput = GetMovementDir();
 
         if ( g_Input->IsKeyPressed( SDL_SCANCODE_SPACE ) )
@@ -254,7 +281,7 @@ public:
         m_previousCharacterPosition = m_currentCharacterPosition;
         UpdateMovement( dt );
         UpdatePhysics( dt );
-        m_currentCharacterPosition = Utils::GLM_Vec3_JPH( m_character->GetPosition() );
+        m_currentCharacterPosition = utils::GLM_Vec3_JPH( m_character->GetPosition() );
     }
 
     void UpdatePhysics( float dt ) const
@@ -286,6 +313,7 @@ public:
     }
 
     render::Camera* m_Camera = nullptr;
+    render::Light* m_Flashlight = nullptr;
 
 private:
     float m_yaw = 0.0f;

@@ -10,7 +10,7 @@
 #include "iphysics.hpp"
 #include "physics_layers.hpp"
 #include "physics_listeners.hpp"
-#include "utils.hpp"
+#include "../common/utils.hpp"
 
 namespace phys
 {
@@ -39,7 +39,7 @@ namespace phys
 
         glm::vec3 GetGravity() const override
         {
-            return Utils::GLM_Vec3_JPH( m_system->GetGravity() );
+            return utils::GLM_Vec3_JPH( m_system->GetGravity() );
         }
 
         JPH::PhysicsSystem* GetSystem() const

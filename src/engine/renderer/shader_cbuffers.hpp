@@ -9,6 +9,14 @@ namespace render
         glm::mat4 Model;
         glm::mat4 View;
         glm::mat4 Projection;
+        glm::mat4 ModelView;
+        glm::mat4 InvModelView;
+    };
+
+    struct CBViewData
+    {
+        glm::mat4 View;
+        glm::mat4 InvView;
     };
 
     struct CBTint
@@ -25,11 +33,11 @@ namespace render
         glm::vec3 Pos;
         float _pad3;
         glm::vec3 Dir;
-        float _pad4;
+        float Brightness;
         glm::vec3 Color;
-        float _pad5;
         float Radius;
-        float Cutoff;
+        float OuterCutoff;
+        float InnerCutoff;
         int ShadowMapIndex;
         float ShadowSoftness;
         glm::mat4 View;
@@ -39,8 +47,10 @@ namespace render
     struct CBLightsData
     {
         CBLight Lights[ MAX_LIGHTS ];
-        glm::vec3 ViewPos;
-        float _pad0;
+        std::uint32_t LightCount;
+        std::uint32_t _pad0;
+        std::uint32_t _pad1;
+        std::uint32_t _pad2;
     };
 
     enum MaterialTextureFlags : std::uint32_t
@@ -59,10 +69,10 @@ namespace render
 
         float NormalFactor = 1.0f;
         float RoughFactor = 1.0f;
-        float MetalFactor = 0.0f;
+        float MetalFactor = 1.0f;
         float AOFactor = 1.0f;
+        float HeightFactor = 1.0f;
 
-        float HeightFactor = 0.0f;
         std::uint32_t TextureMask = 0;
         float _pad0 = 0.0f;
         float _pad1 = 0.0f;

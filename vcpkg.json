@@ -1,38 +1,38 @@
 {
-  "name": "noxel-engine",
-  "version": "1.0.0",
-  "dependencies": [
-    "boost-uuid",
-    "sdl3",
-    "glm",
-    "nlohmann-json",
-    "stb",
-    "tinygltf",
-    {
-      "name": "imgui",
-      "features": [
+    "name": "noxel-engine",
+    "version": "1.0.0",
+    "dependencies": [
+        "boost-uuid",
+        "sdl3",
+        "glm",
+        "nlohmann-json",
+        "stb",
+        "tinygltf",
         {
-          "name": "sdl3-binding"
+            "name": "imgui",
+            "features": [
+                {
+                    "name": "sdl3-binding"
+                },
+                {
+                    "name": "dx11-binding",
+                    "platform": "windows"
+                }
+            ]
         },
         {
-          "name": "dx11-binding",
-          "platform": "windows"
+            "name": "joltphysics",
+            "features": [
+                "debugrenderer",
+                "rtti"
+            ]
+        },
+        {
+            "name": "mimalloc",
+            "features": [
+                "override"
+            ]
         }
-      ]
-    },
-    {
-      "name": "joltphysics",
-      "features": [
-        "debugrenderer",
-        "rtti"
-      ]
-    },
-    {
-      "name": "mimalloc",
-      "features": [
-        "override"
-      ]
-    }
-  ],
-  "builtin-baseline": "0382773916ebb607ee34b4ec502bc0244ba1162e"
+    ],
+    "builtin-baseline": "e4ed9022bd97e54d848104f7e1ab153d9532a57e"
 }

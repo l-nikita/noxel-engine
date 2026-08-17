@@ -14,6 +14,11 @@ namespace render
         Diligent::RefCntAutoPtr<IShader> PixelShader;
     };
 
+    struct TextureCubeData
+    {
+        std::array<assets::Id, 6> Faces;
+    };
+
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
@@ -27,8 +32,14 @@ namespace render
                                   const assets::ShaderData& data, IPipelineState** state );
 
         Diligent::RefCntAutoPtr<ITexture> CreateTexture( const assets::Id& id );
+        Diligent::RefCntAutoPtr<ITexture> CreateTextureCube( const TextureCubeData& cubeData );
+        Diligent::RefCntAutoPtr<ITexture> CreateTextureCube( const assets::Id& matId );
+
         Diligent::RefCntAutoPtr<ITexture> CreateSolidTexture( const std::array<std::uint8_t, 4>& color,
                                                               const std::string& name );
+
+        Diligent::RefCntAutoPtr<ITexture> CreateSolidTextureCube( const std::array<std::uint8_t, 4>& color,
+                                                                  const std::string& name );
 
     private:
         Diligent::RefCntAutoPtr<IShaderSourceInputStreamFactory> m_shaderSourceFactory;

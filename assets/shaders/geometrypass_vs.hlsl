@@ -3,6 +3,9 @@ cbuffer Transform : register(b0)
     matrix Model;
     matrix View;
     matrix Projection;
+
+    matrix ModelView;
+    matrix InvModelView;
 };
 
 struct VS_INPUT
@@ -18,7 +21,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 vPos         : SV_POSITION;
-    float3 vWorldPos    : POSITION;
+    float3 vViewPos     : POSITION;
     float3 vNormal      : NORMAL;
     float3 vTangent     : TANGENT;
     float3 vBitangent   : BINORMAL;
@@ -31,13 +34,15 @@ VS_OUTPUT main(VS_INPUT input)
     VS_OUTPUT o;
 
     float4 worldPos = mul(float4(input.iPos, 1.0f), Model);
-    float3x3 normalMat = (float3x3)Model;
-    float3 N = normalize(mul(input.iNormal, normalMat));
+    float4 viewPos = mul(worldPos, View);
+
+    float3 N = normalize(mul(input.iNormal, (float3x3)InvModelView));
+    float3 T = normalize(mul(input.iTangent, (float3x3)ModelView));
 	
-    o.vPos = mul(mul(worldPos, View), Projection);
-    o.vWorldPos = worldPos.xyz;
+    o.vPos = mul(viewPos, Projection);
+    o.vViewPos = viewPos.xyz;
     o.vNormal = N;
-    o.vTangent = input.iTangent;
+    o.vTangent = T;
     o.vBitangent = input.iBitangent;
     o.vUV = input.iUV;
     o.vColor = input.iColor;

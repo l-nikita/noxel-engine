@@ -9,7 +9,7 @@ namespace render
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    class Camera : public Transformable
+    class Camera : public Transformable<Camera>
     {
     public:
         Camera( int width, int height );
@@ -22,9 +22,10 @@ namespace render
             return m_fov;
         }
 
-        void SetFOV( float _fov )
+        Camera& SetFOV( float _fov )
         {
             m_fov = _fov;
+            return *this;
         }
 
         float GetNear() const
@@ -32,9 +33,10 @@ namespace render
             return m_near;
         }
 
-        void SetNear( float _near )
+        Camera& SetNear( float _near )
         {
             m_near = _near;
+            return *this;
         }
 
         float GetFar() const
@@ -42,9 +44,10 @@ namespace render
             return m_far;
         }
 
-        void SetFar( float _far )
+        Camera& SetFar( float _far )
         {
             m_far = _far;
+            return *this;
         }
 
         float GetAspect() const

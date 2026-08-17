@@ -25,7 +25,7 @@ file( GLOB_RECURSE HEADERS CONFIGURE_DEPENDS
         "physics/*.hpp"
         "server/*.hpp"
         "common.hpp"
-        "utils.hpp"
+        "common/utils.hpp"
 )
 
 file( GLOB RENDERER_FILES

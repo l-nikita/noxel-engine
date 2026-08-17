@@ -28,6 +28,11 @@
                 "var_bind": "g_tSpecular",
                 "var_type": "DYNAMIC",
                 "def_texture": "black"
+            },
+            "skybox": {
+                "var_bind": "g_tCubemap",
+                "var_type": "DYNAMIC",
+                "def_texture": "black"
             }
         },
         "samplers": {

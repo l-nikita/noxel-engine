@@ -205,7 +205,7 @@ namespace phys
                            ), EActivation::Activate );
 
         const auto rot = glm::angleAxis( totalTime * 3.0f, glm::normalize( glm::vec3( 0.0f, 1.0f, 0.0f ) ) );
-        iBody.SetRotation( g_BodyId, Utils::JPH_Quat_GLM( rot ), JPH::EActivation::Activate );
+        iBody.SetRotation( g_BodyId, utils::JPH_Quat_GLM( rot ), JPH::EActivation::Activate );
 
         // Step the world
         m_system->Update( dt, cCollisionSteps, m_tempAllocator, m_jobSystem );

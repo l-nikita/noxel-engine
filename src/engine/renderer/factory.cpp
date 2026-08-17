@@ -1,8 +1,11 @@
+#include <cassert>
 #include <ranges>
 #include <Graphics/GraphicsEngine/interface/RenderDevice.h>
 
 #include "renderer/factory.hpp"
+
 #include "assetsystem/iassetsystem.hpp"
+#include "assetsystem/materialdata.hpp"
 #include "assetsystem/shaderdata.hpp"
 #include "assetsystem/texturedata.hpp"
 #include "dbg/debug.hpp"
@@ -80,6 +83,9 @@ namespace render
         return shader;
     }
 
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
     void Factory::CreatePipelineState( GraphicsPipelineStateCreateInfo& info, const assets::ShaderData& data,
                                        IPipelineState** state )
     {
@@ -161,20 +167,24 @@ namespace render
         device->CreateGraphicsPipelineState( info, state );
     }
 
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
     RefCntAutoPtr<ITexture> Factory::CreateTexture( const assets::Id& id )
     {
         auto asset = g_Assets->GetAsset( id );
         auto data = g_Assets->LoadData<assets::TextureData>( asset );
+        assert( data );
 
-        TextureDesc texDesc;
-        texDesc.Name = asset->Name.c_str();
-        texDesc.Type = RESOURCE_DIM_TEX_2D;
-        texDesc.Width = data->Width;
-        texDesc.Height = data->Height;
-        texDesc.Format = TEX_FORMAT_RGBA8_UNORM;
-        texDesc.MipLevels = 1;
-        texDesc.BindFlags = BIND_SHADER_RESOURCE;
-        texDesc.Usage = USAGE_IMMUTABLE;
+        TextureDesc desc;
+        desc.Name = asset->Name.c_str();
+        desc.Type = RESOURCE_DIM_TEX_2D;
+        desc.Width = data->Width;
+        desc.Height = data->Height;
+        desc.Format = TEX_FORMAT_RGBA8_UNORM;
+        desc.MipLevels = 1;
+        desc.BindFlags = BIND_SHADER_RESOURCE;
+        desc.Usage = USAGE_IMMUTABLE;
 
         TextureSubResData subresource;
         subresource.pData = data->Image;
@@ -187,7 +197,7 @@ namespace render
         RefCntAutoPtr<ITexture> texture;
 
         auto device = m_render->GetDevice();
-        device->CreateTexture( texDesc, &initData, &texture );
+        device->CreateTexture( desc, &initData, &texture );
 
         if ( !texture )
             FATAL_ERROR( "Failed to create texture: " + asset->Name, cmd::RENDERING );
@@ -195,6 +205,85 @@ namespace render
         return texture;
     }
 
+    //-----------------------------------------------------------------------------
+    RefCntAutoPtr<ITexture> Factory::CreateTextureCube( const TextureCubeData& cubeData )
+    {
+        std::array<std::unique_ptr<assets::TextureData>, 6> data;
+
+        for ( std::size_t i = 0; i < 6; i++ )
+        {
+            auto asset = g_Assets->GetAsset( cubeData.Faces[ i ] );
+            data[ i ] = g_Assets->LoadData<assets::TextureData>( asset );
+
+            assert( data[i] );
+        }
+
+        const auto width = data[ 0 ]->Width;
+        const auto height = data[ 0 ]->Height;
+
+        for ( std::size_t i = 1; i < 6; i++ )
+        {
+            assert( data[i]->Width == width );
+            assert( data[i]->Height == height );
+        }
+
+        TextureDesc desc;
+        desc.Name = "TextureCube";
+        desc.Type = RESOURCE_DIM_TEX_CUBE;
+        desc.Width = width;
+        desc.Height = height;
+        desc.ArraySize = 6;
+        desc.Format = TEX_FORMAT_RGBA8_UNORM;
+        desc.MipLevels = 1;
+        desc.BindFlags = BIND_SHADER_RESOURCE;
+        desc.Usage = USAGE_IMMUTABLE;
+
+        std::array<TextureSubResData, 6> subresources;
+        for ( std::size_t i = 0; i < 6; i++ )
+        {
+            subresources[ i ].pData = data[ i ]->Image;
+            subresources[ i ].Stride = width * data[ i ]->Channels;
+        }
+
+        TextureData initData;
+        initData.pSubResources = subresources.data();
+        initData.NumSubresources = 6;
+
+        RefCntAutoPtr<ITexture> texture;
+
+        auto device = m_render->GetDevice();
+        device->CreateTexture( desc, &initData, &texture );
+
+        if ( !texture )
+            FATAL_ERROR( "Failed to create texture cube", cmd::RENDERING );
+
+        return texture;
+    }
+
+    //-----------------------------------------------------------------------------
+    RefCntAutoPtr<ITexture> Factory::CreateTextureCube( const assets::Id& matId )
+    {
+        auto matData = g_Assets->LoadData<assets::MaterialData>( matId );
+        assert( matData );
+        assert( matData->IsCubemap );
+
+        TextureCubeData cubeData = {};
+
+        int i = 0;
+        for ( auto faceName: CUBEMAP_FACES_ORDER )
+        {
+            for ( auto [ texName, texParam ]: matData->TexturesParameters )
+            {
+                if ( texName == faceName )
+                    if ( auto val = std::get_if<assets::Id>( &texParam ) )
+                        cubeData.Faces[ i ] = *val, i++;
+            }
+        }
+
+        return CreateTextureCube( cubeData );
+    }
+
+    //-----------------------------------------------------------------------------
     RefCntAutoPtr<ITexture> Factory::CreateSolidTexture( const std::array<std::uint8_t, 4>& color,
                                                          const std::string& name )
     {
@@ -223,6 +312,42 @@ namespace render
 
         if ( !texture )
             FATAL_ERROR( std::string{"Failed to create texture: "} + name, cmd::RENDERING );
+
+        return texture;
+    }
+
+    RefCntAutoPtr<ITexture> Factory::CreateSolidTextureCube( const std::array<std::uint8_t, 4>& color,
+                                                             const std::string& name )
+    {
+        TextureDesc desc;
+        desc.Name = "TextureCube";
+        desc.Type = RESOURCE_DIM_TEX_CUBE;
+        desc.Width = 1;
+        desc.Height = 1;
+        desc.ArraySize = 6;
+        desc.Format = TEX_FORMAT_RGBA8_UNORM;
+        desc.MipLevels = 1;
+        desc.BindFlags = BIND_SHADER_RESOURCE;
+        desc.Usage = USAGE_IMMUTABLE;
+
+        std::array<TextureSubResData, 6> subresources;
+        for ( std::size_t i = 0; i < 6; i++ )
+        {
+            subresources[ i ].pData = color.data();
+            subresources[ i ].Stride = 1 * 4u;
+        }
+
+        TextureData initData;
+        initData.pSubResources = subresources.data();
+        initData.NumSubresources = 6;
+
+        RefCntAutoPtr<ITexture> texture;
+
+        auto device = m_render->GetDevice();
+        device->CreateTexture( desc, &initData, &texture );
+
+        if ( !texture )
+            FATAL_ERROR( "Failed to create texture cube", cmd::RENDERING );
 
         return texture;
     }

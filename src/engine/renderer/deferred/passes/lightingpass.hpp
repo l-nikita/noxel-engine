@@ -2,6 +2,7 @@
 
 #include "assetsystem/shaderdata.hpp"
 #include "renderer/camera.hpp"
+#include "renderer/lighting.hpp"
 #include "renderer/rendersystem.hpp"
 #include "renderer/deferred/gbuffer.hpp"
 #include "renderer/deferred/passes/deferredpass.hpp"
@@ -33,6 +34,9 @@ namespace render::deferred::passes
         void SetupConstantBuffers();
         void SetupSRB();
 
+        void UpdateLights();
+        void UpdateView( const Camera* camera );
+
     private:
         // Lighting pass shader data
         std::unique_ptr<assets::ShaderData> m_shaderData;
@@ -40,5 +44,15 @@ namespace render::deferred::passes
         Diligent::RefCntAutoPtr<IPipelineState> m_PSO;
         Diligent::RefCntAutoPtr<IShaderResourceBinding> m_SRB;
         Diligent::RefCntAutoPtr<IBuffer> m_lightingCB;
+        Diligent::RefCntAutoPtr<IBuffer> m_viewCB;
+
+        Diligent::RefCntAutoPtr<ITexture> m_skyboxTex;
+
+        Light* m_light1 = nullptr;
+        Light* m_light2 = nullptr;
+        Light* m_light4 = nullptr;
+        Light* m_sunLight = nullptr;
+
+        Light* m_flashlight = nullptr;
     };
 }

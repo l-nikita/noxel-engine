@@ -93,9 +93,9 @@ namespace render::deferred
         auto [ wW, wH ] = window->GetSize();
 
         m_mainCamera = std::make_unique<Camera>( wW, wH );
-        m_mainCamera->SetFOV( 95.0f );
-        m_mainCamera->SetNear( 0.01f );
-        m_mainCamera->SetFar( 100.0f );
+        m_mainCamera->SetFOV( 95.0f )
+                .SetNear( 0.01f )
+                .SetFar( 100.0f );
 
         m_GBuffer = std::make_unique<GBuffer>( m_render, this );
         m_GBuffer->Setup( wW, wH );
@@ -150,29 +150,12 @@ namespace render::deferred
             .Camera = m_mainCamera.get(),
             .ModelRenderers = m_models,
         };
-
         m_geometryPass->Render( gpc );
-
-        /*
-        auto swapChain = m_render->GetSwapChain();
-        auto context = m_render->GetContext();
-
-        ITextureView* bBuffer = swapChain->GetCurrentBackBufferRTV();
-
-        CopyTextureAttribs copyAttribs;
-        copyAttribs.pSrcTexture = m_GBuffer->GetColor().Texture;
-        copyAttribs.SrcTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
-        copyAttribs.pDstTexture = bBuffer->GetTexture();
-        copyAttribs.DstTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
-
-        context->CopyTexture( copyAttribs );
-        */
 
         passes::LightingPassContext lpc{
             .GBuffer = m_GBuffer.get(),
             .Camera = m_mainCamera.get(),
         };
-
         m_lightingPass->Render( lpc );
 
         m_render->Present();

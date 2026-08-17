@@ -43,7 +43,7 @@ cbuffer MaterialFactors : register(b1)
 struct PS_INPUT
 {
     float4 vPos         : SV_POSITION;
-    float3 vWorldPos    : POSITION;
+    float3 vViewPos    : POSITION;
     float3 vNormal      : NORMAL;
     float3 vTangent     : TANGENT;
     float3 vBitangent   : BINORMAL;
@@ -104,7 +104,7 @@ PS_OUTPUT main(PS_INPUT input)
 
     o.gColor = color;
     o.gNormal = float4(finalNormal * 0.5 + 0.5, Emission); // encode normal
-    o.gPosition = float4(input.vWorldPos, 1.0);
+    o.gPosition = float4(input.vViewPos, 1.0);
     o.gSpecular = float4(roughness, metalness, ao, height);
 
     return o;

@@ -1,12 +1,14 @@
 {
-    "shader": "geometrypass.nshader",
+    "shader": "skyboxpass.nshader",
     "is_cubemap": true,
     "parameters": {
-        "nx": "skybox_nx.png",
-        "ny": "skybox_ny.png",
-        "nz": "skybox_nz.png",
-        "px": "skybox_px.png",
-        "py": "skybox_py.png",
-        "pz": "skybox_pz.png"
+        "textures": {
+            "nx": "skybox_nx.png",
+            "ny": "skybox_ny.png",
+            "nz": "skybox_nz.png",
+            "px": "skybox_px.png",
+            "py": "skybox_py.png",
+            "pz": "skybox_pz.png"
+        }
     }
 }

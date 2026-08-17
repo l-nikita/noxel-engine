@@ -203,18 +203,23 @@ namespace render::deferred::passes
     }
 
     //-----------------------------------------------------------------------------
-    void GeometryPass::ApplyTransform( const glm::mat4& modelMatrix, const Camera* camera )
+    void GeometryPass::ApplyTransform( const glm::mat4& modelMat, const Camera* camera )
     {
-        {
-            auto context = m_render->GetContext();
+        auto context = m_render->GetContext();
 
-            MapHelper<CBTransform> transformData{
-                context, m_transformCB, MAP_WRITE, MAP_FLAG_DISCARD
-            };
-            transformData->Model = glm::transpose( modelMatrix );
-            transformData->View = glm::transpose( camera->GetViewMatrix() );
-            transformData->Projection = glm::transpose( camera->GetProjectionMatrix() );
-        }
+        MapHelper<CBTransform> transformData{
+            context, m_transformCB, MAP_WRITE, MAP_FLAG_DISCARD
+        };
+
+        const auto viewMat = camera->GetViewMatrix();
+        const auto modelView = viewMat * modelMat;
+
+        transformData->Model = glm::transpose( modelMat );
+        transformData->View = glm::transpose( viewMat );
+        transformData->Projection = glm::transpose( camera->GetProjectionMatrix() );
+
+        transformData->ModelView = glm::transpose( modelView );
+        transformData->InvModelView = glm::inverse( modelView );
     }
 
     //-----------------------------------------------------------------------------

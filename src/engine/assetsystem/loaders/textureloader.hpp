@@ -22,12 +22,14 @@ namespace assets::loaders
 
         TexDataLoad Load( fs::IFileSystem* fileSystem, const Asset* asset ) override
         {
-            if ( !asset ) return std::unexpected( "Asset is invalid" );
+            if ( !asset )
+                return std::unexpected( "Asset is invalid" );
 
             if ( asset->Id == ERROR_TEXTURE_ID )
                 return LoadErrorTexture();
 
-            if ( !fileSystem ) return std::unexpected( "Filesystem is invalid" );
+            if ( !fileSystem )
+                return std::unexpected( "Filesystem is invalid" );
 
             auto buffer = fileSystem->Read( asset->Path );
             if ( buffer.empty() )
@@ -49,7 +51,7 @@ namespace assets::loaders
             data->Image = image;
             data->Width = width;
             data->Height = height;
-            data->Channels = 4;
+            data->Channels = channels;
 
             return data;
         }

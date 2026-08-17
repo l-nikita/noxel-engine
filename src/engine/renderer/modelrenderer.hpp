@@ -26,7 +26,7 @@ namespace render
     //-------------------------------------------------------------------------
     //
     //-------------------------------------------------------------------------
-    class ModelRenderer final : public Transformable
+    class ModelRenderer final : public Transformable<ModelRenderer>
     {
     public:
         ModelRenderer() = default;

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
 #include <glm/glm.hpp>
 
+#include "../common/utils.hpp"
 #include "common/singleton.hpp"
 #include "common/transformable.hpp"
 
@@ -39,7 +39,7 @@ namespace render
         {
         }
 
-        std::uint32_t GetSize() const
+        const std::uint32_t& GetSize() const
         {
             return m_shadowMapSize;
         }
@@ -51,95 +51,92 @@ namespace render
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    class Light : public Transformable
+    class Light : public Transformable<Light>
     {
     public:
         explicit Light( LightType type, bool shadowsEnabled = false, std::uint32_t shadowMapSize = SHADOW_MAP_SIZE )
             : m_type( type )
         {
             if ( shadowsEnabled && ( IsA( LIGHT_SPOT ) || IsA( LIGHT_DIRECTIONAL ) ) )
-                m_shadowMap = new ShadowMap( shadowMapSize );
+                m_shadowMap = std::make_unique<ShadowMap>( shadowMapSize );
         }
 
-        ~Light()
-        {
-            Release();
-        }
+        bool IsA( LightType type ) const { return m_type == type; }
+        LightType GetType() const { return m_type; }
 
-        void Release()
-        {
-            if ( m_shadowMap )
-                delete m_shadowMap, m_shadowMap = nullptr;
-        }
+        bool IsShadowsEnabled() const { return m_shadowMap != nullptr; }
+        const ShadowMap* GetShadowMap() const { return m_shadowMap.get(); }
+        float GetShadowSoftness() const { return m_shadowSoftness; }
 
-        bool IsA( LightType type ) const
-        {
-            return m_type == type;
-        }
+        bool IsEnabled() const { return m_enabled; }
 
-        LightType GetType() const
-        {
-            return m_type;
-        }
+        float GetRadius() const { return m_radius; }
 
-        bool IsShadowsEnabled() const
-        {
-            return m_shadowMap != nullptr;
-        }
+        float GetOuterCutoff() const { return m_outerCutoff; }
+        float GetOuterCutoffAngle() const { return m_outerCutoffAngle; }
 
-        ShadowMap* GetShadowMap() const
-        {
-            return m_shadowMap;
-        }
+        float GetInnerCutoff() const { return m_innerCutoff; }
+        float GetInnerCutoffAngle() const { return m_innerCutoffAngle; }
 
-        bool IsEnabled() const
-        {
-            return m_enabled;
-        }
+        const glm::vec3& GetColor() const { return m_color; }
+        float GetBrightness() const { return m_brightness; }
 
-        float GetRadius() const
-        {
-            return m_radius;
-        }
-
-        float GetFOV() const
-        {
-            return m_fov;
-        }
-
-        float GetShadowSoftness() const
-        {
-            return m_shadowSoftness;
-        }
-
-        glm::vec3 GetColor() const
-        {
-            return m_color;
-        }
-
-        void SetEnabled( const bool value )
+        Light& SetEnabled( bool value )
         {
             m_enabled = value;
+            return *this;
         }
 
-        void SetRadius( const float radius )
+        Light& Toggle()
         {
-            m_radius = radius;
+            m_enabled = !m_enabled;
+            return *this;
         }
 
-        void SetFOV( const float fov )
+        Light& SetRadius( float radius )
         {
-            m_fov = fov;
+            m_radius = glm::max( radius, 0.0f );
+            return *this;
         }
 
-        void SetShadowSoftness( const float softness )
+        Light& SetShadowSoftness( float softness )
         {
             m_shadowSoftness = glm::max( softness, 0.0f );
+            return *this;
         }
 
-        void SetColor( glm::vec3 color )
+        Light& SetOuterCutoff( float angle )
         {
-            m_color = color;
+            m_outerCutoffAngle = glm::clamp( angle, 0.0f, 180.0f );
+            m_innerCutoffAngle = glm::min( m_innerCutoffAngle, m_outerCutoffAngle );
+
+            m_outerCutoff = std::cos( glm::radians( m_outerCutoffAngle * 0.5f ) );
+            m_innerCutoff = std::cos( glm::radians( m_innerCutoffAngle * 0.5f ) );
+
+            return *this;
+        }
+
+        Light& SetInnerCutoff( float angle )
+        {
+            m_innerCutoffAngle = glm::clamp( angle, 0.0f, 180.0f );
+            m_outerCutoffAngle = glm::max( m_outerCutoffAngle, m_innerCutoffAngle );
+
+            m_innerCutoff = std::cos( glm::radians( m_innerCutoffAngle * 0.5f ) );
+            m_outerCutoff = std::cos( glm::radians( m_outerCutoffAngle * 0.5f ) );
+
+            return *this;
+        }
+
+        Light& SetColor( const glm::vec3& color )
+        {
+            m_color = glm::clamp( color, 0.0f, 1.0f );
+            return *this;
+        }
+
+        Light& SetBrightness( float brightness )
+        {
+            m_brightness = glm::max( brightness, 0.0f );
+            return *this;
         }
 
         glm::mat4 GetViewMatrix() const
@@ -165,68 +162,67 @@ namespace render
                 );
             }
 
-            return glm::perspectiveLH_ZO( glm::radians( m_fov ), 1.0f, 0.1f, GetRadius() );
+            return glm::perspectiveLH_ZO( glm::radians( m_outerCutoff ), 1.0f, 0.1f, GetRadius() );
         }
 
     private:
         LightType m_type;
 
-        ShadowMap* m_shadowMap = nullptr;
+        std::unique_ptr<ShadowMap> m_shadowMap;
 
         bool m_enabled = true;
-        float m_radius = 15;
-        float m_fov = 75;
+
+        float m_radius = 15.0f;
         float m_shadowSoftness = 0.01f;
+
+        float m_outerCutoffAngle = 75.0f;
+        float m_outerCutoff = 0.0f;
+
+        float m_innerCutoffAngle = 65.0f;
+        float m_innerCutoff = 0.0f;
+
         glm::vec3 m_color = glm::vec3( 1 );
+        float m_brightness = 1.0f;
     };
 
     //-----------------------------------------------------------------------------
     //
     //-----------------------------------------------------------------------------
-    using Lights = std::array<Light*, MAX_LIGHTS>;
+    using Lights = std::vector<std::unique_ptr<Light>>;
 
     class LightManager : public Singleton<LightManager>
     {
     public:
-        ~LightManager()
+        LightManager()
         {
-            Release();
+            m_lights.reserve( MAX_LIGHTS );
         }
 
-        void Release()
+        ~LightManager() override
         {
-            for ( int i = 0; i < MAX_LIGHTS; ++i )
-            {
-                if ( m_lights[ i ] )
-                    delete m_lights[ i ];
-
-                m_lights[ i ] = nullptr;
-            }
+            m_lights.clear();
         }
 
-        void AddLight( Light* light )
+        template<typename... Args>
+        Light* CreateLight( Args&&... args )
         {
-            for ( auto& slot: m_lights )
-            {
-                if ( slot == nullptr )
-                {
-                    slot = light;
-                    return;
-                }
-            }
+            auto light = std::make_unique<Light>( std::forward<Args>( args )... );
+            auto* ptr = light.get();
+
+            m_lights.push_back( std::move( light ) );
+
+            return ptr;
         }
 
-        void RemoveLight( const Light* light )
+        void RemoveLight( Light* light )
         {
-            for ( auto& slot: m_lights )
+            if ( !light )
+                return;
+
+            std::erase_if( m_lights, [light]( const std::unique_ptr<Light>& ptr )
             {
-                if ( slot == light )
-                {
-                    delete slot;
-                    slot = nullptr;
-                    return;
-                }
-            }
+                return ptr.get() == light;
+            } );
         }
 
         const Lights& GetLights() const

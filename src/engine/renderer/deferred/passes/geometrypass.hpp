@@ -38,7 +38,7 @@ namespace render::deferred::passes
         void SetupPSO();
         void SetupConstantBuffers();
 
-        void ApplyTransform( const glm::mat4& modelMatrix, const Camera* camera );
+        void ApplyTransform( const glm::mat4& modelMat, const Camera* camera );
         void ApplyMaterialParameters( const Material& material );
 
         IShaderResourceBinding* GetGeometryBinding( const Material& material );

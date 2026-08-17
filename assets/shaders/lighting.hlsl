@@ -18,11 +18,11 @@ struct Light
     float3 Pos;
     float _pad3;
     float3 Dir;
-    float _pad4;
+    float Brightness;
     float3 Color;
-    float _pad5;
     float Radius;
-    float Cutoff;
+    float OuterCutoff;
+    float InnerCutoff;
     int ShadowMapIndex;
     float ShadowSoftness;
     matrix View;

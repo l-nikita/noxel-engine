@@ -12,7 +12,11 @@ namespace render
 {
     //-----------------------------------------------------------------------------
 
-    constexpr float CLEAR_COLOR[ ] = {0.1f, 0.2f, 0.3f, 1.0f};
+    constexpr float CLEAR_COLOR[ ] = {0.1f, 0.2f, 0.3f, 0.0f};
+
+    constexpr std::string_view CUBEMAP_FACES_ORDER[ ] = {
+        "px", "nx", "py", "ny", "pz", "nz"
+    };
 
     //-----------------------------------------------------------------------------
 
@@ -38,6 +42,7 @@ namespace render
     struct DefaultTextures
     {
         Diligent::RefCntAutoPtr<ITexture> Black;
+        Diligent::RefCntAutoPtr<ITexture> BlackCube;
         Diligent::RefCntAutoPtr<ITexture> White;
         Diligent::RefCntAutoPtr<ITexture> NeutralNormal;
     };

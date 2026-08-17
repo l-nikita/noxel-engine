@@ -160,6 +160,7 @@ namespace render
     {
         m_defTextures = {
             .Black = m_factory->CreateSolidTexture( {0, 0, 0, 255}, "Black" ),
+            .BlackCube = m_factory->CreateSolidTextureCube( {0, 0, 0, 255}, "BlackCube" ),
             .White = m_factory->CreateSolidTexture( {255, 255, 255, 255}, "White" ),
             .NeutralNormal = m_factory->CreateSolidTexture( {128, 128, 255, 255}, "Neutral Normal" ),
         };

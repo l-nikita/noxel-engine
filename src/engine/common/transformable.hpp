@@ -2,6 +2,10 @@
 
 #include "common/transform.hpp"
 
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+template<typename T>
 class Transformable
 {
 public:
@@ -17,9 +21,10 @@ public:
         return m_Transform;
     }
 
-    void SetTransform( const Transform& transform )
+    T& SetTransform( const Transform& transform )
     {
         m_Transform = transform;
+        return static_cast<T &>(*this);
     }
 
     glm::vec3 GetPosition() const
@@ -27,9 +32,10 @@ public:
         return m_Transform.Position;
     }
 
-    void SetPosition( const glm::vec3& pos )
+    T& SetPosition( const glm::vec3& pos )
     {
         m_Transform.Position = pos;
+        return static_cast<T &>(*this);
     }
 
     glm::quat GetRotation() const
@@ -37,9 +43,16 @@ public:
         return m_Transform.Rotation;
     }
 
-    void SetRotation( const glm::quat& rot )
+    T& SetRotation( const glm::quat& rot )
     {
         m_Transform.Rotation = rot;
+        return static_cast<T &>(*this);
+    }
+
+    T& LookAt( const glm::vec3& target, const glm::vec3& up = TRANSFORM_UP )
+    {
+        m_Transform.LookAt( target, up );
+        return static_cast<T &>(*this);
     }
 
     glm::vec3 Forward() const

@@ -3,8 +3,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <Jolt/Jolt.h>
+#include <Jolt/Core/Color.h>
 
-namespace Utils
+namespace utils
 {
     inline JPH::RVec3 JPH_Vec3_GLM( const glm::vec3& vec3 )
     {
@@ -35,5 +36,11 @@ namespace Utils
     {
         return std::to_string( vec3.GetX() ) + " " + std::to_string( vec3.GetY() ) + " " +
                std::to_string( vec3.GetZ() );
+    }
+
+    inline std::string String_Vec3_GLM( const glm::vec3& vec3 )
+    {
+        return std::to_string( vec3.x ) + " " + std::to_string( vec3.y ) + " " +
+               std::to_string( vec3.z );
     }
 }
