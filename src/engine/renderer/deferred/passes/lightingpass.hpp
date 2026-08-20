@@ -16,6 +16,7 @@ namespace render::deferred::passes
     {
         GBuffer* GBuffer;
         Camera* Camera;
+        ITextureView* SkyTextureView;
     };
 
     //-----------------------------------------------------------------------------
@@ -45,8 +46,6 @@ namespace render::deferred::passes
         Diligent::RefCntAutoPtr<IShaderResourceBinding> m_SRB;
         Diligent::RefCntAutoPtr<IBuffer> m_lightingCB;
         Diligent::RefCntAutoPtr<IBuffer> m_viewCB;
-
-        Diligent::RefCntAutoPtr<ITexture> m_skyboxTex;
 
         Light* m_light1 = nullptr;
         Light* m_light2 = nullptr;

@@ -11,6 +11,7 @@
 #include "renderer/rendersystem.hpp"
 #include "renderer/deferred/passes/geometrypass.hpp"
 #include "renderer/deferred/passes/lightingpass.hpp"
+#include "renderer/deferred/passes/skypass.hpp"
 #include "renderer/deferred/gbuffer.hpp"
 
 namespace render::deferred
@@ -30,14 +31,17 @@ namespace render::deferred
         void Shutdown() override;
 
         void Render() override;
+        void RenderTest();
 
         Camera* GetCamera() const override;
 
     private:
+        void SetupSkybox();
         void SetupTestModel();
         void AddModel( std::unique_ptr<ModelRenderer> model );
 
-        void ClearBackBuffer();
+        void ClearBackBuffer( ITextureView* bBuffer, ITextureView* bBufferDepth );
+        void SetAndClearGBuffer();
 
     private:
         std::unique_ptr<GBuffer> m_GBuffer = {};
@@ -45,8 +49,12 @@ namespace render::deferred
         // Passes
         std::unique_ptr<passes::GeometryPass> m_geometryPass;
         std::unique_ptr<passes::LightingPass> m_lightingPass;
+        std::unique_ptr<passes::SkyPass> m_skyPass;
 
         std::unique_ptr<Camera> m_mainCamera = {};
+
+        Diligent::RefCntAutoPtr<ITexture> m_skyboxTex;
+        Diligent::RefCntAutoPtr<ITextureView> m_skyboxTexView;
 
         // Temporary scene resources used to verify the Diligent geometry pass.
         std::unique_ptr<Mesh> m_testMesh;

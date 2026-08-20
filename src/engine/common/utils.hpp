@@ -43,4 +43,27 @@ namespace utils
         return std::to_string( vec3.x ) + " " + std::to_string( vec3.y ) + " " +
                std::to_string( vec3.z );
     }
+
+#define DEFINE_ENUM_FLAG_OPERATORS(Enum) \
+    constexpr Enum operator|(Enum lhs, Enum rhs) noexcept { \
+        return static_cast<Enum>(static_cast<std::underlying_type_t<Enum>>(lhs) | static_cast<std::underlying_type_t<Enum>>(rhs)); \
+    } \
+    constexpr Enum operator&(Enum lhs, Enum rhs) noexcept { \
+        return static_cast<Enum>(static_cast<std::underlying_type_t<Enum>>(lhs) & static_cast<std::underlying_type_t<Enum>>(rhs)); \
+    } \
+    constexpr Enum operator~(Enum val) noexcept { \
+        return static_cast<Enum>(~static_cast<std::underlying_type_t<Enum>>(val)); \
+    } \
+    inline Enum& operator|=(Enum& lhs, Enum rhs) noexcept { \
+        return lhs = lhs | rhs; \
+    } \
+    inline Enum& operator&=(Enum& lhs, Enum rhs) noexcept { \
+        return lhs = lhs & rhs; \
+    } \
+    constexpr bool Any(Enum val) noexcept { \
+        return static_cast<std::underlying_type_t<Enum>>(val) != 0; \
+    } \
+    constexpr bool HasFlag(Enum combined, Enum flag) noexcept { \
+        return Any(combined & flag); \
+    }
 }

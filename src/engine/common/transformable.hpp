@@ -49,6 +49,17 @@ public:
         return static_cast<T &>(*this);
     }
 
+    glm::vec3 GetScale() const
+    {
+        return m_Transform.Scale;
+    }
+
+    T& SetScale( const glm::vec3& scale )
+    {
+        m_Transform.Scale = scale;
+        return static_cast<T &>(*this);
+    }
+
     T& LookAt( const glm::vec3& target, const glm::vec3& up = TRANSFORM_UP )
     {
         m_Transform.LookAt( target, up );

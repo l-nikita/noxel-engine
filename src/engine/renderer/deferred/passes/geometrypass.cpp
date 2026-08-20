@@ -44,23 +44,6 @@ namespace render::deferred::passes
     void GeometryPass::Render( const GeometryPassContext& ctx )
     {
         auto context = m_render->GetContext();
-        auto gbuffer = ctx.GBuffer;
-
-        ITextureView* rtvs[ ] = {
-            gbuffer->GetColor().RTV,
-            gbuffer->GetNormal().RTV,
-            gbuffer->GetPosition().RTV,
-            gbuffer->GetSpecular().RTV
-        };
-
-        context->SetRenderTargets( std::size( rtvs ), rtvs, gbuffer->GetDSV(),
-                                   RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
-
-        for ( auto rtv: rtvs )
-            context->ClearRenderTarget( rtv, CLEAR_COLOR, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
-
-        context->ClearDepthStencil( gbuffer->GetDSV(), CLEAR_DEPTH_FLAG, 1.0f, 0,
-                                    RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
 
         context->SetPipelineState( m_PSO );
 
@@ -73,7 +56,7 @@ namespace render::deferred::passes
             tintData->Emission = 0.0f;
         }
 
-        for ( const auto& model: ctx.ModelRenderers )
+        for ( auto model: ctx.ModelRenderers )
         {
             if ( !model )
                 continue;

@@ -3,7 +3,6 @@
 #include <Graphics/GraphicsEngine/interface/RenderDevice.h>
 
 #include "renderer/factory.hpp"
-
 #include "assetsystem/iassetsystem.hpp"
 #include "assetsystem/materialdata.hpp"
 #include "assetsystem/shaderdata.hpp"
@@ -54,6 +53,9 @@ namespace render
         ShaderCreateInfo info;
         info.Desc.UseCombinedTextureSamplers = false;
         info.pShaderSourceStreamFactory = m_shaderSourceFactory;
+#if DEBUG
+        info.ShaderOptimizationLevel = SHADER_OPTIMIZATION_LEVEL_DISABLED;
+#endif
 
         if ( data->SourceLanguage == "HLSL" )
             info.SourceLanguage = SHADER_SOURCE_LANGUAGE_HLSL;
@@ -263,20 +265,39 @@ namespace render
     //-----------------------------------------------------------------------------
     RefCntAutoPtr<ITexture> Factory::CreateTextureCube( const assets::Id& matId )
     {
-        auto matData = g_Assets->LoadData<assets::MaterialData>( matId );
+        auto asset = g_Assets->GetAsset( matId );
+        auto matData = g_Assets->LoadData<assets::MaterialData>( asset );
+
         assert( matData );
         assert( matData->IsCubemap );
 
         TextureCubeData cubeData = {};
 
-        int i = 0;
+        std::size_t i = 0;
         for ( auto faceName: CUBEMAP_FACES_ORDER )
         {
+            bool found = false;
             for ( auto [ texName, texParam ]: matData->TexturesParameters )
             {
-                if ( texName == faceName )
-                    if ( auto val = std::get_if<assets::Id>( &texParam ) )
-                        cubeData.Faces[ i ] = *val, i++;
+                if ( texName != faceName )
+                    continue;
+
+                if ( auto val = std::get_if<assets::Id>( &texParam ) )
+                {
+                    cubeData.Faces[ i++ ] = *val;
+                    found = true;
+                    break;
+                }
+            }
+
+            if ( !found )
+            {
+                for ( std::size_t j = 0; j < 6; j++ )
+                    cubeData.Faces[ j ] = assets::ERROR_TEXTURE_ID;
+
+                CMD_ERROR( std::format( "Cube face '{}' not found in material '{}'", faceName, asset->Name ),
+                           cmd::RENDERING );
+                break;
             }
         }
 

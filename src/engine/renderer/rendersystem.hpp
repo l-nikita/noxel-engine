@@ -18,6 +18,7 @@ namespace render
         "px", "nx", "py", "ny", "pz", "nz"
     };
 
+
     //-----------------------------------------------------------------------------
 
     using IRenderDevice = Diligent::IRenderDevice;
@@ -35,6 +36,7 @@ namespace render
     //-----------------------------------------------------------------------------
 
     class Factory;
+    class MeshBuilder;
 
     //-----------------------------------------------------------------------------
     //
@@ -70,6 +72,8 @@ namespace render
         IEngineFactory* GetEngineFactory() const;
 
         Factory* GetFactory() const;
+        MeshBuilder* GetBuilder() const;
+
         const DefaultTextures& GetDefaultTextures();
 
     private:
@@ -79,7 +83,9 @@ namespace render
 
     private:
         Window* m_window = nullptr;
+
         std::unique_ptr<Factory> m_factory;
+        std::unique_ptr<MeshBuilder> m_builder;
 
         DefaultTextures m_defTextures = {};
 

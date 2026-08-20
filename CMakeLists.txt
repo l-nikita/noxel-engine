@@ -1,6 +1,6 @@
 cmake_minimum_required( VERSION 3.20 )
 
-project( NoxelEngine
+project( noxel-engine
         VERSION 1.0.0
         LANGUAGES C CXX
 )
@@ -59,8 +59,8 @@ FetchContent_Declare(
         GIT_SUBMODULES_RECURSE TRUE
         SOURCE_DIR _deps/DiligentCore
         PATCH_COMMAND ${CMAKE_COMMAND}
-                -DDILIGENT_CORE_SOURCE_DIR=<SOURCE_DIR>
-                -P ${CMAKE_CURRENT_LIST_DIR}/cmake/patch_diligent_core.cmake
+        -DDILIGENT_CORE_SOURCE_DIR=<SOURCE_DIR>
+        -P ${CMAKE_CURRENT_LIST_DIR}/cmake/patch_diligent_core.cmake
 )
 FetchContent_MakeAvailable( DiligentCore )
 

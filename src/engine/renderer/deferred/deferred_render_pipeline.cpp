@@ -6,10 +6,12 @@
 #include "assetsystem/materialdata.hpp"
 #include "dbg/debug.hpp"
 #include "engine/iengine.hpp"
+#include "engine/player.hpp"
 #include "engine/window.hpp"
 #include "renderer/camera.hpp"
+#include "renderer/factory.hpp"
+#include "renderer/meshbuilder.hpp"
 #include "renderer/rendersystem.hpp"
-#include "renderer/vertex.hpp"
 
 namespace render::deferred
 {
@@ -20,54 +22,6 @@ namespace render::deferred
     //-----------------------------------------------------------------------------
 
     static ModelRenderer* g_TestModel;
-
-    void CalculateTangents( std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices )
-    {
-        for ( auto& v: vertices )
-        {
-            v.Tangent = glm::vec3( 0.0f );
-            v.Bitangent = glm::vec3( 0.0f );
-        }
-
-        for ( size_t i = 0; i < indices.size(); i += 3 )
-        {
-            Vertex& v0 = vertices[ indices[ i + 0 ] ];
-            Vertex& v1 = vertices[ indices[ i + 1 ] ];
-            Vertex& v2 = vertices[ indices[ i + 2 ] ];
-
-            glm::vec3 edge1 = v1.Position - v0.Position;
-            glm::vec3 edge2 = v2.Position - v0.Position;
-
-            glm::vec2 deltaUV1 = v1.UV - v0.UV;
-            glm::vec2 deltaUV2 = v2.UV - v0.UV;
-
-            float f = 1.0f / ( deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y );
-
-            glm::vec3 tangent;
-            glm::vec3 bitangent;
-
-            tangent.x = f * ( deltaUV2.y * edge1.x - deltaUV1.y * edge2.x );
-            tangent.y = f * ( deltaUV2.y * edge1.y - deltaUV1.y * edge2.y );
-            tangent.z = f * ( deltaUV2.y * edge1.z - deltaUV1.y * edge2.z );
-
-            bitangent.x = f * ( -deltaUV2.x * edge1.x + deltaUV1.x * edge2.x );
-            bitangent.y = f * ( -deltaUV2.x * edge1.y + deltaUV1.x * edge2.y );
-            bitangent.z = f * ( -deltaUV2.x * edge1.z + deltaUV1.x * edge2.z );
-
-            v0.Tangent += tangent;
-            v1.Tangent += tangent;
-            v2.Tangent += tangent;
-            v0.Bitangent += bitangent;
-            v1.Bitangent += bitangent;
-            v2.Bitangent += bitangent;
-        }
-
-        for ( auto& v: vertices )
-        {
-            v.Tangent = glm::normalize( v.Tangent - v.Normal * glm::dot( v.Normal, v.Tangent ) );
-            v.Bitangent = glm::normalize( glm::cross( v.Normal, v.Tangent ) );
-        }
-    }
 
     //-----------------------------------------------------------------------------
     //
@@ -82,6 +36,7 @@ namespace render::deferred
 
         m_geometryPass = std::make_unique<passes::GeometryPass>( ctx );
         m_lightingPass = std::make_unique<passes::LightingPass>( ctx );
+        m_skyPass = std::make_unique<passes::SkyPass>( ctx );
     }
 
     //-----------------------------------------------------------------------------
@@ -102,7 +57,9 @@ namespace render::deferred
 
         m_geometryPass->Setup();
         m_lightingPass->Setup();
+        m_skyPass->Setup();
 
+        SetupSkybox();
         SetupTestModel();
 
         window->SubscribeResize( [this]( const WindowSize& size )
@@ -131,10 +88,98 @@ namespace render::deferred
     //-----------------------------------------------------------------------------
     void DeferredRenderPipeline::Render()
     {
-        ClearBackBuffer();
+        auto swapChain = m_render->GetSwapChain();
+        auto context = m_render->GetContext();
 
+        std::vector<ModelRenderer*> models;
+        for ( const auto& model: m_models )
+        {
+            if ( model && !HasFlag( model->m_Flags, flags::NO_DRAW ) )
+                models.push_back( model.get() );
+        }
+
+        RenderTest();
+
+        ITextureView* bBuffer = swapChain->GetCurrentBackBufferRTV();
+        ITextureView* bBufferDepth = swapChain->GetDepthBufferDSV();
+
+        ClearBackBuffer( bBuffer, bBufferDepth );
+
+        //----------------------------------------------
+        SetAndClearGBuffer();
+
+        passes::GeometryPassContext gpc{
+            .GBuffer = m_GBuffer.get(),
+            .Camera = m_mainCamera.get(),
+            .ModelRenderers = models,
+        };
+        m_geometryPass->Render( gpc );
+
+        /*
+        auto swapChain = g_Render->GetSwapChain();
+        auto context = g_Render->GetContext();
+
+        ITextureView* bBuffer = swapChain->GetCurrentBackBufferRTV();
+
+        CopyTextureAttribs copyAttribs;
+        copyAttribs.pSrcTexture = m_GBuffer->GetPosition().Texture;
+        copyAttribs.SrcTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+        copyAttribs.pDstTexture = bBuffer->GetTexture();
+        copyAttribs.DstTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+
+        context->CopyTexture( copyAttribs );
+        */
+
+        //----------------------------------------------
+        context->SetRenderTargets(
+            1,
+            &bBuffer,
+            nullptr,
+            RESOURCE_STATE_TRANSITION_MODE_TRANSITION
+        );
+
+        passes::LightingPassContext lpc{
+            .GBuffer = m_GBuffer.get(),
+            .Camera = m_mainCamera.get(),
+            .SkyTextureView = m_skyboxTexView.RawPtr()
+        };
+        m_lightingPass->Render( lpc );
+
+        //----------------------------------------------
+        context->SetRenderTargets(
+            1,
+            &bBuffer,
+            m_GBuffer->GetDSV(),
+            RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+        passes::SkyPassContext spc{
+            .Camera = m_mainCamera.get(),
+            .SkyTextureView = m_skyboxTexView.RawPtr()
+        };
+
+        m_skyPass->Render( spc );
+
+        //----------------------------------------------
+        m_render->Present();
+    }
+
+    void DeferredRenderPipeline::RenderTest()
+    {
         static auto totalTime = 0.0f;
         totalTime += g_Engine->DeltaTime();
+
+        if ( g_Player )
+        {
+            if ( !g_Player->m_Model )
+            {
+                auto model = std::make_unique<ModelRenderer>( m_testMesh.get(), m_testMaterial.get() );
+                model->SetScale( glm::vec3( 0.3f, 1.0f, 0.3f ) );
+                g_Player->m_Model = model.get();
+
+                AddModel( std::move( model ) );
+            } else
+                g_Player->Draw();
+        }
 
         g_TestModel->SetPosition( glm::vec3(
             sin( totalTime ) * 1.0f,
@@ -144,21 +189,6 @@ namespace render::deferred
 
         glm::quat rot = glm::angleAxis( totalTime * 3.0f, glm::normalize( glm::vec3( 0.0f, 1.0f, 0.0f ) ) );
         g_TestModel->SetRotation( rot );
-
-        passes::GeometryPassContext gpc{
-            .GBuffer = m_GBuffer.get(),
-            .Camera = m_mainCamera.get(),
-            .ModelRenderers = m_models,
-        };
-        m_geometryPass->Render( gpc );
-
-        passes::LightingPassContext lpc{
-            .GBuffer = m_GBuffer.get(),
-            .Camera = m_mainCamera.get(),
-        };
-        m_lightingPass->Render( lpc );
-
-        m_render->Present();
     }
 
     Camera* DeferredRenderPipeline::GetCamera() const
@@ -166,58 +196,30 @@ namespace render::deferred
         return m_mainCamera.get();
     }
 
+    void DeferredRenderPipeline::SetupSkybox()
+    {
+        auto factory = m_render->GetFactory();
+
+        auto skyboxMat = g_Assets->FindAsset( "materials/skybox.nmt", assets::Type::MATERIAL );
+        if ( !skyboxMat )
+            FATAL_ERROR( "Skybox material not found", cmd::RENDERING );
+
+        m_skyboxTex = factory->CreateTextureCube( skyboxMat.value() );
+        m_skyboxTexView = m_skyboxTex->GetDefaultView( TEXTURE_VIEW_SHADER_RESOURCE );
+    }
+
     //-----------------------------------------------------------------------------
     void DeferredRenderPipeline::SetupTestModel()
     {
-        struct CubeFace
-        {
-            glm::vec3 Normal;
-            glm::vec3 Positions[ 4 ];
-        };
-
-        const CubeFace faces[ ] = {
-            {{0, 0, 1}, {{-1, -1, 1}, {1, -1, 1}, {1, 1, 1}, {-1, 1, 1}}},
-            {{0, 0, -1}, {{1, -1, -1}, {-1, -1, -1}, {-1, 1, -1}, {1, 1, -1}}},
-            {{0, 1, 0}, {{-1, 1, 1}, {1, 1, 1}, {1, 1, -1}, {-1, 1, -1}}},
-            {{0, -1, 0}, {{-1, -1, -1}, {1, -1, -1}, {1, -1, 1}, {-1, -1, 1}}},
-            {{1, 0, 0}, {{1, -1, 1}, {1, -1, -1}, {1, 1, -1}, {1, 1, 1}}},
-            {{-1, 0, 0}, {{-1, -1, -1}, {-1, -1, 1}, {-1, 1, 1}, {-1, 1, -1}}}
-        };
-        const glm::vec2 uvs[ ] = {
-            {0, 1},
-            {1, 1},
-            {1, 0},
-            {0, 0}
-        };
-
-        MeshData cubeData;
-        cubeData.Vertices.reserve( 24 );
-        cubeData.Indices.reserve( 36 );
-
-        for ( const auto& [ Normal, Positions ]: faces )
-        {
-            const auto firstVertex = static_cast<std::uint32_t>(cubeData.Vertices.size());
-            for ( std::size_t i = 0; i < std::size( Positions ); ++i )
-            {
-                cubeData.Vertices.push_back( Vertex{
-                    Positions[ i ], Normal, {}, {}, uvs[ i ], glm::vec4( 1.0f )
-                } );
-            }
-
-            const std::uint32_t faceIndices[ ] = {0, 1, 2, 2, 3, 0};
-            for ( const auto index: faceIndices )
-                cubeData.Indices.push_back( firstVertex + index );
-        }
-
-        CalculateTangents( cubeData.Vertices, cubeData.Indices );
-
         const auto metalId = g_Assets->FindAsset( "materials/metal1.nmt", assets::Type::MATERIAL );
         const auto dirtId = g_Assets->FindAsset( "materials/dirt1.nmt", assets::Type::MATERIAL );
 
         auto metalData = g_Assets->LoadData<assets::MaterialData>( *metalId );
         auto dirtData = g_Assets->LoadData<assets::MaterialData>( *dirtId );
 
-        m_testMesh = std::make_unique<Mesh>( m_render->GetDevice(), cubeData );
+        auto builder = m_render->GetBuilder();
+
+        m_testMesh = std::make_unique<Mesh>( m_render->GetDevice(), builder->CreateCube() );
         m_testMaterial = std::make_unique<Material>( *metalData );
         m_testMaterial2 = std::make_unique<Material>( *dirtData );
 
@@ -258,16 +260,34 @@ namespace render::deferred
     }
 
     //-----------------------------------------------------------------------------
-    void DeferredRenderPipeline::ClearBackBuffer()
+    void DeferredRenderPipeline::ClearBackBuffer( ITextureView* bBuffer, ITextureView* bBufferDepth )
     {
-        auto swapChain = m_render->GetSwapChain();
         auto context = m_render->GetContext();
 
-        ITextureView* bBuffer = swapChain->GetCurrentBackBufferRTV();
-        ITextureView* bBufferDepth = swapChain->GetDepthBufferDSV();
         context->SetRenderTargets( 1, &bBuffer, bBufferDepth, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
 
         context->ClearRenderTarget( bBuffer, CLEAR_COLOR, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
         context->ClearDepthStencil( bBufferDepth, CLEAR_DEPTH_FLAG, 1.f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+    }
+
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::SetAndClearGBuffer()
+    {
+        auto context = m_render->GetContext();
+
+        ITextureView* rtvs[ ] = {
+            m_GBuffer->GetColor().RTV,
+            m_GBuffer->GetNormal().RTV,
+            m_GBuffer->GetPosition().RTV,
+            m_GBuffer->GetSpecular().RTV
+        };
+
+        auto gBufferDSV = m_GBuffer->GetDSV();
+        context->SetRenderTargets( std::size( rtvs ), rtvs, gBufferDSV, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+        for ( auto rtv: rtvs )
+            context->ClearRenderTarget( rtv, CLEAR_COLOR, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+        context->ClearDepthStencil( gBufferDSV, CLEAR_DEPTH_FLAG, 1.0f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
     }
 }

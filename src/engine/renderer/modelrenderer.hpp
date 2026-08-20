@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cstddef>
 #include <vector>
 
 #include "common/transformable.hpp"
+#include "renderer/flags.hpp"
 #include "renderer/rendersystem.hpp"
 
 namespace render
@@ -48,6 +48,9 @@ namespace render
         // The active render pass binds its PSO, SRB, and constant buffers.
         // ModelRenderer only binds mesh buffers and submits the indexed draw.
         void DrawPart( IDeviceContext* context, std::size_t index ) const;
+
+    public:
+        flags m_Flags;
 
     private:
         std::vector<ModelPart> m_parts;

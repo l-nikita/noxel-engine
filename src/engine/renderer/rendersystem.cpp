@@ -5,11 +5,11 @@
 
 #include "renderer/rendersystem.hpp"
 
-#include "factory.hpp"
 #include "assetsystem/iassetsystem.hpp"
 #include "dbg/debug.hpp"
-#include "engine/iengine.hpp"
 #include "engine/window.hpp"
+#include "renderer/factory.hpp"
+#include "renderer/meshbuilder.hpp"
 
 namespace render
 {
@@ -68,6 +68,7 @@ namespace render
         } );
 
         m_factory = std::make_unique<Factory>( this );
+        m_builder = std::make_unique<MeshBuilder>( this );
 
         CreateDefaultTextures();
 
@@ -113,11 +114,18 @@ namespace render
         return m_engineFactory.RawPtr();
     }
 
+    //-----------------------------------------------------------------------------
     Factory* RenderSystem::GetFactory() const
     {
         return m_factory.get();
     }
 
+    MeshBuilder* RenderSystem::GetBuilder() const
+    {
+        return m_builder.get();
+    }
+
+    //-----------------------------------------------------------------------------
     const DefaultTextures& RenderSystem::GetDefaultTextures()
     {
         return m_defTextures;

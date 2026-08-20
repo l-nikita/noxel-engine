@@ -19,7 +19,7 @@ namespace render::deferred::passes
     {
         GBuffer* GBuffer;
         Camera* Camera;
-        const std::vector<std::unique_ptr<ModelRenderer>>& ModelRenderers;
+        const std::vector<ModelRenderer*>& ModelRenderers;
     };
 
     //-----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 {
-    "shader": "skyboxpass.nshader",
+    "shader": "skypass.nshader",
     "is_cubemap": true,
     "parameters": {
         "textures": {

@@ -1,12 +1,29 @@
 #pragma once
 
+#include <utility>
 #include <source_location>
 #include <SDL3/SDL.h>
+
 #include "profiler.hpp"
 #include "cmd/cmd.hpp"
 
 namespace debug
 {
+#if DEBUG
+
+#if _MSC_VER
+#define BREAKPOINT() \
+    __debugbreak()
+#elif __clang__ || __GNUC__
+#define BREAKPOINT() \
+    __builtin_trap();
+#else
+#define BREAKPOINT()
+#endif
+
+
+#endif
+
     inline std::string GetSystemDebugInfo()
     {
         std::string info;
@@ -69,7 +86,10 @@ namespace debug
             nullptr
         );
 
-        throw std::runtime_error( message );
+#if DEBUG
+        BREAKPOINT();
+#endif
+        std::exit( EXIT_FAILURE );
     }
 }
 

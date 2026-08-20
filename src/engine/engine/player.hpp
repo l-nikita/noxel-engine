@@ -17,6 +17,8 @@
 #include "physics/physics_renderer.hpp"
 #include "renderer/camera.hpp"
 #include "renderer/lighting.hpp"
+#include "renderer/modelrenderer.hpp"
+#include "renderer/flags.hpp"
 
 constexpr auto SENSITIVITY = 0.15f;
 constexpr auto CHARACTER_RADIUS = 0.3f;
@@ -34,6 +36,8 @@ constexpr auto CHARACTER_COYOTE_TIME = 0.1f;
 class Player
 {
 public:
+    render::ModelRenderer* m_Model = nullptr;
+
     explicit Player( render::Camera* camera )
         : m_Camera( camera )
     {
@@ -62,19 +66,37 @@ public:
         return outMin + ( value - inMin ) * ( outMax - outMin ) / ( inMax - inMin );
     }
 
+    glm::vec3 m_FreeCameraPosition = glm::vec3( 0 );
+
     void UpdateCamera()
     {
-        JPH::RayCastResult hit;
-        const JPH::RRayCast ray(
-            utils::JPH_Vec3_GLM( m_Camera->GetPosition() ),
-            utils::JPH_Vec3_GLM( m_Camera->Backward() ) * 15
-        );
-
-        Raycast( phys::GetPhysics()->GetSystem(), ray, hit );
-
         const auto feetPos = glm::mix( m_previousCharacterPosition, m_currentCharacterPosition,
                                        g_Engine->FixedAlpha() );
         auto eyePos = feetPos + glm::vec3( 0, CHARACTER_EYE_HEIGHT, 0 );
+
+        if ( m_curCameraMode == FREE_CAM )
+        {
+            auto dir = glm::vec3( 0 );
+            const auto forward = m_Camera->Forward();
+            const auto right = m_Camera->Right();
+
+            if ( g_Input->IsKeyDown( SDL_SCANCODE_W ) )
+                dir += forward;
+            if ( g_Input->IsKeyDown( SDL_SCANCODE_S ) )
+                dir -= forward;
+            if ( g_Input->IsKeyDown( SDL_SCANCODE_A ) )
+                dir -= right;
+            if ( g_Input->IsKeyDown( SDL_SCANCODE_D ) )
+                dir += right;
+
+            auto speed = 3.0f;
+            if ( g_Input->IsKeyDown( SDL_SCANCODE_LSHIFT ) )
+                speed = 10.0f;
+
+            m_FreeCameraPosition += dir * g_Engine->DeltaTime() * speed;
+            eyePos = m_FreeCameraPosition;
+        }
+
 
         /*
         static float totalTime = 0.0f;
@@ -89,7 +111,7 @@ public:
         }
         */
 
-        if ( m_thirdPerson )
+        if ( m_curCameraMode == THIRD_PERSON )
         {
             constexpr auto targetDistance = 3.0f;
             const glm::vec3 rayDir = m_Camera->Backward();
@@ -117,14 +139,18 @@ public:
         const auto forward = glm::vec3( m_Camera->Forward().x, 0, m_Camera->Forward().z );
         const auto right = glm::vec3( m_Camera->Right().x, 0, m_Camera->Right().z );
 
-        if ( g_Input->IsKeyDown( SDL_SCANCODE_W ) )
-            dir += forward;
-        if ( g_Input->IsKeyDown( SDL_SCANCODE_S ) )
-            dir -= forward;
-        if ( g_Input->IsKeyDown( SDL_SCANCODE_A ) )
-            dir -= right;
-        if ( g_Input->IsKeyDown( SDL_SCANCODE_D ) )
-            dir += right;
+        if ( m_curCameraMode != FREE_CAM )
+        {
+            if ( g_Input->IsKeyDown( SDL_SCANCODE_W ) )
+                dir += forward;
+            if ( g_Input->IsKeyDown( SDL_SCANCODE_S ) )
+                dir -= forward;
+            if ( g_Input->IsKeyDown( SDL_SCANCODE_A ) )
+                dir -= right;
+            if ( g_Input->IsKeyDown( SDL_SCANCODE_D ) )
+                dir += right;
+        }
+
 
         if ( glm::length( dir ) > 0.0f )
             dir = glm::normalize( dir );
@@ -264,8 +290,21 @@ public:
         const auto qYaw = glm::angleAxis( glm::radians( m_yaw ), glm::vec3( 0, 1, 0 ) );
         m_Camera->SetRotation( qYaw * qPitch );
 
-        if ( g_Input->IsKeyPressed( SDL_SCANCODE_C ) )
-            m_thirdPerson = !m_thirdPerson;
+        if ( g_Input->IsKeyPressed( SDL_SCANCODE_C ) && m_curCameraMode != FREE_CAM )
+        {
+            if ( m_curCameraMode == FIRST_PERSON )
+                m_curCameraMode = THIRD_PERSON;
+            else if ( m_curCameraMode == THIRD_PERSON )
+                m_curCameraMode = FIRST_PERSON;
+        } else if ( g_Input->IsKeyPressed( SDL_SCANCODE_V ) && m_curCameraMode != THIRD_PERSON )
+        {
+            if ( m_curCameraMode == FIRST_PERSON )
+            {
+                m_curCameraMode = FREE_CAM;
+                m_FreeCameraPosition = m_Camera->GetPosition() + m_Camera->Backward() * 3.0f;
+            } else if ( m_curCameraMode == FREE_CAM )
+                m_curCameraMode = FIRST_PERSON;
+        }
 
         if ( m_Flashlight && g_Input->IsKeyPressed( SDL_SCANCODE_F ) )
             m_Flashlight->Toggle();
@@ -301,12 +340,24 @@ public:
 
     void Draw() const
     {
-        if ( m_thirdPerson )
+        if ( m_curCameraMode == THIRD_PERSON )
         {
             //const auto com = m_character->GetCenterOfMassTransform();
             //m_character->GetShape()->Draw( JPH::DebugRenderer::sInstance, com, JPH::Vec3::sOne(), JPH::Color::sGreen,
             //                               false, true );
         }
+
+        auto offset = glm::vec3( 0.0f, 1.0f, 0.0f );
+        auto prev = m_previousCharacterPosition + offset;
+        auto cur = m_currentCharacterPosition + offset;
+
+        m_Model->SetPosition( glm::mix( prev, cur,
+                                        g_Engine->FixedAlpha() ) );
+
+        if ( m_curCameraMode == FIRST_PERSON )
+            m_Model->m_Flags |= render::flags::NO_DRAW;
+        else
+            m_Model->m_Flags &= ~render::flags::NO_DRAW;
 
         // Gizmos::Box( HitPos, glm::quat(), glm::vec3( 0.0f, 0.0f, 0.0f ), glm::vec3( 0.1f, 0.1f, 0.1f ) );
         // Gizmos::Line( StartPos, HitPos );
@@ -319,8 +370,14 @@ private:
     float m_yaw = 0.0f;
     float m_pitch = 0.0f;
 
-    bool m_thirdPerson = false;
+    enum CameraMode
+    {
+        FIRST_PERSON,
+        THIRD_PERSON,
+        FREE_CAM,
+    };
 
+    CameraMode m_curCameraMode = FIRST_PERSON;
     JPH::Ref<JPH::CharacterVirtual> m_character;
 
     float m_jumpBufferRemaining = 0.0f;

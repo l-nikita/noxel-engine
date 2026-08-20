@@ -1,0 +1,29 @@
+{
+    "name": "SkyboxPass",
+    "source_language": "HLSL",
+    "pixel_shader": {
+        "file": "skypass_ps.hlsl"
+    },
+    "vertex_shader": {
+        "file": "skypass_vs.hlsl"
+    },
+    "parameters": {
+        "textures": {
+            "sky_texture": {
+                "var_bind": "g_tSkyTexture",
+                "var_type": "DYNAMIC",
+                "def_texture": "black"
+            }
+        },
+        "samplers": {
+            "g_sSampler": {
+                "min_filter": "LINEAR",
+                "mag_filter": "LINEAR",
+                "mip_filter": "LINEAR",
+                "address_u": "WRAP",
+                "address_v": "WRAP",
+                "address_w": "WRAP"
+            }
+        }
+    }
+}

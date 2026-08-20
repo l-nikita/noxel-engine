@@ -5,7 +5,6 @@
 #include "player.hpp"
 #include "assetsystem/iassetsystem.hpp"
 #include "dbg/debug.hpp"
-#include "input/iinput.hpp"
 #include "renderer/factory.hpp"
 #include "renderer/shader_cbuffers.hpp"
 #include "renderer/deferred/deferred_render_pipeline.hpp"
@@ -77,38 +76,15 @@ namespace render::deferred::passes
                 .SetRadius( 100.0f )
                 .SetOuterCutoff( 75.0f )
                 .SetInnerCutoff( 60.0f );
-
-        if ( auto cubeVar = m_SRB->GetVariableByName( SHADER_TYPE_PIXEL, "g_tCubemap" ) )
-        {
-            auto factory = m_render->GetFactory();
-
-            auto skyboxMat = g_Assets->FindAsset( "materials/skybox.nmt", assets::Type::MATERIAL );
-            if ( !skyboxMat )
-                FATAL_ERROR( "Skybox material not found", cmd::RENDERING );
-
-            m_skyboxTex = factory->CreateTextureCube( skyboxMat.value() );
-            cubeVar->Set( m_skyboxTex->GetDefaultView( TEXTURE_VIEW_SHADER_RESOURCE ) );
-        }
     }
 
     //-----------------------------------------------------------------------------
     void LightingPass::Render( const LightingPassContext& ctx )
     {
         auto context = m_render->GetContext();
-        auto swapChain = m_render->GetSwapChain();
 
         auto gbuffer = ctx.GBuffer;
         auto camera = ctx.Camera;
-
-        ITextureView* backBuffer =
-                swapChain->GetCurrentBackBufferRTV();
-
-        context->SetRenderTargets(
-            1,
-            &backBuffer,
-            nullptr,
-            RESOURCE_STATE_TRANSITION_MODE_TRANSITION
-        );
 
         context->SetPipelineState( m_PSO );
 
@@ -123,6 +99,9 @@ namespace render::deferred::passes
 
         m_SRB->GetVariableByName( SHADER_TYPE_PIXEL, "g_tSpecular" )
                 ->Set( gbuffer->GetSpecular().SRV );
+
+        m_SRB->GetVariableByName( SHADER_TYPE_PIXEL, "g_tCubemap" )
+                ->Set( ctx.SkyTextureView );
 
         context->CommitShaderResources(
             m_SRB,
