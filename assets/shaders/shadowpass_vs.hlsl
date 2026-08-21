@@ -7,7 +7,7 @@ cbuffer Transform : register(b0)
 
 struct VS_INPUT
 {
-    float3 iPos : POSITION;
+    float3 iPos : ATTRIB0;
 };
 
 struct VS_OUTPUT

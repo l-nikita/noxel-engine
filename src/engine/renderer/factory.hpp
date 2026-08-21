@@ -41,6 +41,10 @@ namespace render
         Diligent::RefCntAutoPtr<ITexture> CreateSolidTextureCube( const std::array<std::uint8_t, 4>& color,
                                                                   const std::string& name );
 
+        static Diligent::FILTER_TYPE ParseFilter( const std::string& name, bool comparison );
+        static Diligent::TEXTURE_ADDRESS_MODE ParseAddressMode( const std::string& name );
+        static Diligent::COMPARISON_FUNCTION ParseComparisonFunc( const std::string& name );
+
     private:
         Diligent::RefCntAutoPtr<IShaderSourceInputStreamFactory> m_shaderSourceFactory;
 

@@ -63,16 +63,16 @@ namespace render::deferred::passes
 
             ApplyTransform( model->GetTransformMatrix(), ctx.Camera );
 
-            for ( std::size_t partIndex = 0; partIndex < model->GetPartCount(); ++partIndex )
+            for ( std::size_t i = 0; i < model->GetPartCount(); i++ )
             {
-                const auto* part = model->GetPart( partIndex );
+                const auto* part = model->GetPart( i );
                 const Material& material = *part->MaterialResource;
 
                 ApplyMaterialParameters( material );
 
                 auto binding = GetGeometryBinding( material );
                 context->CommitShaderResources( binding, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
-                model->DrawPart( context, partIndex );
+                model->DrawPart( context, i );
             }
         }
     }
@@ -105,7 +105,7 @@ namespace render::deferred::passes
         gp.DepthStencilDesc.DepthFunc = COMPARISON_FUNC_LESS;
 
         //-----------------------------------------------------------------------------
-        static const LayoutElement elements[ ] = {
+        static constexpr LayoutElement elements[ ] = {
             {"ATTRIB", 0, 0, 3, VT_FLOAT32, False, offsetof( Vertex, Position ), sizeof( Vertex )},
             {"ATTRIB", 1, 0, 3, VT_FLOAT32, False, offsetof( Vertex, Normal ), sizeof( Vertex )},
             {"ATTRIB", 2, 0, 3, VT_FLOAT32, False, offsetof( Vertex, Tangent ), sizeof( Vertex )},
@@ -178,7 +178,7 @@ namespace render::deferred::passes
                 m_PSO->GetStaticVariableByName( SHADER_TYPE_PIXEL, "MaterialFactors" );
 
         if ( !transformVar || !tintVar || !matFactorsVar )
-            FATAL_ERROR( "Geometry shader constant buffer was not found", cmd::RENDERING );
+            FATAL_ERROR( "GeometryPass shader constant buffer was not found", cmd::RENDERING );
 
         transformVar->Set( m_transformCB );
         tintVar->Set( m_tintCB );
@@ -288,7 +288,7 @@ namespace render::deferred::passes
         RefCntAutoPtr<IShaderResourceBinding> binding;
         m_PSO->CreateShaderResourceBinding( &binding, true );
         if ( !binding )
-            FATAL_ERROR( "Failed to create geometry pass material binding", cmd::RENDERING );
+            FATAL_ERROR( "Failed to create GeometryPass material binding", cmd::RENDERING );
 
         const auto& defTextures = m_render->GetDefaultTextures();
 
@@ -298,7 +298,7 @@ namespace render::deferred::passes
             auto var = binding->GetVariableByName( SHADER_TYPE_PIXEL, texParam.VarBind.c_str() );
 
             if ( !var )
-                FATAL_ERROR( std::string( "Geometry shader resource is missing: " ) + texName, cmd::RENDERING );
+                FATAL_ERROR( std::string( "GeometryPass shader resource is missing: " ) + texName, cmd::RENDERING );
 
             RefCntAutoPtr<ITexture> defTex;
             auto defTexStr = texParam.DefaultTexture;
@@ -310,7 +310,7 @@ namespace render::deferred::passes
             else if ( defTexStr == "neutral_normal" )
                 defTex = defTextures.NeutralNormal;
             else
-                FATAL_ERROR( "Default texture for geometry shader is invalid: " + defTexStr, cmd::RENDERING );
+                FATAL_ERROR( "Default texture for GeometryPass shader is invalid: " + defTexStr, cmd::RENDERING );
 
             if ( !tex )
                 tex = defTex.RawPtr();

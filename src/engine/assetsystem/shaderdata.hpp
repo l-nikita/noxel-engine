@@ -37,6 +37,8 @@ namespace assets
             std::string AddressU;
             std::string AddressV;
             std::string AddressW;
+
+            std::string ComparisonFunc;
         };
 
         std::unordered_map<std::string, SamplerParam> Samplers;

@@ -44,11 +44,11 @@ namespace render
 
         auto vsSrc = g_FileSystem->ReadText( vsPath );
         if ( vsSrc.empty() )
-            FATAL_ERROR( "Vertex shader not found", cmd::RENDERING );
+            FATAL_ERROR( std::format("Vertex shader '' source not found", vsPath.string()), cmd::RENDERING );
 
         auto psSrc = g_FileSystem->ReadText( psPath );
         if ( psSrc.empty() )
-            FATAL_ERROR( "Pixel shader not found", cmd::RENDERING );
+            FATAL_ERROR( std::format("Pixel shader '' source not found", psPath.string()), cmd::RENDERING );
 
         ShaderCreateInfo info;
         info.Desc.UseCombinedTextureSamplers = false;
@@ -66,12 +66,17 @@ namespace render
         vsName += "_vs";
 
         Shader shader = {};
+        RefCntAutoPtr<IDataBlob> blob;
 
         info.Desc.ShaderType = SHADER_TYPE_VERTEX;
         info.EntryPoint = "main";
         info.Desc.Name = vsName.c_str();
         info.Source = vsSrc.c_str();
-        device->CreateShader( info, &shader.VertexShader );
+        device->CreateShader( info, &shader.VertexShader, &blob );
+
+        auto vsErrMsg = static_cast<char*>(blob->GetDataPtr());
+        if ( !shader.VertexShader || shader.VertexShader->GetStatus() == SHADER_STATUS_FAILED )
+            FATAL_ERROR( std::format("Failed to create pixel shader '{}':\n{}", vsName, vsErrMsg), cmd::RENDERING );
 
         auto psName = data->Name;
         psName += "_ps";
@@ -80,7 +85,11 @@ namespace render
         info.EntryPoint = "main";
         info.Desc.Name = psName.c_str();
         info.Source = psSrc.c_str();
-        device->CreateShader( info, &shader.PixelShader );
+        device->CreateShader( info, &shader.PixelShader, &blob );
+
+        auto psErrMsg = static_cast<char*>(blob->GetDataPtr());
+        if ( !shader.PixelShader || shader.PixelShader->GetStatus() == SHADER_STATUS_FAILED )
+            FATAL_ERROR( std::format("Failed to create pixel shader '{}':\n{}", psName, psErrMsg), cmd::RENDERING );
 
         return shader;
     }
@@ -127,41 +136,24 @@ namespace render
             auto addressV = sampParam.AddressV;
             auto addressW = sampParam.AddressW;
 
-            if ( minFilter == "LINEAR" )
-                sampler.MinFilter = FILTER_TYPE_LINEAR;
-            else if ( minFilter == "POINT" )
-                sampler.MinFilter = FILTER_TYPE_POINT;
+            const bool comparison = !sampParam.ComparisonFunc.empty();
 
-            if ( magFilter == "LINEAR" )
-                sampler.MagFilter = FILTER_TYPE_LINEAR;
-            else if ( magFilter == "POINT" )
-                sampler.MagFilter = FILTER_TYPE_POINT;
+            sampler.MinFilter = ParseFilter( sampParam.MinFilter, comparison );
+            sampler.MagFilter = ParseFilter( sampParam.MagFilter, comparison );
+            sampler.MipFilter = ParseFilter( sampParam.MipFilter, comparison );
 
-            if ( mipFilter == "LINEAR" )
-                sampler.MipFilter = FILTER_TYPE_LINEAR;
-            else if ( mipFilter == "POINT" )
-                sampler.MipFilter = FILTER_TYPE_POINT;
+            sampler.AddressU = ParseAddressMode( sampParam.AddressU );
+            sampler.AddressV = ParseAddressMode( sampParam.AddressV );
+            sampler.AddressW = ParseAddressMode( sampParam.AddressW );
 
-            if ( addressU == "WARP" )
-                sampler.AddressU = TEXTURE_ADDRESS_WRAP;
-            else if ( addressU == "CLAMP" )
-                sampler.AddressU = TEXTURE_ADDRESS_CLAMP;
-
-            if ( addressV == "WARP" )
-                sampler.AddressV = TEXTURE_ADDRESS_WRAP;
-            else if ( addressV == "CLAMP" )
-                sampler.AddressV = TEXTURE_ADDRESS_CLAMP;
-
-            if ( addressW == "WARP" )
-                sampler.AddressW = TEXTURE_ADDRESS_WRAP;
-            else if ( addressW == "CLAMP" )
-                sampler.AddressW = TEXTURE_ADDRESS_CLAMP;
+            if ( comparison )
+                sampler.ComparisonFunc = ParseComparisonFunc( sampParam.ComparisonFunc );
 
             immutableSamplers.emplace_back( SHADER_TYPE_PIXEL, samBindName.c_str(), sampler );
         }
 
-        if ( immutableSamplers.empty() )
-            FATAL_ERROR( "No immutable samplers for '" + data.Name + "' found", cmd::RENDERING );
+        // if ( immutableSamplers.empty() )
+        //    FATAL_ERROR( "No immutable samplers for '" + data.Name + "' found", cmd::RENDERING );
 
         info.PSODesc.ResourceLayout.ImmutableSamplers = immutableSamplers.data();
         info.PSODesc.ResourceLayout.NumImmutableSamplers = static_cast<std::uint32_t>(immutableSamplers.size());
@@ -371,5 +363,54 @@ namespace render
             FATAL_ERROR( "Failed to create texture cube", cmd::RENDERING );
 
         return texture;
+    }
+
+    //-----------------------------------------------------------------------------
+    FILTER_TYPE Factory::ParseFilter( const std::string& name, bool comparison )
+    {
+        if ( name == "POINT" )
+            return comparison ? FILTER_TYPE_COMPARISON_POINT : FILTER_TYPE_POINT;
+        if ( name == "LINEAR" )
+            return comparison ? FILTER_TYPE_COMPARISON_LINEAR : FILTER_TYPE_LINEAR;
+        if ( name == "ANISOTROPIC" )
+            return comparison ? FILTER_TYPE_COMPARISON_ANISOTROPIC : FILTER_TYPE_ANISOTROPIC;
+
+        return comparison ? FILTER_TYPE_COMPARISON_LINEAR : FILTER_TYPE_LINEAR;
+    }
+
+    //-----------------------------------------------------------------------------
+    TEXTURE_ADDRESS_MODE Factory::ParseAddressMode( const std::string& name )
+    {
+        if ( name == "WRAP" )
+            return TEXTURE_ADDRESS_WRAP;
+        if ( name == "MIRROR" )
+            return TEXTURE_ADDRESS_MIRROR;
+        if ( name == "BORDER" )
+            return TEXTURE_ADDRESS_BORDER;
+
+        return TEXTURE_ADDRESS_CLAMP;
+    }
+
+    //-----------------------------------------------------------------------------
+    COMPARISON_FUNCTION Factory::ParseComparisonFunc( const std::string& name )
+    {
+        if ( name == "NEVER" )
+            return COMPARISON_FUNC_NEVER;
+        if ( name == "LESS" )
+            return COMPARISON_FUNC_LESS;
+        if ( name == "EQUAL" )
+            return COMPARISON_FUNC_EQUAL;
+        if ( name == "LESS_EQUAL" )
+            return COMPARISON_FUNC_LESS_EQUAL;
+        if ( name == "GREATER" )
+            return COMPARISON_FUNC_GREATER;
+        if ( name == "NOT_EQUAL" )
+            return COMPARISON_FUNC_NOT_EQUAL;
+        if ( name == "GREATER_EQUAL" )
+            return COMPARISON_FUNC_GREATER_EQUAL;
+        if ( name == "ALWAYS" )
+            return COMPARISON_FUNC_ALWAYS;
+
+        return COMPARISON_FUNC_UNKNOWN;
     }
 }

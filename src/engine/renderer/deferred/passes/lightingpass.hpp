@@ -36,7 +36,12 @@ namespace render::deferred::passes
         void SetupSRB();
 
         void UpdateLights();
+        void UpdateShadows();
         void UpdateView( const Camera* camera );
+
+        int GetShadowSlot( const lighting::Light* lightA ) const;
+
+        std::array<const lighting::Light*, lighting::MAX_SHADOWS_MAPS> m_shadowSlots = {};
 
     private:
         // Lighting pass shader data
@@ -46,12 +51,5 @@ namespace render::deferred::passes
         Diligent::RefCntAutoPtr<IShaderResourceBinding> m_SRB;
         Diligent::RefCntAutoPtr<IBuffer> m_lightingCB;
         Diligent::RefCntAutoPtr<IBuffer> m_viewCB;
-
-        Light* m_light1 = nullptr;
-        Light* m_light2 = nullptr;
-        Light* m_light4 = nullptr;
-        Light* m_sunLight = nullptr;
-
-        Light* m_flashlight = nullptr;
     };
 }

@@ -33,6 +33,26 @@
                 "var_bind": "g_tCubemap",
                 "var_type": "DYNAMIC",
                 "def_texture": "black"
+            },
+            "shadow_map_0": {
+                "var_bind": "g_tShadowMap0",
+                "var_type": "DYNAMIC",
+                "def_texture": "black"
+            },
+            "shadow_map_1": {
+                "var_bind": "g_tShadowMap1",
+                "var_type": "DYNAMIC",
+                "def_texture": "black"
+            },
+            "shadow_map_2": {
+                "var_bind": "g_tShadowMap2",
+                "var_type": "DYNAMIC",
+                "def_texture": "black"
+            },
+            "shadow_map_3": {
+                "var_bind": "g_tShadowMap3",
+                "var_type": "DYNAMIC",
+                "def_texture": "black"
             }
         },
         "samplers": {
@@ -40,6 +60,23 @@
                 "min_filter": "LINEAR",
                 "mag_filter": "LINEAR",
                 "mip_filter": "LINEAR",
+                "address_u": "WRAP",
+                "address_v": "WRAP",
+                "address_w": "WRAP"
+            },
+            "g_scShadowSamplerComp": {
+                "min_filter": "LINEAR",
+                "mag_filter": "LINEAR",
+                "mip_filter": "POINT",
+                "address_u": "CLAMP",
+                "address_v": "CLAMP",
+                "address_w": "CLAMP",
+                "comparison_func": "LESS_EQUAL"
+            },
+            "g_sShadowSampler": {
+                "min_filter": "POINT",
+                "mag_filter": "POINT",
+                "mip_filter": "POINT",
                 "address_u": "WRAP",
                 "address_v": "WRAP",
                 "address_w": "WRAP"

@@ -22,8 +22,10 @@ namespace assets::loaders
 
         ShaderDataLoad Load( fs::IFileSystem* fileSystem, const Asset* asset ) override
         {
-            if ( !fileSystem ) return std::unexpected( "Filesystem is invalid" );
-            if ( !asset ) return std::unexpected( "Asset is invalid" );
+            if ( !fileSystem )
+                return std::unexpected( "Filesystem is invalid" );
+            if ( !asset )
+                return std::unexpected( "Asset is invalid" );
 
             auto jsonStr = fileSystem->ReadText( asset->Path );
             if ( jsonStr.empty() )
@@ -78,14 +80,12 @@ namespace assets::loaders
                     auto addressU = paramVal.value( "address_u", "" );
                     auto addressV = paramVal.value( "address_v", "" );
                     auto addressW = paramVal.value( "address_w", "" );
+                    auto compFunc = paramVal.value( "comparison_func", "" );
 
                     data->Samplers[ paramName ] = {
-                        minFilter,
-                        magFilter,
-                        mipFilter,
-                        addressU,
-                        addressV,
-                        addressW,
+                        minFilter, magFilter, mipFilter,
+                        addressU, addressV, addressW,
+                        compFunc,
                     };
                 }
 

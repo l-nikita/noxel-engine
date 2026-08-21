@@ -46,7 +46,7 @@ namespace render
 
     struct CBLightsData
     {
-        CBLight Lights[ MAX_LIGHTS ];
+        CBLight Lights[ lighting::MAX_LIGHTS ];
         std::uint32_t LightCount;
         std::uint32_t _pad0;
         std::uint32_t _pad1;

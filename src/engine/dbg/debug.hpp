@@ -16,7 +16,7 @@ namespace debug
     __debugbreak()
 #elif __clang__ || __GNUC__
 #define BREAKPOINT() \
-    __builtin_trap();
+    __builtin_trap()
 #else
 #define BREAKPOINT()
 #endif

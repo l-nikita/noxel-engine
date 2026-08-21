@@ -15,7 +15,7 @@ namespace render
         Camera( int width, int height );
         void DebugDraw() const;
 
-        void OnFrameBufferResize( int width, int height );
+        void Resize( int width, int height );
 
         float GetFOV() const
         {

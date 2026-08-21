@@ -33,7 +33,7 @@ constexpr auto CHARACTER_GRAVITY_SCALE = 2.0f;
 constexpr auto CHARACTER_JUMP_BUFFER_TIME = 0.12f;
 constexpr auto CHARACTER_COYOTE_TIME = 0.1f;
 
-class Player
+class Player final : public Transformable<Player>
 {
 public:
     render::ModelRenderer* m_Model = nullptr;
@@ -233,6 +233,8 @@ public:
 
         velocity += g_Physics->GetGravity() * CHARACTER_GRAVITY_SCALE * dt;
         m_character->SetLinearVelocity( utils::JPH_Vec3_GLM( velocity ) );
+
+        SetPosition( utils::GLM_Vec3_JPH( m_character->GetPosition() ) );
     }
 
     bool Raycast(
@@ -364,7 +366,7 @@ public:
     }
 
     render::Camera* m_Camera = nullptr;
-    render::Light* m_Flashlight = nullptr;
+    render::lighting::Light* m_Flashlight = nullptr;
 
 private:
     float m_yaw = 0.0f;

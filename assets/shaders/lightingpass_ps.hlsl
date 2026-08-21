@@ -2,7 +2,7 @@
 #include "lighting.hlsl"
 
 #define SIMPLE_LIGHTING 0
-#define NO_SHADOWS 1
+#define NO_SHADOWS 0
 
 //----------------------------------------
 Texture2D g_tColor : register(t0);
@@ -11,10 +11,10 @@ Texture2D g_tPosition : register(t2);
 Texture2D g_tSpecular : register(t3);
 
 #if !NO_SHADOWS
-Texture2D ShadowMaps0 : register(t4);
-Texture2D ShadowMaps1 : register(t5);
-Texture2D ShadowMaps2 : register(t6);
-Texture2D ShadowMaps3 : register(t7);
+Texture2D g_tShadowMap0 : register(t4);
+Texture2D g_tShadowMap1 : register(t5);
+Texture2D g_tShadowMap2 : register(t6);
+Texture2D g_tShadowMap3 : register(t7);
 #endif
 
 TextureCube g_tCubemap : register(t10);
@@ -22,8 +22,8 @@ TextureCube g_tCubemap : register(t10);
 //----------------------------------------
 SamplerState g_sSampler : register(s0);
 #if !NO_SHADOWS
-SamplerComparisonState ShadowSampler : register(s1);
-SamplerState ShadowDepthSampler : register(s2);
+SamplerComparisonState g_scShadowSamplerComp : register(s1);
+SamplerState g_sShadowSampler : register(s2);
 #endif
 
 //----------------------------------------
@@ -134,13 +134,13 @@ float4 main(PS_INPUT input) : SV_TARGET
             if (index >= 0)
             {
                 if (index == 0)
-                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, ShadowMaps0, ShadowDepthSampler, ShadowSampler);
+                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, g_tShadowMap0, g_sShadowSampler, g_scShadowSamplerComp);
                 else if (index == 1)
-                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, ShadowMaps1, ShadowDepthSampler, ShadowSampler);
+                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, g_tShadowMap1, g_sShadowSampler, g_scShadowSamplerComp);
                 else if (index == 2)
-                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, ShadowMaps2, ShadowDepthSampler, ShadowSampler);
+                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, g_tShadowMap2, g_sShadowSampler, g_scShadowSamplerComp);
                 else if (index == 3)
-                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, ShadowMaps3, ShadowDepthSampler, ShadowSampler);
+                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, g_tShadowMap3, g_sShadowSampler, g_scShadowSamplerComp);
             }
 #endif
         }
@@ -157,13 +157,13 @@ float4 main(PS_INPUT input) : SV_TARGET
             if (index >= 0)
             {
                 if (index == 0)
-                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, ShadowMaps0, ShadowSampler);
+                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, g_tShadowMap0, g_scShadowSamplerComp);
                 else if (index == 1)
-                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, ShadowMaps1, ShadowSampler);
+                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, g_tShadowMap1, g_scShadowSamplerComp);
                 else if (index == 2)
-                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, ShadowMaps2, ShadowSampler);
+                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, g_tShadowMap2, g_scShadowSamplerComp);
                 else if (index == 3)
-                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, ShadowMaps3, ShadowSampler);
+                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, g_tShadowMap3, g_scShadowSamplerComp);
             }
 #endif
         }

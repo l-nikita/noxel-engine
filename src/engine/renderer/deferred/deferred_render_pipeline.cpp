@@ -27,7 +27,7 @@ namespace render::deferred
     //
     //-----------------------------------------------------------------------------
     DeferredRenderPipeline::DeferredRenderPipeline( RenderSystem* render )
-        : m_render( render )
+        : m_lighting( render ), m_render( render )
     {
         passes::DeferredPassContext ctx{
             .Render = render,
@@ -37,6 +37,7 @@ namespace render::deferred
         m_geometryPass = std::make_unique<passes::GeometryPass>( ctx );
         m_lightingPass = std::make_unique<passes::LightingPass>( ctx );
         m_skyPass = std::make_unique<passes::SkyPass>( ctx );
+        m_shadowPass = std::make_unique<passes::ShadowPass>( ctx );
     }
 
     //-----------------------------------------------------------------------------
@@ -58,16 +59,24 @@ namespace render::deferred
         m_geometryPass->Setup();
         m_lightingPass->Setup();
         m_skyPass->Setup();
+        m_shadowPass->Setup();
+
+        m_viewport.Width = static_cast<float>(wW);
+        m_viewport.Height = static_cast<float>(wH);
 
         SetupSkybox();
         SetupTestModel();
+        SetupTestLights();
 
         window->SubscribeResize( [this]( const WindowSize& size )
         {
             auto [ newWW, newWH ] = size;
 
             m_GBuffer->Setup( newWW, newWH );
-            m_mainCamera->OnFrameBufferResize( newWW, newWH );
+            m_mainCamera->Resize( newWW, newWH );
+
+            m_viewport.Width = static_cast<float>(newWW);
+            m_viewport.Height = static_cast<float>(newWH);
         } );
 
         return {};
@@ -98,7 +107,14 @@ namespace render::deferred
                 models.push_back( model.get() );
         }
 
-        RenderTest();
+        std::vector<ModelRenderer*> shadowsModels;
+        for ( const auto& model: m_models )
+        {
+            if ( model && !HasFlag( model->m_Flags, flags::NO_SHADOWS ) )
+                shadowsModels.push_back( model.get() );
+        }
+
+        UpdateTest( GetCamera() );
 
         ITextureView* bBuffer = swapChain->GetCurrentBackBufferRTV();
         ITextureView* bBufferDepth = swapChain->GetDepthBufferDSV();
@@ -108,12 +124,12 @@ namespace render::deferred
         //----------------------------------------------
         SetAndClearGBuffer();
 
-        passes::GeometryPassContext gpc{
-            .GBuffer = m_GBuffer.get(),
-            .Camera = m_mainCamera.get(),
-            .ModelRenderers = models,
-        };
-        m_geometryPass->Render( gpc );
+        context->SetViewports( 1, &m_viewport, 0, 0 );
+
+        DoGeometryPass( models );
+        DoShadowPass( context, shadowsModels );
+        DoLightingPass( context, bBuffer );
+        DoSkyPass( context, bBuffer );
 
         /*
         auto swapChain = g_Render->GetSwapChain();
@@ -131,42 +147,16 @@ namespace render::deferred
         */
 
         //----------------------------------------------
-        context->SetRenderTargets(
-            1,
-            &bBuffer,
-            nullptr,
-            RESOURCE_STATE_TRANSITION_MODE_TRANSITION
-        );
-
-        passes::LightingPassContext lpc{
-            .GBuffer = m_GBuffer.get(),
-            .Camera = m_mainCamera.get(),
-            .SkyTextureView = m_skyboxTexView.RawPtr()
-        };
-        m_lightingPass->Render( lpc );
-
-        //----------------------------------------------
-        context->SetRenderTargets(
-            1,
-            &bBuffer,
-            m_GBuffer->GetDSV(),
-            RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
-
-        passes::SkyPassContext spc{
-            .Camera = m_mainCamera.get(),
-            .SkyTextureView = m_skyboxTexView.RawPtr()
-        };
-
-        m_skyPass->Render( spc );
-
-        //----------------------------------------------
         m_render->Present();
     }
 
-    void DeferredRenderPipeline::RenderTest()
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::UpdateTest( const Camera* camera )
     {
         static auto totalTime = 0.0f;
-        totalTime += g_Engine->DeltaTime();
+        auto deltaTime = g_Engine->DeltaTime();
+
+        totalTime += deltaTime;
 
         if ( g_Player )
         {
@@ -189,13 +179,44 @@ namespace render::deferred
 
         glm::quat rot = glm::angleAxis( totalTime * 3.0f, glm::normalize( glm::vec3( 0.0f, 1.0f, 0.0f ) ) );
         g_TestModel->SetRotation( rot );
+
+        auto pos = glm::vec3( sin( totalTime ) * 5.0f, -3.0f, cos( totalTime ) * 5.0f );
+        m_light1->SetPosition( pos );
+
+        if ( g_Player )
+            m_light2->LookAt( g_Player->GetPosition() );
+
+        float t = 1.0f - glm::exp( -12.0f * deltaTime );
+        t = glm::clamp( t, 0.0f, 1.0f );
+
+        m_flashlightRot = glm::slerp( m_flashlightRot, camera->GetRotation(), t );
+
+        m_flashlight->SetPosition( camera->GetPosition() + camera->Right() * 0.5f );
+        m_flashlight->SetRotation( m_flashlightRot );
+
+        if ( g_Player )
+            g_Player->m_Flashlight = m_flashlight;
+
+        //m_light2->SetPosition(camTransform.Position + camTransform.Right() * 2.0f);
+        //m_light2->SetRotation(camTransform.Rotation);
     }
 
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
     Camera* DeferredRenderPipeline::GetCamera() const
     {
         return m_mainCamera.get();
     }
 
+    lighting::Manager* DeferredRenderPipeline::GetLightManager()
+    {
+        return &m_lighting;
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
     void DeferredRenderPipeline::SetupSkybox()
     {
         auto factory = m_render->GetFactory();
@@ -204,7 +225,7 @@ namespace render::deferred
         if ( !skyboxMat )
             FATAL_ERROR( "Skybox material not found", cmd::RENDERING );
 
-        m_skyboxTex = factory->CreateTextureCube( skyboxMat.value() );
+        m_skyboxTex = m_render->GetDefaultTextures().BlackCube; //factory->CreateTextureCube( skyboxMat.value() );
         m_skyboxTexView = m_skyboxTex->GetDefaultView( TEXTURE_VIEW_SHADER_RESOURCE );
     }
 
@@ -253,6 +274,57 @@ namespace render::deferred
     }
 
     //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::SetupTestLights()
+    {
+        const auto& lights = GetLightManager();
+
+        m_light1 = lights->CreateLight( lighting::LIGHT_POINT ).Light.get();
+        m_light1->SetColor( glm::vec3( 1.0f, 0.0f, 0.0f ) )
+                .SetPosition( glm::vec3( 1.0f, 0.0f, 0.0f ) )
+                .SetRadius( 3.0f );
+
+        m_light2 = lights->CreateLight( lighting::LIGHT_SPOT, true ).Light.get();
+        glm::vec3 forward = m_light2->GetTransform().Forward();
+
+        m_light2->SetColor( glm::vec3( 1.0f, 1.0f, 1.0f ) )
+                .SetBrightness( 2.0f )
+                .SetPosition( glm::vec3( 0.0f, -3.0f, 7.0f ) )
+                .SetRadius( 45.0f )
+                .SetOuterCutoff( 70.0f )
+                .SetRotation( glm::rotation( forward, -forward ) );
+
+        auto light3 = lights->CreateLight( lighting::LIGHT_POINT ).Light.get();
+        light3->SetColor( glm::vec3( 0.0f, 0.0f, 1.0f ) )
+                .SetPosition( glm::vec3( 0.0f, -1.0f, 0.0f ) )
+                .SetRadius( 5.0f );
+
+        m_light4 = lights->CreateLight( lighting::LIGHT_SPOT, true ).Light.get();
+        m_light4->SetColor( glm::vec3( 1.0f, 0.0f, 1.0f ) )
+                .SetBrightness( 2.0f )
+                .SetPosition( glm::vec3( -9.0f, -3.0f, -10.0f ) )
+                .SetRotation( glm::angleAxis( glm::radians( 45.0f ), m_light4->Up() ) )
+                .SetRadius( 20.0f )
+                .SetOuterCutoff( 90.0f );
+
+        /*
+        const glm::vec3 sunDirection = glm::normalize( glm::vec3( -0.35f, -1.0f, 0.25f ) );
+
+        m_sunLight = lights->CreateLight( lighting::LIGHT_DIRECTIONAL, true ).Light.get();
+        m_sunLight->SetColor( glm::vec3( 0.25f, 0.23f, 0.19f ) )
+                .SetRotation( glm::rotation( glm::vec3( 0.0f, 0.0f, 1.0f ), sunDirection ) )
+                .SetPosition( glm::vec3( 0.0f, -3.0f, 0.0f ) - sunDirection * 35.0f )
+                .SetRadius( 60.0f );
+                */
+
+        m_flashlight = lights->CreateLight( lighting::LIGHT_SPOT, true ).Light.get();
+        m_flashlight->SetColor( glm::vec3( 1.0f, 1.0f, 1.0f ) )
+                .SetBrightness( 1.5f )
+                .SetRadius( 100.0f )
+                .SetOuterCutoff( 75.0f )
+                .SetInnerCutoff( 60.0f );
+    }
+
+    //-----------------------------------------------------------------------------
     void DeferredRenderPipeline::AddModel( std::unique_ptr<ModelRenderer> model )
     {
         if ( model )
@@ -289,5 +361,98 @@ namespace render::deferred
             context->ClearRenderTarget( rtv, CLEAR_COLOR, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
 
         context->ClearDepthStencil( gBufferDSV, CLEAR_DEPTH_FLAG, 1.0f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::DoGeometryPass( const std::vector<ModelRenderer*>& models )
+    {
+        passes::GeometryPassContext ctx{
+            .GBuffer = m_GBuffer.get(),
+            .Camera = m_mainCamera.get(),
+            .ModelRenderers = models,
+        };
+        m_geometryPass->Render( ctx );
+    }
+
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::DoShadowPass( IDeviceContext* context,
+                                               const std::vector<ModelRenderer*>& models )
+    {
+        const auto& lights = m_lighting.GetLights();
+        for ( auto& [ light, shadowMap ]: lights )
+        {
+            if ( !light )
+                continue;
+
+            if ( !light->IsEnabled() || !light->IsShadowsEnabled() )
+                continue;
+
+            Viewport viewport;
+            viewport.Width = static_cast<float>(shadowMap->GetSize());
+            viewport.Height = static_cast<float>(shadowMap->GetSize());
+            viewport.MinDepth = 0.0f;
+            viewport.MaxDepth = 1.0f;
+
+            context->SetViewports( 1, &viewport, 0, 0 );
+
+            context->SetRenderTargets(
+                0,
+                nullptr,
+                shadowMap->GetDSV(),
+                RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+            context->ClearDepthStencil(
+                shadowMap->GetDSV(),
+                CLEAR_DEPTH_FLAG,
+                1.0f,
+                0,
+                RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+            passes::ShadowPassContext shpc{
+                .Light = light.get(),
+                .ModelRenderers = models
+            };
+
+            m_shadowPass->Render( shpc );
+        }
+
+        context->SetViewports( 1, &m_viewport, 0, 0 );
+    }
+
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::DoLightingPass( IDeviceContext* context, ITextureView* bBuffer )
+    {
+        context->SetRenderTargets(
+            1,
+            &bBuffer,
+            nullptr,
+            RESOURCE_STATE_TRANSITION_MODE_TRANSITION
+        );
+
+        passes::LightingPassContext lpc{
+            .GBuffer = m_GBuffer.get(),
+            .Camera = m_mainCamera.get(),
+            .SkyTextureView = m_skyboxTexView.RawPtr()
+        };
+        m_lightingPass->Render( lpc );
+    }
+
+    //-----------------------------------------------------------------------------
+    void DeferredRenderPipeline::DoSkyPass( IDeviceContext* context, ITextureView* bBuffer )
+    {
+        context->SetRenderTargets(
+            1,
+            &bBuffer,
+            m_GBuffer->GetDSV(),
+            RESOURCE_STATE_TRANSITION_MODE_TRANSITION );
+
+        passes::SkyPassContext spc{
+            .Camera = m_mainCamera.get(),
+            .SkyTextureView = m_skyboxTexView.RawPtr()
+        };
+
+        m_skyPass->Render( spc );
     }
 }

@@ -1,0 +1,10 @@
+{
+    "name": "ShadowPass",
+    "source_language": "HLSL",
+    "pixel_shader": {
+        "file": "shadowpass_ps.hlsl"
+    },
+    "vertex_shader": {
+        "file": "shadowpass_vs.hlsl"
+    }
+}

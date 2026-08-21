@@ -31,51 +31,6 @@ namespace render::deferred::passes
         SetupPSO();
         SetupConstantBuffers();
         SetupSRB();
-
-        auto& lights = LightManager::Get();
-
-        m_light1 = lights.CreateLight( LIGHT_POINT );
-        m_light1->SetColor( glm::vec3( 1.0f, 0.0f, 0.0f ) )
-                .SetPosition( glm::vec3( 1.0f, 0.0f, 0.0f ) )
-                .SetRadius( 3.0f );
-
-        m_light2 = lights.CreateLight( LIGHT_SPOT, true );
-        glm::vec3 forward = m_light2->GetTransform().Forward();
-
-        m_light2->SetColor( glm::vec3( 1.0f, 1.0f, 1.0f ) )
-                .SetPosition( glm::vec3( 0.0f, -3.0f, 7.0f ) )
-                .SetRadius( 45.0f )
-                .SetOuterCutoff( 70.0f )
-                .SetRotation( glm::rotation( forward, -forward ) );
-
-        auto light3 = lights.CreateLight( LIGHT_POINT );
-        light3->SetColor( glm::vec3( 0.0f, 0.0f, 1.0f ) )
-                .SetPosition( glm::vec3( 0.0f, -1.0f, 0.0f ) )
-                .SetRadius( 5.0f );
-
-        m_light4 = lights.CreateLight( LIGHT_SPOT, true );
-        m_light4->SetColor( glm::vec3( 1.0f, 0.0f, 1.0f ) )
-                .SetPosition( glm::vec3( -9.0f, -3.0f, -10.0f ) )
-                .SetRotation( glm::angleAxis( glm::radians( 45.0f ), m_light4->Up() ) )
-                .SetRadius( 20.0f )
-                .SetOuterCutoff( 90.0f );
-
-        /*
-        const glm::vec3 sunDirection = glm::normalize( glm::vec3( -0.35f, -1.0f, 0.25f ) );
-
-        m_sunLight = lights.CreateLight( LIGHT_DIRECTIONAL, true, 4096 );
-        m_sunLight->SetColor( glm::vec3( 0.25f, 0.23f, 0.19f ) )
-                .SetRotation( glm::rotation( glm::vec3( 0.0f, 0.0f, 1.0f ), sunDirection ) )
-                .SetPosition( glm::vec3( 0.0f, -3.0f, 0.0f ) - sunDirection * 35.0f )
-                .SetRadius( 60.0f );
-        */
-
-        m_flashlight = lights.CreateLight( LIGHT_SPOT, true );
-        m_flashlight->SetColor( glm::vec3( 1.0f, 1.0f, 1.0f ) )
-                .SetBrightness( 1.5f )
-                .SetRadius( 100.0f )
-                .SetOuterCutoff( 75.0f )
-                .SetInnerCutoff( 60.0f );
     }
 
     //-----------------------------------------------------------------------------
@@ -83,52 +38,34 @@ namespace render::deferred::passes
     {
         auto context = m_render->GetContext();
 
-        auto gbuffer = ctx.GBuffer;
+        auto gBuffer = ctx.GBuffer;
         auto camera = ctx.Camera;
 
         context->SetPipelineState( m_PSO );
 
         m_SRB->GetVariableByName( SHADER_TYPE_PIXEL, "g_tColor" )
-                ->Set( gbuffer->GetColor().SRV );
+                ->Set( gBuffer->GetColor().SRV );
 
         m_SRB->GetVariableByName( SHADER_TYPE_PIXEL, "g_tNormal" )
-                ->Set( gbuffer->GetNormal().SRV );
+                ->Set( gBuffer->GetNormal().SRV );
 
         m_SRB->GetVariableByName( SHADER_TYPE_PIXEL, "g_tPosition" )
-                ->Set( gbuffer->GetPosition().SRV );
+                ->Set( gBuffer->GetPosition().SRV );
 
         m_SRB->GetVariableByName( SHADER_TYPE_PIXEL, "g_tSpecular" )
-                ->Set( gbuffer->GetSpecular().SRV );
+                ->Set( gBuffer->GetSpecular().SRV );
 
         m_SRB->GetVariableByName( SHADER_TYPE_PIXEL, "g_tCubemap" )
                 ->Set( ctx.SkyTextureView );
+
+        UpdateShadows();
+        UpdateLights();
+        UpdateView( camera );
 
         context->CommitShaderResources(
             m_SRB,
             RESOURCE_STATE_TRANSITION_MODE_TRANSITION
         );
-
-        //------------------------
-        static float totalTime = 0.0f;
-        totalTime += g_Engine->DeltaTime();
-
-        auto pos = glm::vec3( sin( totalTime ) * 5.0f, -3.0f, cos( totalTime ) * 5.0f );
-        m_light1->SetPosition( pos );
-
-        m_light2->LookAt( camera->GetPosition() );
-
-        m_flashlight->SetPosition( camera->GetPosition() );
-        m_flashlight->SetRotation( camera->GetRotation() );
-
-        if ( g_Player )
-            g_Player->m_Flashlight = m_flashlight;
-
-        //m_light2->SetPosition(camTransform.Position + camTransform.Right() * 2.0f);
-        //m_light2->SetRotation(camTransform.Rotation);
-        //------------------------
-
-        UpdateLights();
-        UpdateView( camera );
 
         DrawAttribs draw;
         draw.NumVertices = 3;
@@ -218,7 +155,7 @@ namespace render::deferred::passes
     {
         m_PSO->CreateShaderResourceBinding( &m_SRB, true );
         if ( !m_SRB )
-            FATAL_ERROR( "Failed to create lighting pass binding", cmd::RENDERING );
+            FATAL_ERROR( "Failed to create SkyPass binding", cmd::RENDERING );
     }
 
     //-----------------------------------------------------------------------------
@@ -233,13 +170,12 @@ namespace render::deferred::passes
         };
 
         std::uint32_t activeLightIndex = 0;
-        auto& lights = LightManager::Get().GetLights();
-        for ( const auto& lightPtr: lights )
+        const auto& lights = m_pipeline->GetLightManager()->GetLights();
+        for ( const auto& [ light, shadowMap ]: lights )
         {
-            if ( activeLightIndex >= MAX_LIGHTS )
+            if ( activeLightIndex >= lighting::MAX_LIGHTS )
                 continue;
 
-            auto light = lightPtr.get();
             if ( !light )
                 continue;
 
@@ -256,17 +192,18 @@ namespace render::deferred::passes
             dataLight.Brightness = light->GetBrightness();
             dataLight.Radius = light->GetRadius();
             dataLight.Pos = transform.Position;
-            dataLight.ShadowMapIndex = -1;
+            dataLight.ShadowMapIndex = GetShadowSlot( light.get() );
             dataLight.ShadowSoftness = light->GetShadowSoftness();
 
-            if ( dataLight.Type == LIGHT_SPOT || dataLight.Type == LIGHT_DIRECTIONAL )
+            if ( dataLight.Type == lighting::LIGHT_SPOT
+                 || dataLight.Type == lighting::LIGHT_DIRECTIONAL )
             {
                 dataLight.Dir = transform.Forward();
                 dataLight.View = glm::transpose( light->GetViewMatrix() );
                 dataLight.Projection = glm::transpose( light->GetProjectionMatrix() );
             }
 
-            if ( dataLight.Type == LIGHT_SPOT )
+            if ( dataLight.Type == lighting::LIGHT_SPOT )
             {
                 dataLight.OuterCutoff = light->GetOuterCutoff();
                 dataLight.InnerCutoff = light->GetInnerCutoff();
@@ -278,6 +215,49 @@ namespace render::deferred::passes
         lightsData->LightCount = activeLightIndex;
     }
 
+    //-----------------------------------------------------------------------------
+    void LightingPass::UpdateShadows()
+    {
+        m_shadowSlots.fill( nullptr );
+
+        std::array<const lighting::LightData*, lighting::MAX_SHADOWS_MAPS> slots{};
+        std::uint32_t slotCount = 0;
+        for ( const auto& data: m_pipeline->GetLightManager()->GetLights() )
+        {
+            if ( slotCount >= lighting::MAX_SHADOWS_MAPS )
+                break;
+
+            if ( !data.Light || !data.ShadowMap || !data.ShadowMap->GetSRV() )
+                continue;
+
+            if ( !data.Light->IsA( lighting::LIGHT_SPOT )
+                 && !data.Light->IsA( lighting::LIGHT_DIRECTIONAL ) )
+                continue;
+
+            if ( !data.Light->IsEnabled() || !data.Light->IsShadowsEnabled() )
+                continue;
+
+            m_shadowSlots[ slotCount ] = data.Light.get();
+            slots[ slotCount++ ] = &data;
+        }
+
+        static constexpr const char* SHADOW_VARS[ ] = {
+            "g_tShadowMap0", "g_tShadowMap1", "g_tShadowMap2", "g_tShadowMap3"
+        };
+
+        for ( std::size_t i = 0; i < lighting::MAX_SHADOWS_MAPS; ++i )
+        {
+            ITextureView* srv = slots[ i ]
+                                    ? slots[ i ]->ShadowMap->GetSRV()
+                                    : m_render->GetDefaultTextures().Black->GetDefaultView(
+                                        TEXTURE_VIEW_SHADER_RESOURCE );
+
+            m_SRB->GetVariableByName( SHADER_TYPE_PIXEL, SHADOW_VARS[ i ] )
+                    ->Set( srv );
+        }
+    }
+
+    //-----------------------------------------------------------------------------
     void LightingPass::UpdateView( const Camera* camera )
     {
         auto context = m_render->GetContext();
@@ -290,5 +270,16 @@ namespace render::deferred::passes
 
         viewData->View = viewMat;
         viewData->InvView = glm::inverse( viewMat );
+    }
+
+    int LightingPass::GetShadowSlot( const lighting::Light* lightA ) const
+    {
+        for ( std::size_t i = 0; i < m_shadowSlots.size(); ++i )
+        {
+            if ( m_shadowSlots[ i ] == lightA )
+                return i;
+        }
+
+        return -1;
     }
 }

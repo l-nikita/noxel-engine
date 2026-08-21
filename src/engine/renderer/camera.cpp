@@ -10,7 +10,7 @@ namespace render
 
     Camera::Camera( const int width, const int height )
     {
-        OnFrameBufferResize( width, height );
+        Resize( width, height );
     }
 
     void Camera::DebugDraw() const
@@ -28,7 +28,7 @@ namespace render
         */
     }
 
-    void Camera::OnFrameBufferResize( int width, int height )
+    void Camera::Resize( int width, int height )
     {
         m_width = width;
         m_height = height;

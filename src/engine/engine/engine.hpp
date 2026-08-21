@@ -27,7 +27,7 @@ using render::IRenderPipeline;
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-class ENGINE_API Engine : public IEngine
+class ENGINE_API Engine final : public IEngine
 {
 public:
     void Initialize() override;

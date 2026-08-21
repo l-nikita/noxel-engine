@@ -68,7 +68,7 @@ namespace render::deferred::passes
 
         gp.NumRenderTargets = 1;
         gp.RTVFormats[ 0 ] = swapChain->GetDesc().ColorBufferFormat;
-        gp.DSVFormat = swapChain->GetDesc().DepthBufferFormat;
+        gp.DSVFormat = TEX_FORMAT_D24_UNORM_S8_UINT;
         gp.PrimitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
         gp.DepthStencilDesc.DepthEnable = True;
@@ -119,7 +119,7 @@ namespace render::deferred::passes
     {
         m_PSO->CreateShaderResourceBinding( &m_SRB, true );
         if ( !m_SRB )
-            FATAL_ERROR( "Failed to create sky pass binding", cmd::RENDERING );
+            FATAL_ERROR( "Failed to create SkyPass binding", cmd::RENDERING );
     }
 
     //-----------------------------------------------------------------------------
