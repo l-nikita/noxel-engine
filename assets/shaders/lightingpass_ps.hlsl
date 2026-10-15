@@ -1,6 +1,3 @@
-//----------------------------------------
-#include "lighting.hlsl"
-
 #define SIMPLE_LIGHTING 0
 #define NO_SHADOWS 0
 
@@ -25,6 +22,9 @@ SamplerState g_sSampler : register(s0);
 SamplerComparisonState g_scShadowSamplerComp : register(s1);
 SamplerState g_sShadowSampler : register(s2);
 #endif
+
+//----------------------------------------
+#include "lighting.hlsl"
 
 //----------------------------------------
 cbuffer LightsData : register(b0)
@@ -79,7 +79,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 #if SIMPLE_LIGHTING
     float3 result = CalcSimpleAmbient() * color * ao;
 #else
-    float3 result = CalcIBL(normalWorld, toViewWorld, color, metalness, roughness, ao, g_tCubemap, g_sSampler);
+    float3 result = CalcIBL(normalWorld, toViewWorld, color, metalness, roughness, ao);
 #endif
 
     float3 ambientLighting = result;
@@ -134,13 +134,13 @@ float4 main(PS_INPUT input) : SV_TARGET
             if (index >= 0)
             {
                 if (index == 0)
-                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, g_tShadowMap0, g_sShadowSampler, g_scShadowSamplerComp);
+                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, 0);
                 else if (index == 1)
-                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, g_tShadowMap1, g_sShadowSampler, g_scShadowSamplerComp);
+                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, 1);
                 else if (index == 2)
-                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, g_tShadowMap2, g_sShadowSampler, g_scShadowSamplerComp);
+                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, 2);
                 else if (index == 3)
-                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, g_tShadowMap3, g_sShadowSampler, g_scShadowSamplerComp);
+                    shadow = CalcSpotShadows(worldPos, normalWorld, toLightWorld, input.vPos.xy, lightRadius, shadowSoftness, lightView, lightProjection, 3);
             }
 #endif
         }
@@ -157,13 +157,13 @@ float4 main(PS_INPUT input) : SV_TARGET
             if (index >= 0)
             {
                 if (index == 0)
-                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, g_tShadowMap0, g_scShadowSamplerComp);
+                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, 0);
                 else if (index == 1)
-                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, g_tShadowMap1, g_scShadowSamplerComp);
+                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, 1);
                 else if (index == 2)
-                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, g_tShadowMap2, g_scShadowSamplerComp);
+                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, 2);
                 else if (index == 3)
-                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, g_tShadowMap3, g_scShadowSamplerComp);
+                    shadow = CalcDirectionalShadows(worldPos, normalWorld, toLightWorld, lightView, lightProjection, 3);
             }
 #endif
         }

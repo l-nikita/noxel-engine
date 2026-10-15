@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <cstdint>
 #include <SDL3/SDL.h>
 
 //-----------------------------------------------------------------------------
@@ -30,7 +31,12 @@ public:
     bool IsMinimized() const;
     bool IsInputFocused() const;
 
-    void* GetPointer() const;
+#if PLATFORM_WIN32
+    void* GetHWNDPointer() const;
+#elif PLATFORM_LINUX
+    void* GetWlSurface() const;
+    void* GetWlDisplay() const;
+#endif
 
     SDL_WindowFlags GetFlags() const;
     SDL_Window* GetHandle() const;

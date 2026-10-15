@@ -7,6 +7,7 @@
 
 #include "assetsystem/iassetsystem.hpp"
 #include "dbg/debug.hpp"
+#include "engine/iengine.hpp"
 #include "engine/window.hpp"
 #include "renderer/factory.hpp"
 #include "renderer/meshbuilder.hpp"
@@ -145,20 +146,56 @@ namespace render
         scDesc.PreTransform = SURFACE_TRANSFORM_IDENTITY;
         scDesc.Usage = SWAP_CHAIN_USAGE_RENDER_TARGET;
 
+        switch ( g_Engine->GetGraphicsAPI() )
+        {
 #if PLATFORM_WIN32
-        EngineD3D11CreateInfo engineCI;
-        engineCI.Features.SeparablePrograms = DEVICE_FEATURE_STATE_OPTIONAL;
+            case GraphicsAPI::DIRECTX11:
+            {
+                EngineD3D11CreateInfo engineCI;
+                engineCI.Features.SeparablePrograms = DEVICE_FEATURE_STATE_OPTIONAL;
 
-        IEngineFactoryD3D11* factoryD3D11 = LoadAndGetEngineFactoryD3D11();
+                IEngineFactoryD3D11* factoryD3D11 = LoadAndGetEngineFactoryD3D11();
 
-        factoryD3D11->CreateDeviceAndContextsD3D11( engineCI, &m_device, &m_context );
-        Win32NativeWindow Window{m_window->GetPointer()};
+                factoryD3D11->CreateDeviceAndContextsD3D11( engineCI, &m_device, &m_context );
+                const Win32NativeWindow window{
+                    m_window->GetPointer()
+                };
 
-        factoryD3D11->CreateSwapChainD3D11( m_device, m_context, scDesc, FullScreenModeDesc{}, Window,
-                                            &m_swapChain );
+                factoryD3D11->CreateSwapChainD3D11( m_device, m_context, scDesc, FullScreenModeDesc{}, window,
+                                                    &m_swapChain );
 
-        m_engineFactory = factoryD3D11;
+                m_engineFactory = factoryD3D11;
+                break;
+            }
 #endif
+            case GraphicsAPI::VULKAN:
+            {
+                EngineVkCreateInfo engineCI;
+                engineCI.Features.SeparablePrograms = DEVICE_FEATURE_STATE_OPTIONAL;
+
+                IEngineFactoryVk* factoryVk = LoadAndGetEngineFactoryVk();
+
+                factoryVk->CreateDeviceAndContextsVk( engineCI, &m_device, &m_context );
+
+#if PLATFORM_WIN32
+                const Win32NativeWindow window{
+                    m_window->GetPointer()
+                };
+#elif PLATFORM_LINUX
+                const LinuxNativeWindow window{
+                    .pDisplay = m_window->GetWlDisplay(),
+                    .pWaylandSurface = m_window->GetWlSurface(),
+                };
+#endif
+
+                factoryVk->CreateSwapChainVk( m_device, m_context, scDesc, window, &m_swapChain );
+
+                m_engineFactory = factoryVk;
+                break;
+            }
+            default:
+                FATAL_ERROR( "Invalid graphics API", cmd::RENDERING );
+        }
 
         return {};
     }

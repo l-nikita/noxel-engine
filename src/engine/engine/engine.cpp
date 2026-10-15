@@ -34,7 +34,7 @@ void Engine::Initialize()
 
     SetupWindow();
 
-#ifdef WIN32
+#ifdef PLATFORM_WIN32
     m_graphicsAPI = GraphicsAPI::DIRECTX11;
 #else
     m_graphicsAPI = GraphicsAPI::VULKAN;
@@ -128,6 +128,6 @@ GraphicsAPI Engine::GetGraphicsAPI()
 //-----------------------------------------------------------------------------
 void Engine::SetupWindow()
 {
-    m_window = new Window( ENGINE_NAME, 1920, 1080 );
+    m_window = new Window( ENGINE_NAME, 1280, 720 );
     m_windows.push_back( m_window );
 }

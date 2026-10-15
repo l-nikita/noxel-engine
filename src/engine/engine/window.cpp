@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "window.hpp"
 #include "dbg/debug.hpp"
 
@@ -56,15 +58,50 @@ bool Window::IsInputFocused() const
     return ( GetFlags() & SDL_WINDOW_INPUT_FOCUS );
 }
 
-void* Window::GetPointer() const
+#if PLATFORM_WIN32
+
+void* Window::GetHWNDPointer() const
 {
-    const auto ptr = SDL_GetPointerProperty( SDL_GetWindowProperties( m_handle ), SDL_PROP_WINDOW_WIN32_HWND_POINTER,
-                                             nullptr );
+    const auto ptr = SDL_GetPointerProperty(
+        SDL_GetWindowProperties( m_handle ),
+        SDL_PROP_WINDOW_WIN32_HWND_POINTER,
+        nullptr );
+
     if ( !ptr )
         FATAL_ERROR( "Couldn't get window pointer from SDL window!", cmd::ENGINE );
 
     return ptr;
 }
+
+#elif PLATFORM_LINUX
+
+void* Window::GetWlSurface() const
+{
+    const auto ptr = SDL_GetPointerProperty(
+        SDL_GetWindowProperties( m_handle ),
+        SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER,
+        nullptr );
+
+    if ( !ptr )
+        FATAL_ERROR( "Couldn't get Wayland window surface pointer from SDL window!", cmd::ENGINE );
+
+    return ptr;
+}
+
+void* Window::GetWlDisplay() const
+{
+    const auto ptr = SDL_GetPointerProperty(
+        SDL_GetWindowProperties( m_handle ),
+        SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER,
+        nullptr );
+
+    if ( !ptr )
+        FATAL_ERROR( "Couldn't get Wayland window display pointer from SDL window!", cmd::ENGINE );
+
+    return ptr;
+}
+
+#endif
 
 SDL_WindowFlags Window::GetFlags() const
 {

@@ -66,9 +66,9 @@ void Engine::Update()
     const bool isF3 = g_Input->IsKeyPressed( SDL_SCANCODE_F3 );
     const bool isF11 = g_Input->IsKeyPressed( SDL_SCANCODE_F11 );
 
-    const auto gui = dynamic_cast<::Gui*>(m_gui);
-    if ( isGrave )
-        gui->m_DebugMenu->m_IsVisible = !gui->m_DebugMenu->m_IsVisible;
+    //const auto gui = dynamic_cast<::Gui*>(m_gui);
+    //if ( isGrave )
+    //    gui->m_DebugMenu->m_IsVisible = !gui->m_DebugMenu->m_IsVisible;
     if ( isF3 )
         g_Input->SetRelativeMouseMode( !g_Input->GetRelativeMouseMode() );
     else if ( isF11 )

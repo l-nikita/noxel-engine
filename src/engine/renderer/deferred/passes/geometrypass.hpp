@@ -17,8 +17,8 @@ namespace render::deferred::passes
     //-----------------------------------------------------------------------------
     struct GeometryPassContext
     {
-        GBuffer* GBuffer;
-        Camera* Camera;
+        deferred::GBuffer* GBuffer;
+        render::Camera* Camera;
         const std::vector<ModelRenderer*>& ModelRenderers;
     };
 

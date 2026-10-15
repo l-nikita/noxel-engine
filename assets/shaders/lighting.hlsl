@@ -57,6 +57,45 @@ float2 VogelDiskSample(int sampleIndex, int sampleCount, float rotationAngle)
     return float2(cosine, sine) * radius;
 }
 
+float SampleShadowDepth(int shadowMapIndex, float2 uv)
+{
+    if (shadowMapIndex == 0)
+        return g_tShadowMap0.SampleLevel(g_sShadowSampler, uv, 0).r;
+    if (shadowMapIndex == 1)
+        return g_tShadowMap1.SampleLevel(g_sShadowSampler, uv, 0).r;
+    if (shadowMapIndex == 2)
+        return g_tShadowMap2.SampleLevel(g_sShadowSampler, uv, 0).r;
+    return g_tShadowMap3.SampleLevel(g_sShadowSampler, uv, 0).r;
+}
+
+float SampleShadowComparison(int shadowMapIndex, float2 uv, float depth)
+{
+    if (shadowMapIndex == 0)
+        return g_tShadowMap0.SampleCmpLevelZero(g_scShadowSamplerComp, uv, depth);
+    if (shadowMapIndex == 1)
+        return g_tShadowMap1.SampleCmpLevelZero(g_scShadowSamplerComp, uv, depth);
+    if (shadowMapIndex == 2)
+        return g_tShadowMap2.SampleCmpLevelZero(g_scShadowSamplerComp, uv, depth);
+    return g_tShadowMap3.SampleCmpLevelZero(g_scShadowSamplerComp, uv, depth);
+}
+
+float2 ShadowMapTexelSize(int shadowMapIndex)
+{
+    uint shadowWidth = 1;
+    uint shadowHeight = 1;
+
+    if (shadowMapIndex == 0)
+        g_tShadowMap0.GetDimensions(shadowWidth, shadowHeight);
+    else if (shadowMapIndex == 1)
+        g_tShadowMap1.GetDimensions(shadowWidth, shadowHeight);
+    else if (shadowMapIndex == 2)
+        g_tShadowMap2.GetDimensions(shadowWidth, shadowHeight);
+    else
+        g_tShadowMap3.GetDimensions(shadowWidth, shadowHeight);
+
+    return 1.0 / float2(shadowWidth, shadowHeight);
+}
+
 float CalcSpotShadows(
     float3 worldPos,
     float3 normal,
@@ -66,9 +105,7 @@ float CalcSpotShadows(
     float shadowSoftness,
     matrix lightView,
     matrix lightProjection,
-    Texture2D shadowMap,
-    SamplerState shadowDepthSampler,
-    SamplerComparisonState shadowSampler
+    int shadowMapIndex
 )
 {
     float4 lightSpacePos = mul(float4(worldPos, 1.0), lightView);
@@ -88,79 +125,95 @@ float CalcSpotShadows(
         shadowDepth < 0.0 || shadowDepth > 1.0)
         return 1.0;
 
-        // Increase the bias on grazing surfaces, where shadow acne is most visible,
-        // while keeping front-facing surfaces close to the caster.
-        float NdotL = saturate(dot(normalize(normal), normalize(toLight)));
-        float bias = lerp(0.00002, 0.00025, 1.0 - NdotL);
-        uint shadowWidth = 1;
-        uint shadowHeight = 1;
-        shadowMap.GetDimensions(shadowWidth, shadowHeight);
-				
-        float2 texelSize = 1.0 / float2(shadowWidth, shadowHeight);
-        float receiverDepth = LinearizeShadowDepth(shadowDepth, lightRadius);
-        float searchRadius = max(
-            shadowSoftness * saturate((receiverDepth - SHADOW_NEAR_PLANE) / receiverDepth),
-            max(texelSize.x, texelSize.y)
+    /*
+    // Increase the bias on grazing surfaces, where shadow acne is most visible,
+    // while keeping front-facing surfaces close to the caster.
+    float NdotL = saturate(dot(normalize(normal), normalize(toLight)));
+    float bias = lerp(0.00002, 0.00025, 1.0 - NdotL);
+    float2 texelSize = ShadowMapTexelSize(shadowMapIndex);
+    float receiverDepth = LinearizeShadowDepth(shadowDepth, lightRadius);
+    float searchRadius = max(
+        shadowSoftness * saturate((receiverDepth - SHADOW_NEAR_PLANE) / receiverDepth),
+        max(texelSize.x, texelSize.y)
+    );
+    float shadowNoise = ShadowInterleavedNoise(pixelPosition);
+    float kernelRotation = shadowNoise * 2.0 * PI;
+    // Step 1: find occluders around the receiver.
+    float blockerDepthSum = 0.0;
+    int blockerCount = 0;
+
+    [unroll]
+    for (int blockerIndex = 0; blockerIndex < PCSS_BLOCKER_SAMPLES; ++blockerIndex)
+    {
+        float2 diskOffset = VogelDiskSample(
+            blockerIndex,
+            PCSS_BLOCKER_SAMPLES,
+            kernelRotation
         );
-        float shadowNoise = ShadowInterleavedNoise(pixelPosition);
-        float kernelRotation = shadowNoise * 2.0 * PI;
-        // Step 1: find occluders around the receiver.
-        float blockerDepthSum = 0.0;
-        int blockerCount = 0;
+        float2 sampleUV = saturate(shadowUV + diskOffset * searchRadius);
+        float sampledDepth = SampleShadowDepth(shadowMapIndex, sampleUV);
 
-        [unroll]
-        for (int blockerIndex = 0; blockerIndex < PCSS_BLOCKER_SAMPLES; ++blockerIndex)
+        if (sampledDepth < shadowDepth - bias)
         {
-            float2 diskOffset = VogelDiskSample(
-                blockerIndex,
-                PCSS_BLOCKER_SAMPLES,
-                kernelRotation
-            );
-            float2 sampleUV = saturate(shadowUV + diskOffset * searchRadius);
-            float sampledDepth = shadowMap.SampleLevel(shadowDepthSampler, sampleUV, 0).r;
-
-            if (sampledDepth < shadowDepth - bias)
-            {
-                blockerDepthSum += LinearizeShadowDepth(sampledDepth, lightRadius);
-                blockerCount++;
-            }
+            blockerDepthSum += LinearizeShadowDepth(sampledDepth, lightRadius);
+            blockerCount++;
         }
+    }
 
-        if (blockerCount == 0)
-            return 1.0;
+    if (blockerCount == 0)
+        return 1.0;
 
-        // Step 2: estimate penumbra size from receiver/blocker separation.
-        float averageBlockerDepth = blockerDepthSum / blockerCount;
-        float penumbraRatio = max(receiverDepth - averageBlockerDepth, 0.0) /
-            max(averageBlockerDepth, EPSILON);
-        float filterRadius = clamp(
-            shadowSoftness * penumbraRatio,
-            max(texelSize.x, texelSize.y),
-            shadowSoftness * 4.0
+    // Step 2: estimate penumbra size from receiver/blocker separation.
+    float averageBlockerDepth = blockerDepthSum / blockerCount;
+    float penumbraRatio = max(receiverDepth - averageBlockerDepth, 0.0) /
+        max(averageBlockerDepth, EPSILON);
+    float filterRadius = clamp(
+        shadowSoftness * penumbraRatio,
+        max(texelSize.x, texelSize.y),
+        shadowSoftness * 4.0
+    );
+
+    // Step 3: variable-radius PCF produces contact-hardening soft shadows.
+    float shadowSum = 0.0;
+
+    [unroll]
+    for (int filterIndex = 0; filterIndex < PCSS_FILTER_SAMPLES; ++filterIndex)
+    {
+        float2 diskOffset = VogelDiskSample(
+            filterIndex,
+            PCSS_FILTER_SAMPLES,
+            kernelRotation
         );
-
-        // Step 3: variable-radius PCF produces contact-hardening soft shadows.
-        float shadowSum = 0.0;
-
-        [unroll]
-        for (int filterIndex = 0; filterIndex < PCSS_FILTER_SAMPLES; ++filterIndex)
-        {
-            float2 diskOffset = VogelDiskSample(
-                filterIndex,
-                PCSS_FILTER_SAMPLES,
-                kernelRotation
-            );
-            float2 sampleUV = saturate(shadowUV + diskOffset * filterRadius);
-            shadowSum += shadowMap.SampleCmpLevelZero(
-                shadowSampler,
-                sampleUV,
-                shadowDepth - bias
-            );
-        }
+        float2 sampleUV = saturate(shadowUV + diskOffset * filterRadius);
+        shadowSum += SampleShadowComparison(shadowMapIndex, sampleUV, shadowDepth - bias);
+    }
 
     float filteredShadow = shadowSum / PCSS_FILTER_SAMPLES;
     float quantizationDither = (shadowNoise - 0.5) / PCSS_FILTER_SAMPLES;
-    return saturate(filteredShadow + quantizationDither);
+    return saturate(filteredShadow + quantizationDither);*/
+
+    float NdotL = saturate(dot(normalize(normal), normalize(toLight)));
+    float bias = lerp(0.00005, 0.0004, 1.0 - NdotL);
+
+    float2 texelSize = ShadowMapTexelSize(shadowMapIndex);
+
+    float shadowSum = 0.0;
+
+    [unroll]
+    for (int x = -1; x <= 1; ++x)
+    {
+        [unroll]
+        for (int y = -1; y <= 1; ++y)
+        {
+            shadowSum += SampleShadowComparison(
+                shadowMapIndex,
+                shadowUV + float2(x, y) * texelSize,
+                shadowDepth - bias
+            );
+        }
+    }
+
+    return shadowSum / 9.0;
 }
 
 float CalcDirectionalShadows(
@@ -169,8 +222,7 @@ float CalcDirectionalShadows(
     float3 toLight,
     matrix lightView,
     matrix lightProjection,
-    Texture2D shadowMap,
-    SamplerComparisonState shadowSampler
+    int shadowMapIndex
 )
 {
     float4 lightSpacePos = mul(float4(worldPos, 1.0), lightView);
@@ -191,10 +243,7 @@ float CalcDirectionalShadows(
     float NdotL = saturate(dot(normalize(normal), normalize(toLight)));
     float bias = lerp(0.00005, 0.0004, 1.0 - NdotL);
 
-    uint shadowWidth = 1;
-    uint shadowHeight = 1;
-    shadowMap.GetDimensions(shadowWidth, shadowHeight);
-    float2 texelSize = 1.0 / float2(shadowWidth, shadowHeight);
+    float2 texelSize = ShadowMapTexelSize(shadowMapIndex);
 
     float shadowSum = 0.0;
 
@@ -204,8 +253,8 @@ float CalcDirectionalShadows(
         [unroll]
         for (int y = -1; y <= 1; ++y)
         {
-            shadowSum += shadowMap.SampleCmpLevelZero(
-                shadowSampler,
+            shadowSum += SampleShadowComparison(
+                shadowMapIndex,
                 shadowUV + float2(x, y) * texelSize,
                 shadowDepth - bias
             );
@@ -318,9 +367,7 @@ float3 CalcIBL(
     float3 color,
     float metalness,
     float roughness,
-    float ao,
-    TextureCube cubemap,
-    SamplerState samp
+    float ao
 )
 {
     float3 N = normalize(normal);
@@ -334,13 +381,13 @@ float3 CalcIBL(
     uint environmentWidth = 1;
     uint environmentHeight = 1;
     uint environmentMipLevels = 1;
-    cubemap.GetDimensions(0, environmentWidth, environmentHeight, environmentMipLevels);
+    g_tCubemap.GetDimensions(0, environmentWidth, environmentHeight, environmentMipLevels);
     float maxMipLevel = max((float)environmentMipLevels - 1.0, 0.0);
 
     // The last mip provides a cheap diffuse irradiance approximation. The
     // reflection mip selected by roughness acts as a prefiltered environment.
-    float3 irradiance = cubemap.SampleLevel(samp, N, maxMipLevel).rgb;
-    float3 prefilteredColor = cubemap.SampleLevel(samp, R, roughness * maxMipLevel).rgb;
+    float3 irradiance = g_tCubemap.SampleLevel(g_sSampler, N, maxMipLevel).rgb;
+    float3 prefilteredColor = g_tCubemap.SampleLevel(g_sSampler, R, roughness * maxMipLevel).rgb;
 
     float3 F = FresnelSchlickRoughness(NdotV, F0, roughness);
     float3 kS = F;

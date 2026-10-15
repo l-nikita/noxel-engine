@@ -79,7 +79,7 @@ private:
     IPhysics* m_physics = nullptr;
     RenderSystem* m_render = nullptr;
     IRenderPipeline* m_renderPipeline = nullptr;
-    IGui* m_gui = nullptr;
+    // IGui* m_gui = nullptr;
 
     std::vector<ISystem*> m_systems = {};
 

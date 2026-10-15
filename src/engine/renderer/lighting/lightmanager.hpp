@@ -13,8 +13,8 @@ namespace render::lighting
 
     struct LightData
     {
-        std::unique_ptr<Light> Light;
-        std::unique_ptr<ShadowMap> ShadowMap;
+        std::unique_ptr<lighting::Light> Light;
+        std::unique_ptr<lighting::ShadowMap> ShadowMap;
     };
 
     //-----------------------------------------------------------------------------

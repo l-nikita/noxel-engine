@@ -74,9 +74,17 @@ namespace render
         info.Source = vsSrc.c_str();
         device->CreateShader( info, &shader.VertexShader, &blob );
 
-        auto vsErrMsg = static_cast<char*>(blob->GetDataPtr());
+        const auto compilerOutput = []( IDataBlob* output )
+        {
+            if ( !output || !output->GetDataPtr() || output->GetSize() == 0 )
+                return std::string{ "No compiler diagnostics were provided." };
+
+            return std::string{static_cast<const char*>(output->GetDataPtr())};
+        };
+
         if ( !shader.VertexShader || shader.VertexShader->GetStatus() == SHADER_STATUS_FAILED )
-            FATAL_ERROR( std::format("Failed to create pixel shader '{}':\n{}", vsName, vsErrMsg), cmd::RENDERING );
+            FATAL_ERROR( std::format( "Failed to create vertex shader '{}':\n{}", vsName,
+                                      compilerOutput( blob ) ), cmd::RENDERING );
 
         auto psName = data->Name;
         psName += "_ps";
@@ -87,9 +95,9 @@ namespace render
         info.Source = psSrc.c_str();
         device->CreateShader( info, &shader.PixelShader, &blob );
 
-        auto psErrMsg = static_cast<char*>(blob->GetDataPtr());
         if ( !shader.PixelShader || shader.PixelShader->GetStatus() == SHADER_STATUS_FAILED )
-            FATAL_ERROR( std::format("Failed to create pixel shader '{}':\n{}", psName, psErrMsg), cmd::RENDERING );
+            FATAL_ERROR( std::format( "Failed to create pixel shader '{}':\n{}", psName,
+                                      compilerOutput( blob ) ), cmd::RENDERING );
 
         return shader;
     }

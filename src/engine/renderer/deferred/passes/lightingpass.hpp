@@ -14,8 +14,8 @@ namespace render::deferred::passes
     //-----------------------------------------------------------------------------
     struct LightingPassContext
     {
-        GBuffer* GBuffer;
-        Camera* Camera;
+        deferred::GBuffer* GBuffer;
+        render::Camera* Camera;
         ITextureView* SkyTextureView;
     };
 

@@ -73,7 +73,7 @@ if ( PLATFORM_WIN32 )
 
     target_link_libraries( engine PUBLIC
             Diligent-GraphicsEngineD3D11-static
-            # Diligent-GraphicsEngineVk-static
+            Diligent-GraphicsEngineVk-static
             d3d11
             dxgi
             d3dcompiler
@@ -83,9 +83,9 @@ else ()
     if ( PLATFORM_LINUX )
         target_compile_definitions( engine INTERFACE PLATFORM_LINUX=1 )
 
-        # target_link_libraries( engine PUBLIC
-        #         Diligent-GraphicsEngineVk-static
-        # )
+        target_link_libraries( engine PUBLIC
+                Diligent-GraphicsEngineVk-static
+        )
     endif ()
 endif ()
 

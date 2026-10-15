@@ -16,10 +16,10 @@ namespace assets
 
     struct Asset
     {
-        Id Id;
+        assets::Id Id;
         std::string Name;
         fs::Path Path;
-        Type Type;
+        assets::Type Type;
     };
 
     struct IAssetData

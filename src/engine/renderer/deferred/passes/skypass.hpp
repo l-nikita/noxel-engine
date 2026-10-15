@@ -13,7 +13,7 @@ namespace render::deferred::passes
     //-----------------------------------------------------------------------------
     struct SkyPassContext
     {
-        Camera* Camera;
+        render::Camera* Camera;
         ITextureView* SkyTextureView;
     };
 
